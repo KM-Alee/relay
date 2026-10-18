@@ -57,3 +57,55 @@ export interface Notifier {
   /** auth.test: connectivity probe. */
   authTest(creds: Creds): Promise<{ teamId: string; botUserId: string }>;
 }
+
+// ── Messaging (Meta WhatsApp Cloud API, docs/04 §1 + §3). Phone numbers are E.164 with a leading '+'. ──
+export type E164 = string;
+
+export type ParsedMessagingEvent =
+  | {
+      type: 'inbound';
+      /** wamid (dedupe key, I1.8) */
+      externalEventId: string;
+      phoneNumberId: string | null;
+      from: E164;
+      profileName?: string;
+      at: Date;
+      kind: 'text' | 'audio' | 'image' | 'document' | 'other';
+      text?: string;
+      providerMediaId?: string;
+      mime?: string;
+      filename?: string;
+    }
+  | {
+      type: 'status';
+      /** `wamid:status` */
+      externalEventId: string;
+      phoneNumberId: string | null;
+      providerMessageId: string;
+      status: 'sent' | 'delivered' | 'read' | 'failed';
+      at: Date;
+      errorCode?: string;
+      errorTitle?: string;
+    };
+
+export interface MessagingProvider {
+  id: 'meta_whatsapp';
+  /** X-Hub-Signature-256 over the RAW body, constant-time. Fails closed when the app secret is missing. */
+  verifyWebhook(req: RawRequest, creds: Creds): { ok: true } | { ok: false; reason: string };
+  /** GET hub.challenge handshake; null when the request is not a handshake. */
+  handshake(req: RawRequest, creds: Creds): Response | null;
+  /** One HTTP body to many events. Call ONLY after verifyWebhook succeeded. */
+  parseWebhook(req: RawRequest): ParsedMessagingEvent[];
+  sendText(to: E164, body: string, creds: Creds): Promise<{ providerMessageId: string }>;
+  sendTemplate(
+    to: E164,
+    t: { name: string; lang: string; params: string[] },
+    creds: Creds,
+  ): Promise<{ providerMessageId: string }>;
+  sendMedia(
+    to: E164,
+    m: { url: string; mime: string; caption?: string },
+    creds: Creds,
+  ): Promise<{ providerMessageId: string }>;
+  downloadMedia(providerMediaId: string, creds: Creds): Promise<{ bytes: Uint8Array; mime: string }>;
+}

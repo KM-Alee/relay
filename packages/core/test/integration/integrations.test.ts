@@ -274,7 +274,7 @@ describe('[I4.3] linking and [I4.2] alerts', () => {
     await sendSlackAlert(ws, payload);
     expect(fake.posted).toHaveLength(1);
     expect(fake.posted[0]!.slackUserId).toBe('U123');
-    expect(JSON.stringify(fake.posted[0]!.msg)).not.toContain('PKR'); // fail-closed until mask.ts (T-102)
+    expect(JSON.stringify(fake.posted[0]!.msg)).toContain('PKR'); // owner holds crm.opportunity.value.view (real mask.ts check)
     await sendSlackAlert(ws, payload); // idempotent: already sent
     expect(fake.posted).toHaveLength(1);
     const a = await withWorkspaceTx(ws, (tx) =>

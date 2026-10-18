@@ -10,6 +10,8 @@ import { noopJob } from './handlers/noop';
 import { wakeScheduleJob } from './handlers/wake-schedule';
 import { slackSendJob } from './handlers/slack-send';
 import { slackUpdateJob } from './handlers/slack-update';
+import { mediaDownloadJob } from './handlers/media-download';
+import { whatsappSendJob } from './handlers/whatsapp-send';
 import type { JobContext, JobHandler } from './types';
 
 const handlers = [
@@ -18,6 +20,8 @@ const handlers = [
   slackSendJob, // C: T-145
   slackUpdateJob, // C: T-145
   integrationProcessJob, // C: T-140/T-145
+  whatsappSendJob, // C: T-141
+  mediaDownloadJob, // C: T-142
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];

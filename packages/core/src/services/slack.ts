@@ -6,7 +6,9 @@
 import { randomBytes } from 'node:crypto';
 import { withSystemTx, withWorkspaceTx, type Tx } from '@relay/db';
 import { sql } from 'drizzle-orm';
-import type { Actor } from '../auth/actor';
+import type { Actor, BaseLevel } from '../auth/actor';
+import { loadEffectivePermissions } from '../auth/effective-permissions';
+import { canSeeValue } from '../auth/mask';
 import { config } from '../config';
 import { log } from '../log';
 import { breakerAllows } from '../integrations/breaker';
@@ -134,9 +136,23 @@ export async function enqueueSlackAlert(tx: Tx, a: SlackAlertInput): Promise<str
   return alertId;
 }
 
-/** TEMPORARY: until core/auth/mask.ts (T-102) is merged, never reveal values in Slack (fail closed). */
-async function recipientMayViewValue(_tx: Tx, _userId: string): Promise<boolean> {
-  return false; // TODO(T-102): can(actorFor(user), 'crm.opportunity.value.view') via core/auth/mask.ts
+/** Opportunity values in Slack are shown per recipient: real permission check through core/auth/mask.ts (F1.4). */
+async function recipientMayViewValue(tx: Tx, workspaceId: string, userId: string): Promise<boolean> {
+  const u = (
+    await tx.execute<{ base_level: BaseLevel }>(
+      sql`select base_level from users where id = ${userId} and is_active`,
+    )
+  ).rows[0];
+  if (!u) return false; // fail closed
+  const permissions = await loadEffectivePermissions(tx, workspaceId, userId, u.base_level);
+  return canSeeValue({
+    userId,
+    workspaceId,
+    sessionId: '',
+    baseLevel: u.base_level,
+    permissions,
+    locale: 'en',
+  });
 }
 
 async function logOutbound(
@@ -187,7 +203,7 @@ export async function sendSlackAlert(
     ).rows[0];
     const conn = await ensurePlatformConnection(tx, workspaceId, 'slack');
     const creds = slackCredsFromRow(conn);
-    const mayView = await recipientMayViewValue(tx, p.userId);
+    const mayView = await recipientMayViewValue(tx, workspaceId, p.userId);
     const fail = async (status: 'skipped', error: string) => {
       await tx.execute(
         sql`update slack_alerts set status = ${status}, error = ${error} where id = ${p.alertId}`,

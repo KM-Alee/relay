@@ -75,11 +75,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-117 | Contact 360 page | B | todo |  |  |  |
 | T-118 | CSV export | B | todo |  |  |  |
 | T-151 | Audit log viewer | B | todo |  |  |  |
-| T-141 | Meta WhatsApp adapter + webhook | C | todo |  |  |  |
-| T-142 | WhatsApp media → Blob | C | todo |  |  |  |
+| T-141 | Meta WhatsApp adapter + webhook | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | Graph v25.0; webhook `/api/webhooks/meta/[key]`; Lane A hook `registerInboundCustomerMessageHandler` (messaging-hooks.ts); contacts/leads tables not on main: contact match is guarded (`to_regclass`) and the hook creates contact+lead |
+| T-142 | WhatsApp media → Blob | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | private Blob (`access:'private'`), Postgres `bytea` fallback (8 MB cap) when no token; proxy `/api/v1/media/:id` |
 | T-143 | Stripe payments | C | todo |  |  |  |
 | T-144 | Google Calendar | C | todo |  |  |  |
-| T-146 | Conversations inbox UI | C | todo |  |  |  |
+| T-146 | Conversations inbox UI | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | plain markup (Lane D components pending); polls every 4 s (no TanStack in deps) |
 | T-162 | Responsive + a11y pass | D | todo |  |  |  |
 | T-160 | P0 baseline acceptance suite | Q | todo |  |  |  |
 | T-161 | Security suite | Q | todo |  |  |  |

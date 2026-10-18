@@ -1,8 +1,7 @@
-// SEAMS to other lanes' APIs. enqueueJob -> Lane A's outbox repo (merged). appendAudit is a raw-SQL
-// equivalent of Lane B's `audit.append()` (T-007, not on main yet; same table, the chain is a DB trigger).
-// TODO(T-007): swap appendAudit's body for audit.append() once Lane B is merged.
+// SEAMS to other lanes' APIs: enqueueJob -> Lane A's outbox repo; appendAudit -> Lane B's audit.append().
 import type { Tx } from '@relay/db';
-import { sql } from 'drizzle-orm';
+import * as audit from '../audit';
+import type { AuditEntry } from '../audit';
 import type { Actor } from '../auth/actor';
 import { DEFAULT_MAX_ATTEMPTS } from '../jobs/policy';
 import * as outboxRepo from '../repos/outbox';
@@ -35,22 +34,9 @@ export async function enqueueJob(
 
 export type AuditActorLike = Actor | { type: 'system'; workspaceId: string };
 
-export interface AuditInput {
-  action: string;
-  targetType: string;
-  targetId?: string | null;
-  before?: Record<string, unknown> | null;
-  after?: Record<string, unknown> | null;
-  meta?: Record<string, unknown> | null;
-}
+export type AuditInput = AuditEntry;
 
-const json = (v: unknown) => (v == null ? null : JSON.stringify(v));
-
+/** Thin wrapper over the real hash-chained `audit.append()` (T-007); kept so Lane C call sites stay short. */
 export async function appendAudit(tx: Tx, actor: AuditActorLike, e: AuditInput): Promise<void> {
-  const system = 'type' in actor;
-  await tx.execute(sql`
-    insert into audit_events (workspace_id, actor_type, actor_user_id, action, target_type, target_id, before, after, meta)
-    values (${actor.workspaceId}, ${system ? 'system' : 'user'}::audit_actor_type, ${system ? null : actor.userId},
-            ${e.action}, ${e.targetType}, ${e.targetId ?? null}, ${json(e.before)}::jsonb,
-            ${json(e.after)}::jsonb, ${json(e.meta)}::jsonb)`);
+  await audit.append(tx, actor, e);
 }

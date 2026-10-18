@@ -7,7 +7,8 @@ const SECRET_KEY = /(secret|token|key|authorization|password|signature|response_
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const PHONE = /\+?\d[\d\s-]{7,}\d/g;
 // Slack tokens / generic bearer-ish secrets that might appear inside free text or error strings.
-const TOKENISH = /\b(xox[a-z]-[A-Za-z0-9-]+|sk_(?:test|live)_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+)\b/g;
+const TOKENISH =
+  /\b(xox[a-z]-[A-Za-z0-9-]+|sk_(?:test|live)_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|EAA[A-Za-z0-9]{20,})\b/g;
 
 export const sha256Hex = (s: string) => createHash('sha256').update(s).digest('hex');
 

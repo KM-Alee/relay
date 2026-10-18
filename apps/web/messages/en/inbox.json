@@ -1,1 +1,62 @@
-{ "title": "Inbox", "composer": { "send": "Send" } }
+{
+  "title": "Inbox",
+  "loading": "Loading…",
+  "loadFailed": "Could not load conversations.",
+  "empty": "No conversations yet. Customer WhatsApp messages will appear here.",
+  "list": { "label": "Conversations" },
+  "filter": { "all": "All", "unread": "Unread", "failed": "Failed" },
+  "row": {
+    "failed": "Failed",
+    "unread": "{count, plural, one {# unread message} other {# unread messages}}",
+    "noMessages": "No messages"
+  },
+  "thread": {
+    "label": "Conversation",
+    "pick": "Select a conversation.",
+    "back": "Back",
+    "retry": "Retry",
+    "retrying": "Retrying…",
+    "unsupported": "Unsupported message type",
+    "template": "Template: {name}",
+    "image": "Photo from customer",
+    "audio": "Voice message",
+    "document": "Document"
+  },
+  "status": {
+    "queued": "Sending…",
+    "sending": "Sending…",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "read": "Read",
+    "failed": "Failed"
+  },
+  "failure": {
+    "recipient_not_allowed": "This number is not on the test recipient list yet. Add it in the Meta console, then retry.",
+    "window_closed": "The 24-hour window is closed. Send an approved template instead.",
+    "token_expired": "WhatsApp access has expired. Ask an admin to reconnect it in Integrations.",
+    "undeliverable": "WhatsApp could not deliver this message to the customer.",
+    "template_invalid": "The template was rejected. Check its name, language and parameters.",
+    "rate_limited": "WhatsApp is limiting messages right now. It will be retried automatically.",
+    "opted_out": "This customer has opted out of messages.",
+    "not_connected": "WhatsApp is not connected. Ask an admin to connect it in Integrations.",
+    "unknown": "The message could not be sent."
+  },
+  "window": {
+    "open": "Reply window open",
+    "closed": "Reply window closed",
+    "openHelp": "You can reply freely for another {hours}h {minutes}m.",
+    "closedHelp": "The 24-hour reply window is closed. You can only send an approved template."
+  },
+  "optOut": {
+    "suggested": "The customer may have asked to stop messages.",
+    "apply": "Mark as opted out",
+    "clear": "Allow messages again",
+    "blocked": "This customer has opted out. Messages are blocked."
+  },
+  "composer": {
+    "send": "Send",
+    "message": "Message",
+    "template": "Template",
+    "param": "Template value {n}"
+  }
+}
