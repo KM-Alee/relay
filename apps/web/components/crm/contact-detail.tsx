@@ -3,10 +3,11 @@
 // fields (T-112), notes and call logs (T-116). Every related record on one page.
 import type { ActivityDto, FieldValue } from '@relay/contracts/api/crm';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useState, type FormEvent } from 'react';
+import { Fragment, useState, type FormEvent } from 'react';
 import { api, ApiError } from '@/lib/api-client';
 import { Link } from '@/lib/i18n/navigation';
 import { AIBadge } from '@/components/relay/ai-badge';
+import { OpportunityPayments, PaymentStatusBadge } from './opportunity-payments';
 import { ErrorNote, FieldInput, Money, has, ui, useFieldLabel, useFieldText, useLoad, useMe } from './ui';
 
 export function ContactDetail({ id }: { id: string }) {
@@ -140,9 +141,22 @@ export function ContactDetail({ id }: { id: string }) {
             {contact.optedOut && ` · ${t('optedOut')}`}
           </p>
         </div>
-        <Link href="/contacts" className={ui.btn}>
-          {t('back')}
-        </Link>
+        <div className={ui.row}>
+          {has(me, 'appointments.manage') && (
+            <Link
+              href={{
+                pathname: '/appointments',
+                query: { book: '1', contactId: id, contactName: contact.name },
+              }}
+              className={ui.btnPrimary}
+            >
+              {t('bookAppointment')}
+            </Link>
+          )}
+          <Link href="/contacts" className={ui.btn}>
+            {t('back')}
+          </Link>
+        </div>
       </header>
 
       {conflict && (
@@ -289,16 +303,30 @@ export function ContactDetail({ id }: { id: string }) {
           <table className={ui.table}>
             <tbody>
               {d.opportunities.map((o) => (
-                <tr key={o.id}>
-                  <td className={ui.td}>{o.title}</td>
-                  <td className={ui.td}>
-                    <Money value={o.value} />
-                  </td>
-                  <td className={ui.td}>{o.ownerName}</td>
-                  <td className={ui.td}>
-                    {fmt.dateTime(new Date(o.stageEnteredAt), { dateStyle: 'medium' })}
-                  </td>
-                </tr>
+                <Fragment key={o.id}>
+                  <tr>
+                    <td className={ui.td}>{o.title}</td>
+                    <td className={ui.td}>
+                      <Money value={o.value} />
+                    </td>
+                    <td className={ui.td}>{o.ownerName}</td>
+                    <td className={ui.td}>
+                      {fmt.dateTime(new Date(o.stageEnteredAt), { dateStyle: 'medium' })}
+                    </td>
+                  </tr>
+                  {has(me, 'payments.request') && (
+                    <tr>
+                      <td colSpan={4} className={ui.td}>
+                        <OpportunityPayments
+                          opportunityId={o.id}
+                          contactId={id}
+                          hasPhone={!!contact.phoneE164}
+                          defaultValue={o.value && !o.value.masked ? o.value : null}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -316,7 +344,19 @@ export function ContactDetail({ id }: { id: string }) {
             <ul>
               {d.related[k].map((r) => (
                 <li key={r.id}>
-                  {r.label} {r.status && <span className={ui.chip}>{r.status}</span>}
+                  {r.label}{' '}
+                  {r.status &&
+                    (k === 'payments' ? (
+                      <PaymentStatusBadge status={r.status as never} />
+                    ) : (
+                      <span className={ui.chip}>{r.status}</span>
+                    ))}
+                  {r.at && (
+                    <span className={ui.muted}>
+                      {' '}
+                      · {fmt.dateTime(new Date(r.at), { dateStyle: 'medium', timeStyle: 'short' })}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -433,6 +473,7 @@ export function ContactDetail({ id }: { id: string }) {
 
 function ActivityBody({ a }: { a: ActivityDto }) {
   const t = useTranslations('crm.detail');
+  const tp = useTranslations('crm.payments');
   const p = a.payload as Record<string, unknown>;
   if (a.type === 'note') return <p>{String(p.body ?? '')}</p>;
   if (a.type === 'call')
@@ -452,6 +493,16 @@ function ActivityBody({ a }: { a: ActivityDto }) {
     return (
       <p>{t('editedLine', { fields: (p.changes as { key: string }[]).map((c) => c.key).join(', ') })}</p>
     );
+  if (a.type === 'payment')
+    return (
+      <p>
+        {t('paymentLine', {
+          status: tp(`status.${String(p.status ?? 'pending')}` as 'status.paid'),
+        })}
+      </p>
+    );
+  if (a.type === 'appointment')
+    return <p>{t('appointmentLine', { what: String(p.what ?? ''), title: String(p.title ?? '') })}</p>;
   if (a.type === 'assignment') return <p>{t('assignedLine')}</p>;
   if (typeof p.body === 'string') return <p>{p.body}</p>;
   return null;

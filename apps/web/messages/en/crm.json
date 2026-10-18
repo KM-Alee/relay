@@ -114,7 +114,10 @@
     "callLine": "{direction} call, {outcome}, {minutes} min.",
     "stageLine": "Moved from {from} to {to}",
     "editedLine": "Changed: {fields}",
-    "assignedLine": "Owner changed"
+    "assignedLine": "Owner changed",
+    "bookAppointment": "Book appointment",
+    "paymentLine": "Payment: {status}",
+    "appointmentLine": "Appointment {what}: {title}"
   },
   "companies": {
     "title": "Companies",
@@ -234,6 +237,34 @@
       "confirmDelete": "Delete the tag {name}?",
       "newName": "New tag",
       "create": "Add tag"
+    }
+  },
+  "payments": {
+    "send": "Send payment link",
+    "count": "{count, plural, one {# payment request} other {# payment requests}}",
+    "amount": "Amount ({currency}), blank = opportunity value",
+    "create": "Create link",
+    "created": "Payment link created",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "copyFailed": "Could not copy. Select the link and copy it by hand.",
+    "sendWhatsapp": "Send via WhatsApp",
+    "sent": "Payment link queued for WhatsApp",
+    "preparing": "Preparing the secure checkout link…",
+    "hidden": "Amount hidden",
+    "status": {
+      "pending": "Awaiting payment",
+      "paid": "Paid",
+      "failed": "Failed",
+      "expired": "Expired",
+      "refunded": "Refunded",
+      "partially_refunded": "Partly refunded"
+    },
+    "reason": {
+      "no_conversation": "There is no WhatsApp conversation with this customer yet. Copy the link and send it another way.",
+      "window_closed": "The 24-hour WhatsApp window is closed. Copy the link or send an approved template.",
+      "opted_out": "This customer has opted out of messages.",
+      "payment_link_unavailable": "This link is not ready or is no longer payable."
     }
   }
 }
