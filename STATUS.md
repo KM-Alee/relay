@@ -50,10 +50,10 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-122 | Intake: manual + public form | A | todo |  |  | critical path |
 | T-123 | Acknowledge + notifications + countdown | A | todo |  |  | critical path |
 | T-124 | Escalation timer + chain | A | todo |  |  | critical path |
-| T-110 | Contacts/companies/opportunities CRUD | B | todo |  |  |  |
-| T-111 | Pipelines & stages + board | B | todo |  |  |  |
-| T-112 | Custom fields | B | todo |  |  |  |
-| T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
+| T-110 | Contacts/companies/opportunities CRUD | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-111 | Pipelines & stages + board | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-112 | Custom fields | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-116 | Activity timeline, notes, call logs | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-140 | Integrations page + sync history | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | page at settings/integrations; connections CRUD + secrets + breaker + sync history API; audit via seam until T-007 merges |
 | T-145 | Slack alerts + linking | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | critical path; Lane A hook: `enqueueSlackAlert(tx, …)` in core/services/slack.ts; real-Slack smoke pending (token not in worktree env) |
 | T-150 | Metrics + dashboard | D | todo |  |  |  |
@@ -69,11 +69,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-103 | Invites | B | todo |  |  |  |
 | T-104 | Roles & permissions UI | B | todo |  |  |  |
 | T-105 | User deactivation + sessions UI | B | todo |  |  |  |
-| T-113 | Stage-required fields | B | todo |  |  |  |
-| T-114 | Tags | B | todo |  |  |  |
-| T-115 | Filters + saved lists | B | todo |  |  |  |
-| T-117 | Contact 360 page | B | todo |  |  |  |
-| T-118 | CSV export | B | todo |  |  |  |
+| T-113 | Stage-required fields | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-114 | Tags | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-115 | Filters + saved lists | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-117 | Contact 360 page | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-118 | CSV export | B | in-progress | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-151 | Audit log viewer | B | todo |  |  |  |
 | T-141 | Meta WhatsApp adapter + webhook | C | todo |  |  |  |
 | T-142 | WhatsApp media → Blob | C | todo |  |  |  |
