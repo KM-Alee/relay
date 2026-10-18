@@ -7,6 +7,7 @@ import { calendar } from './domains/calendar';
 import { crm } from './domains/crm';
 import { dashboard } from './domains/dashboard';
 import { integrations } from './domains/integrations';
+import { judge } from './domains/judge';
 import { leads } from './domains/leads';
 import { messaging } from './domains/messaging';
 import { notifications } from './domains/notifications';
@@ -23,6 +24,7 @@ export const api = {
   crm,
   dashboard,
   integrations,
+  judge,
   leads,
   messaging,
   notifications,
