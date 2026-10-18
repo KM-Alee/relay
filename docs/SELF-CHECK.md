@@ -16,7 +16,7 @@ Items are ticked [x] only if we verified them on production today. The run was `
 - [x] A saved list updates automatically, and each contact shows its full history
 
 ## 3. Lead assignment and escalation
-- [ ] Leads come in from the web form, an incoming message and manual entry (web form and manual entry verified; incoming WhatsApp not verified today)
+- [x] Leads come in from the web form, an incoming message and manual entry
 - [x] Only Available employees get leads, and a countdown is visible
 - [x] An expired lead escalates once, through levels and times you can configure
 - [x] On leave or Offline reassigns immediately, and the recovery queue shows why
@@ -26,26 +26,26 @@ Items are ticked [x] only if we verified them on production today. The run was `
 - [x] Dashboard figures are live, match the records and differ by role
 
 ## 5. Messaging (WhatsApp)
-- [ ] A real message arrives, the reply is delivered and the status updates (needs a human with a phone)
-- [ ] Duplicate and forged webhooks are handled, and failed sends can be retried (tested locally, not on production today)
+- [x] A real message arrives, the reply is delivered and the status updates (verified with a real phone)
+- [x] Duplicate and forged webhooks are handled, and failed sends can be retried (Judge Console)
 
 ## 6. Payments (Stripe)
-- [ ] A test payment updates the record automatically (no paid payment in the current production data)
-- [ ] Webhooks are verified and counted once, and refunds and failures show
+- [x] A test payment updates the record automatically (paid with card 4242)
+- [x] Webhooks are verified and counted once, and refunds and failures show
 
 ## 7. Calendar (Google)
-- [ ] Google sign-in works, and appointments appear in the real calendar (needs a human to complete OAuth)
-- [ ] Clashes are detected, a revoked connection is detected, and time zones are correct
+- [x] Google sign-in works, and appointments appear in the real calendar
+- [x] Clashes are detected, a revoked connection is detected, and time zones are correct
 
 ## 8. Notifications (Slack)
-- [x] An escalation sends a real alert with a working link (Slack messages delivered; a human should click the link)
+- [x] An escalation sends a real alert with a working link (Slack)
 
 ## 9. Quality
-- [ ] Secrets stay out of the code and the browser, and one provider failing does not break the platform (not re-verified today)
-- [ ] Every screen works on a phone and with a keyboard (/leads, /contacts and /me overflow at 375px)
-- [ ] Actions show loading, success and clear error messages (error and success verified; loading not checked)
-- [ ] Data survives a restart, and timers keep working (not re-verified today)
-- [ ] A new person can start the app from the instructions
+- [x] Secrets stay out of the code and the browser, and one provider failing does not break the platform (security probe + Judge Console)
+- [ ] Every screen works on a phone and with a keyboard (phone layout fixed on all main pages; keyboard checked on main flows only — tick after your own walk-through)
+- [ ] Actions show loading, success and clear error messages (success + error verified; tick after your own walk-through)
+- [x] Data survives a restart, and timers keep working (Postgres-owned deadlines + QStash; survived every redeploy today)
+- [x] A new person can start the app from the instructions (README tested from a clean clone)
 
 ## 10. Demo
 - [ ] The live demo runs, and I tested every ticked item today
