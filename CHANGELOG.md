@@ -18,6 +18,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Runtime pool rewrites an owner `DATABASE_URL` to `app_user` via `APP_DB_PASSWORD`; boot check validates the effective user [T-004] [Q6]
 - Realtime change feed: `realtime_events`, `emit()`, `pruneRealtimeEvents()`, `GET /api/v1/changes`, `useRealtime()` poller [T-009] [Q11]
 - GitHub Actions CI (static, tests on postgres:16, build), `pnpm test:ci`, `pnpm traceability` reporter [T-011] [F10.3]
+- Transactional outbox (lease, fencing, backoff, dead-letter), `runDueWork()` with pluggable processors + `job_runs`, `/api/internal/tick` (QStash signature or CRON_SECRET), `/api/v1/tick-nudge`, `after()` kick, QStash wake-ups + backstop schedule script, dev ticker in `pnpm dev` [T-008] [Q5] [F3.8]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
