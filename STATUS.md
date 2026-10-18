@@ -77,8 +77,8 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-151 | Audit log viewer | B | todo |  |  |  |
 | T-141 | Meta WhatsApp adapter + webhook | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | Graph v25.0; webhook `/api/webhooks/meta/[key]`; Lane A hook `registerInboundCustomerMessageHandler` (messaging-hooks.ts); contacts/leads tables not on main: contact match is guarded (`to_regclass`) and the hook creates contact+lead |
 | T-142 | WhatsApp media → Blob | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | private Blob (`access:'private'`), Postgres `bytea` fallback (8 MB cap) when no token; proxy `/api/v1/media/:id` |
-| T-143 | Stripe payments | C | todo |  |  |  |
-| T-144 | Google Calendar | C | todo |  |  |  |
+| T-143 | Stripe payments | C | review | agent:lane-C4 | `worktree-agent-a4ed361607e8f1719` | stripe@23 (API 2026-09-30.endive); `POST /api/webhooks/stripe/[key]`, `/api/v1/opportunities/:id/payment-links`, `/api/v1/payments`; real Checkout Session + signed-event round trip verified (scripts/stripe-smoke.ts); opp/contact ids are FK-less until B2; WhatsApp send awaits C3 |
+| T-144 | Google Calendar | C | review | agent:lane-C4 | `worktree-agent-a4ed361607e8f1719` | per-employee OAuth+PKCE, lazy refresh, needs_reconnect, free/busy UNION local, create/reschedule/cancel via outbox (deterministic event id), Appointments page; consent URL accepted by Google (real); full consent needs a human + redirect URIs registered |
 | T-146 | Conversations inbox UI | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | plain markup (Lane D components pending); polls every 4 s (no TanStack in deps) |
 | T-162 | Responsive + a11y pass | D | todo |  |  |  |
 | T-160 | P0 baseline acceptance suite | Q | todo |  |  |  |

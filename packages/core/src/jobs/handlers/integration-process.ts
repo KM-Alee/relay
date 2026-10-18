@@ -3,6 +3,7 @@ import { withSystemTx, withWorkspaceTx, type Tx } from '@relay/db';
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { processWhatsAppEvent } from '../../services/messaging';
+import { processStripeEvent } from '../../services/payments';
 import { processSlackEvent } from '../../services/slack';
 import { defineJob } from '../types';
 
@@ -13,10 +14,10 @@ export const integrationProcessJob = defineJob({
     const read = (tx: Tx) =>
       tx.execute<{ provider: string }>(sql`select provider from integration_events where id = ${eventId}`);
     const r = await (ctx.workspaceId ? withWorkspaceTx(ctx.workspaceId, read) : withSystemTx(read));
-    // Other providers (Stripe T-143) add their branch here.
     const provider = r.rows[0]?.provider;
     if (provider === 'slack') await processSlackEvent(eventId, ctx.workspaceId);
-    if (provider === 'meta_whatsapp')
+    else if (provider === 'meta_whatsapp')
       await processWhatsAppEvent(eventId, ctx.workspaceId, ctx.attempt >= ctx.maxAttempts);
+    else if (provider === 'stripe') await processStripeEvent(eventId, ctx.workspaceId);
   },
 });

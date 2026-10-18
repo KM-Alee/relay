@@ -28,6 +28,7 @@
     "@vercel/blob": "2.8.2",
     "drizzle-orm": "0.45.4",
     "openai": "7.38.0",
+    "stripe": "23.0.0",
     "zod": "4.6.7"
   }
 }

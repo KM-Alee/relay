@@ -119,6 +119,15 @@ export const sections = {
   stripe: z.object({
     STRIPE_SECRET_KEY: prefixed('sk_test_', 'must be a TEST key (sk_test_…)'),
     STRIPE_WEBHOOK_SECRET: prefixed('whsec_', 'must start with whsec_'),
+    /** Currency Stripe bills in; the test account is US so usd. PKR values are converted (demo FX) and shown as text. */
+    STRIPE_CHARGE_CURRENCY: z.preprocess(
+      (v) => blankToUndefined(v) ?? 'usd',
+      z
+        .string()
+        .length(3)
+        .transform((s) => s.toLowerCase()),
+    ),
+    STRIPE_PKR_PER_USD: num(280),
   }),
 
   // Lane C / T-144: Google Calendar OAuth
