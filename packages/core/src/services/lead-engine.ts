@@ -139,7 +139,11 @@ export async function persist(
   }
   if (r.newRrCursor !== null) await teamsRepo.setRrCursor(tx, eng.team.id, r.newRrCursor);
   await leadsRepo.insertEvents(tx, ws, lead.id, r.events);
-  await leadsRepo.insertNotifications(tx, ws, r.notifications);
+  await leadsRepo.insertNotifications(
+    tx,
+    ws,
+    r.notifications.map((n) => ({ ...n, params: { ...n.params, contactName: o.labels.contactName } })),
+  );
 
   const nameOf = (id: string) => eng.ctx.people.find((p) => p.userId === id)?.name ?? '';
   const reasonTrace = r.events.find((e) => e.trace)?.trace ?? null;

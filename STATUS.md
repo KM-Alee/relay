@@ -45,11 +45,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W2: P0 core loop
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-120 | Teams + availability | A | todo |  |  |  |
-| T-121 | Routing domain (pure) | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `core/domain/leads`: route + T1–T11 transitions + R1–R5, 58 unit tests (incl. §10 a/c/d pure, random-sequence invariants). Service layer next |
-| T-122 | Intake: manual + public form | A | todo |  |  | critical path |
-| T-123 | Acknowledge + notifications + countdown | A | todo |  |  | critical path |
-| T-124 | Escalation timer + chain | A | todo |  |  | critical path |
+| T-120 | Teams + availability | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | teams/members/policies migration, signup provisioner + seed, `GET /teams`, `PATCH /users/:id/availability` (T5 absence in same tx; retry kick), shell availability switcher persisted. No team CRUD UI yet |
+| T-121 | Routing domain (pure) | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `core/domain/leads`: route + T1–T11 transitions + R1–R5, 58 unit tests (incl. §10 a/c/d pure, random-sequence invariants) |
+| T-122 | Intake: manual + public form | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `intakeInTx` (owner decided before insert), `POST /leads`, `/f/[slug]` + `POST /api/public/forms/:slug` (honeypot, 10/10 min per IP). Verified live: everyone Offline → owned by fallback custodian, reason `no_available`. Form is en only |
+| T-123 | Acknowledge + notifications + countdown | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `POST /leads/:id/acknowledge` (409 LEAD_STATE_CHANGED), `recordHumanActionInTx` hook for T-116, notifications API + bell wired in AppShell, leads list/detail with CountdownRing. No sound cue toggle yet |
+| T-124 | Escalation timer + chain | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `lead_timers` processor (T3/T4/T9), overdue attempts, end-of-chain critical, Slack via `enqueueSlackAlert`, `lead.retry_routing` job, realtime prune. §9.1–3/5/6 Postgres tests green. No policy settings form yet. See OQ-11 |
 | T-110 | Contacts/companies/opportunities CRUD | B | todo |  |  |  |
 | T-111 | Pipelines & stages + board | B | todo |  |  |  |
 | T-112 | Custom fields | B | todo |  |  |  |
@@ -142,9 +142,10 @@ _None yet._ Format: `- [T-xxx] what is blocked · why · who can unblock · sinc
 
 New ones go here as `| OQ-n | question | default we're building | source |`, and move to Resolved once decided.
 
-| OQ-1 | Must named escalation targets (team backup, team manager, `user` level) be team members to receive a lead? | No: membership is required only for round-robin rotation, manual reassign without override, and claims. Named targets are designated by an Admin | 03 §1 vs F3.5 (T-121) |
-| OQ-2 | After a full pass with no transfer and cycles remaining, when does the chain restart? | Overdue attempt now; `escalation_level=0`; next evaluation after level 1's timeout walks from level 1. Exhausted chain: `escalate_at` = retry cadence and a hit runs T4 (`routing_retry_assigned`) | 03 T3 steps 4–5 (T-121) |
-| OQ-3 | Does an idle re-trigger restart the escalation chain? | Yes: `escalation_level=1`, `escalation_cycle=0`; `escalation_count` untouched. The counter moves only if ownership actually changes | F3.10 (T-121) |
+| OQ-8 | Must named escalation targets (team backup, team manager, `user` level) be team members to receive a lead? | No: membership is required only for round-robin rotation, manual reassign without override, and claims. Named targets are designated by an Admin | 03 §1 vs F3.5 (T-121) |
+| OQ-9 | After a full pass with no transfer and cycles remaining, when does the chain restart? | Overdue attempt now; `escalation_level=0`; next evaluation after level 1's timeout walks from level 1. Exhausted chain: `escalate_at` = retry cadence and a hit runs T4 (`routing_retry_assigned`) | 03 T3 steps 4–5 (T-121) |
+| OQ-10 | Does an idle re-trigger restart the escalation chain? | Yes: `escalation_level=1`, `escalation_cycle=0`; `escalation_count` untouched. The counter moves only if ownership actually changes | F3.10 (T-121) |
+| OQ-11 | A handler assigned by routing retry AFTER chain exhaustion: does it get a fresh chain? | No (cycle stays exhausted, level 0). If their window expires and only already-tried people are eligible → overdue attempt + critical again, then the retry may hand it back. Seen live with 15 s windows (handler → custodian → same handler). Alternative: reset `escalation_cycle` on a retry assignment | 03 T3/T4 (T-124 live run) |
 
 ## Discrepancies with requirements
 
@@ -173,3 +174,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · agent:w0:** T-001, T-002, T-003, T-006 done on `w0-skeleton` (4 commits). `pnpm check` + `pnpm build` green locally against Docker Postgres. Slack replaces Telegram in config/.env.example per coordinator (ADR-0011; other docs handled elsewhere). Extension points for T-013/T-101 listed in the W0 report: `lib/http/session.ts#resolveActor`, `core/auth/actor.ts`, `contracts/src/errors.ts`, `db/src/schema/index.ts`, `messages/<locale>/errors.json`.
 - **2026-10-18 · agent:w0:** T-013 done on `w0-t013` (6 commits). Skeleton per 13 §10; endpoint recipe in 13 §4. Proved two `wt.sh` worktrees run `pnpm test` simultaneously (105/105 each) after fixing a real clash: concurrent first-time migrations collided on the cluster-global `app_user` role ("tuple concurrently updated"); runner now retries. `pnpm check` + `pnpm build` green. Note: an uncommitted `.gitignore` edit (`.vercel`, `.env*`) appeared from outside this task and was left uncommitted (`.env*` after `!.env.example` re-ignores it).
 - **2026-10-18 · agent:c2-ai:** T-204/T-205/T-214 -> review; T-206/T-207 core done (branch `worktree-agent-a4c320d0e5d09ec69`). `@relay/core/ai` exports triage, stand-in (+guards, static en/ur/ur-Latn templates), handoff brief, runAiTask with daily cap + `ai_usage`. Defaults gpt-4.1-mini (chat) / gpt-4.1-nano (triage) / gpt-4o-mini-transcribe. `pnpm ai:eval` run against real OpenAI, ~$0.0003/call. Not built: outbox jobs, trigger/state machine (messaging lane), integration_events row, breaker, transcription task.
+- **2026-10-18 · agent:lane-A:** T-121 (pure domain) then T-120/T-122/T-123/T-124 on `worktree-agent-a20c3ee4679194024` (merged main first). Migration `202610181410_a_teams_leads`, lead-engine service, timers processor, APIs, leads pages, public form. `pnpm check` green (417 tests) incl. Postgres invariants (two ticks escalate once, two acks one winner, ack vs timer, never ownerless). Live run: form with everyone Offline → fallback custodian `no_available`; 15 s window → escalation Bilal→Hina + `slack.send escalated` outbox row; owner ack 200, repeat 409. Follow-ups: policy settings form, sound cue, ur public form, OQ-11.

@@ -8,6 +8,7 @@ import { useMemo, type ReactNode } from 'react';
 import { api } from '@/lib/api-client';
 import { qk } from '@/lib/query/keys';
 import { useAvailability } from '@/lib/query/use-availability';
+import { useNotificationItems } from '@/lib/query/use-notifications';
 import { visibleNav } from '@/nav';
 import { TopNav } from './top-nav';
 
@@ -15,6 +16,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
   const t = useTranslations('common');
   const me = useQuery({ queryKey: qk.me(), queryFn: ({ signal }) => api.users.me({ signal }), retry: false });
   const availability = useAvailability();
+  const notifications = useNotificationItems(me.isSuccess); // Lane A (T-123)
 
   const items = useMemo(
     () =>
@@ -40,6 +42,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
         roleLabel={me.data ? t(`role.${me.data.user.baseLevel}`) : undefined}
         availability={availability.value}
         onAvailabilityChange={availability.setValue}
+        notifications={notifications}
       />
       <main
         id="main"
