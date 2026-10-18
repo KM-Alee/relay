@@ -192,45 +192,47 @@ export function ContactsView() {
       ) : rows.length === 0 ? (
         <p className={ui.muted}>{t('empty')}</p>
       ) : (
-        <table className={ui.table}>
-          <thead>
-            <tr>
-              {(['name', 'phone', 'company', 'owner', 'tags', 'lastActivity'] as const).map((c) => (
-                <th key={c} className={ui.th} scope="col">
-                  {t(c)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((c) => (
-              <tr key={c.id}>
-                <td className={ui.td}>
-                  <Link href={`/contacts/${c.id}`} className="text-[var(--brand-text)] underline">
-                    {c.name}
-                  </Link>
-                </td>
-                <td className={ui.td} dir="ltr">
-                  {c.phoneE164}
-                </td>
-                <td className={ui.td}>{c.companyName}</td>
-                <td className={ui.td}>{c.ownerName ?? t('unassigned')}</td>
-                <td className={ui.td}>
-                  <span className={ui.row}>
-                    {c.tags.map((x) => (
-                      <span key={x.id} className={ui.chip}>
-                        {x.name}
-                      </span>
-                    ))}
-                  </span>
-                </td>
-                <td className={ui.td}>
-                  {c.lastActivityAt ? new Date(c.lastActivityAt).toLocaleDateString() : ''}
-                </td>
+        <div className="overflow-x-auto">
+          <table className={ui.table}>
+            <thead>
+              <tr>
+                {(['name', 'phone', 'company', 'owner', 'tags', 'lastActivity'] as const).map((c) => (
+                  <th key={c} className={ui.th} scope="col">
+                    {t(c)}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((c) => (
+                <tr key={c.id}>
+                  <td className={ui.td}>
+                    <Link href={`/contacts/${c.id}`} className="text-[var(--brand-text)] underline">
+                      {c.name}
+                    </Link>
+                  </td>
+                  <td className={ui.td} dir="ltr">
+                    {c.phoneE164}
+                  </td>
+                  <td className={ui.td}>{c.companyName}</td>
+                  <td className={ui.td}>{c.ownerName ?? t('unassigned')}</td>
+                  <td className={ui.td}>
+                    <span className={ui.row}>
+                      {c.tags.map((x) => (
+                        <span key={x.id} className={ui.chip}>
+                          {x.name}
+                        </span>
+                      ))}
+                    </span>
+                  </td>
+                  <td className={ui.td}>
+                    {c.lastActivityAt ? new Date(c.lastActivityAt).toLocaleDateString() : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {next && (
         <button type="button" className={ui.btn} onClick={loadMore}>

@@ -82,7 +82,7 @@ export function ProfileView() {
   return (
     <>
       <PageHeader title={t('profile.title')} description={t('profile.subtitle')} />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader title={t('profile.account')} />
           <div className="mt-4 flex items-center gap-4">
