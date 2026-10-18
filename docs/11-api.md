@@ -121,6 +121,7 @@
 | POST | `/conversations/:id/suggestions` (P2) | `ai.use` + `messaging.send` |
 | POST | `/ai/onboarding-proposals` · `/:id/apply` | Owner |
 | GET | `/audit` (T-151) · POST `/audit/verify` | `audit.view`. **`GET /audit` built (T-151)**: `?type=<action or entity prefix>&userId&from&to&cursor&limit` → `{items, nextCursor}` newest first (keyset by `seq`), diffs value-masked; no mutation route exists (test enumerates). **`/audit/verify` built (T-007)**: `{ ok, checked, firstBrokenSeq, expectedHash, storedHash }` (hex), rate-limited 6/min per user |
+| GET | `/judge` · POST `/judge/:scenario` (T-209) | `demo.judge_console` + `DEMO_MODE` (404 otherwise). `GET` → `{scenarios:[{id,criterion,reqs}]}`; `POST` runs one scenario in the caller's workspace → `{id,status:'pass'\|'fail'\|'pending',expected,actual,steps[],evidence[],startedAt,durationMs}`; audited as `judge.scenario_run`; 120/min per user. Registry: `core/services/judge/registry.ts` |
 | GET | `/dashboard/metrics?figures=` · `/dashboard/drilldown/:figure` | session; company-wide needs `dashboard.company` (F5.4) |
 | POST | `/judge/:scenario` | `demo.judge_console` + `demo_mode` |
 | PATCH | `/workspace/time-warp` | `workspace.settings` + `demo_mode` |

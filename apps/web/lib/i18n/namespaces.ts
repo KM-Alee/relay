@@ -15,5 +15,6 @@ export const NAMESPACES = [
   'ai', // C
   'payments', // C (T-143)
   'appointments', // C (T-144)
+  'judge', // B (T-209)
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

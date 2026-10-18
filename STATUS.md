@@ -92,7 +92,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-202 | Policy builder + routing trace UI | A | todo |  |  |  |
 | T-203 | Slack Acknowledge button | A | todo |  |  |  |
 | T-210 | Time-warp | A | todo |  |  |  |
-| T-209 | Judge Console | B | todo |  |  |  |
+| T-209 | Judge Console | B | review | agent:lane-B4 | `worktree-agent-a8e90ee00747a7365` | 14 scenarios (11 live pass, 3 lead-engine pending placeholders); `core/services/judge/`, `/judge`, `/api/v1/judge`; ns `judge` |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
 | T-204 | AI foundation | C1 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | Provider (OpenAI/fake), runAiTask, cap, ai_usage, prompts registry. `pnpm ai:eval` ran for real. Not yet: integration_events row, breaker, DB-store integration test. |
 | T-208 | Knowledge base + templates editor | C1 | todo |  |  |  |

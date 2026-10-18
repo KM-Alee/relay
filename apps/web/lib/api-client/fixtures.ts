@@ -13,6 +13,7 @@ export type ApiDomain =
   | 'payments'
   | 'calendar'
   | 'integrations'
+  | 'judge'
   | 'ai'
   | 'dashboard'
   | 'realtime';
@@ -29,6 +30,7 @@ export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   payments: false, // C (T-143: real routes merged)
   calendar: false, // C (T-144: real routes merged)
   integrations: false, // C (T-140: real routes merged)
+  judge: false, // B (T-209)
   ai: true, // C
   dashboard: true, // D
   realtime: true, // C
