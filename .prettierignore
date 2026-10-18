@@ -14,3 +14,5 @@ docs/
 *.sql
 .claude
 packages/core/src/ai/prompts/generated.ts
+# Generated, minified Lottie animations (tools/lottie/build.mjs); keep them small.
+apps/web/public/lottie/
