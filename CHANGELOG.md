@@ -7,6 +7,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Added
+- pnpm monorepo (`apps/web` Next.js 16, `@relay/{core,db,contracts}`), ESLint 10 with layering rules, Prettier, Vitest unit/integration projects, Playwright skeleton, root scripts incl. `pnpm check` [T-001] [Q14]
+- Docker Postgres 16, timestamped SQL migration runner with checksums, `app_user` role migration, `workspaces` with forced RLS, `relay_enable_tenant_rls()` + template, `withWorkspaceTx`/`withSystemTx`, RLS test harness, per-worktree test DBs [T-002] [Q6] [F1.6]
+- Sectioned, lazy Zod env config with fail-fast boot check; AES-256-GCM secret envelopes with key rotation [T-003] [Q13] [I5.3]
+- `AppError` + error-code catalogue, `route()` handler wrapper, signed double-submit CSRF + Origin check, DB-backed fixed-window rate limiter (`rate_limits`), localized client error helper with en/ur `errors` messages, `GET /api/v1/csrf` [T-006] [Q3] [Q10] [F1.5] [Q1]
+
+### Changed
+- Notifications env vars: Slack (`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_APP_ID`, `SLACK_TEAM_ID`) replace `TELEGRAM_*` in `.env.example` and `core/config.ts` (ADR-0011) [T-003]
+
 ### Docs
 - Pre-development documentation set: product overview, architecture (Vercel + Neon), data model, lead engine spec, integrations, AI, security, frontend/i18n, testing/traceability, build plan, conventions, API catalogue, ops/demo runbook [pre-dev]
 - ADR-0001..0008: stack, serverless timers, realtime, auth sessions, RLS on Neon, single mutation path, messaging/notification providers, OpenAI-only paid dependency [pre-dev]

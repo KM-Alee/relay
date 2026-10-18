@@ -59,7 +59,9 @@ Use the domain vocabulary from requirements §9 and `03-lead-engine.md` §1 exac
 - Every merged task: update `STATUS.md` + add a line to `CHANGELOG.md` under `[Unreleased]`.
 - If you find a conflict with `requirements.md`, **preserve the requirement**, record it in `STATUS.md` → "Discrepancies", and don't silently override it.
 
-## 6. Root scripts (to be created by T-001; keep names stable, other docs reference them)
+## 6. Root scripts (keep names stable, other docs reference them)
+
+Implemented in W0: `dev` (Next only until T-008 adds the dev ticker), `build`, `lint`, `typecheck`, `format` (+ `format:check`), `test`, `test:unit`, `test:int`, `test:e2e` (alias `e2e`), `db:up`, `db:migrate` (`--test` targets the test DB), `db:generate`, `db:reset`, `check`. The others are added by their owning tasks (`db:seed` T-010, `traceability` T-011, `qstash:schedule` T-008, `ai:eval` T-204; the notifications webhook script follows ADR-0011).
 
 | Script | Does |
 |---|---|

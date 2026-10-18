@@ -4,7 +4,7 @@
 > Status values: `todo` · `in-progress` · `review` · `done` · `blocked` · `cut`
 
 **Last updated:** 2026-10-18 · **Phase:** Pre-development · **Current milestone:** M0 Foundation
-**Code:** none yet. Docs and AI workflow are in place. **Next up:** Wave W0 (T-001 → T-002 → T-003 → T-006 → T-013, one agent). Then `/launch-wave W1`. **Follow the fast track in `docs/09-build-plan.md` §0.**
+**Code:** W0 foundation on branch `w0-skeleton` (T-001/002/003/006 done). **Next up:** T-013 (parallel-ready skeleton), then `/launch-wave W1`. Then `/launch-wave W1`. **Follow the fast track in `docs/09-build-plan.md` §0.**
 
 ## Now / next
 
@@ -21,10 +21,10 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W0: parallel-ready skeleton (1 agent, serial)
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-001 | Monorepo scaffold + lint/test tooling | W0 | todo |  |  |  |
-| T-002 | DB foundation, roles, RLS harness | W0 | todo |  |  |  |
-| T-003 | Config/env validation + secret encryption | W0 | todo |  |  |  |
-| T-006 | API conventions, AppError, CSRF, rate limit | W0 | todo |  |  |  |
+| T-001 | Monorepo scaffold + lint/test tooling | W0 | done | agent:w0 | w0-skeleton | Next 16.4.2, React 19.3, TS 6.0.3 (typescript-eslint caps <6.1), ESLint 10 + layering rules, Vitest 5 projects, Playwright skeleton |
+| T-002 | DB foundation, roles, RLS harness | W0 | done | agent:w0 | w0-skeleton | Postgres 16 compose; own runner `packages/db/src/migrate.ts`; `relay_enable_tenant_rls()`; RLS suite green |
+| T-003 | Config/env validation + secret encryption | W0 | done | agent:w0 | w0-skeleton | `core/config.ts` lazy per-section; Slack vars (ADR-0011); `core/secrets.ts` v1 envelopes |
+| T-006 | API conventions, AppError, CSRF, rate limit | W0 | done | agent:w0 | w0-skeleton | `lib/http/route.ts`, `core/auth/csrf.ts` (signed double-submit), `rate_limits` + limiter, `errors` en/ur |
 | T-013 | Parallel-ready skeleton | W0 | todo |  |  |  |
 
 ### W1: platform
@@ -163,3 +163,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · Claude (pre-dev):** Created `docs/00–12`, ADR-0001..0008, AGENTS.md/CLAUDE.md, `.claude` agents and commands, STATUS/CHANGELOG, `.env.example`. Deploy target switched to Vercel + Neon at the user's request, and the architecture was adapted (serverless timers, Ably realtime, transaction-local RLS). Waiting for the design guidelines.
 - **2026-10-18 · Claude (pre-dev):** At the user's request: all open questions resolved with defaults, organizer caveat dropped, Ably → polled `realtime_events` change feed, cron-job.org → QStash schedule, fast-track wave plan added (`09-build-plan.md` §0). Next: W0.
 - **2026-10-18 · Claude (pre-dev):** Integrated the design package (Warm Orange) into `docs/design/` (tokens, components, screens, decisions DS-1..14) + ADR-0009. Added the parallel playbook (doc 13, ADR-0010, `scripts/wt.sh`, `/launch-wave`), vertical lanes, T-012/T-013, and the Wave/Lane board. Project named **Relay**.
+- **2026-10-18 · agent:w0:** T-001, T-002, T-003, T-006 done on `w0-skeleton` (4 commits). `pnpm check` + `pnpm build` green locally against Docker Postgres. Slack replaces Telegram in config/.env.example per coordinator (ADR-0011; other docs handled elsewhere). Extension points for T-013/T-101 listed in the W0 report: `lib/http/session.ts#resolveActor`, `core/auth/actor.ts`, `contracts/src/errors.ts`, `db/src/schema/index.ts`, `messages/<locale>/errors.json`.

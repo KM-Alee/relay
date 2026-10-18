@@ -1,0 +1,20 @@
+{
+  "validationFailed": "Some of the information is missing or invalid. Check the highlighted fields and try again.",
+  "unauthenticated": "Your session has ended. Sign in again to continue.",
+  "forbidden": "You don't have permission to do this. Ask your workspace owner for access.",
+  "csrfFailed": "We couldn't verify this request. Refresh the page and try again.",
+  "notFound": "We couldn't find that. It may have been removed, or you may not have access.",
+  "conflict": "This conflicts with a recent change. Refresh and try again.",
+  "staleVersion": "This record was changed by someone else just now. Reload to see the latest version.",
+  "leadStateChanged": "This lead changed in the meantime. We've refreshed it for you.",
+  "alreadyClaimed": "Someone else claimed this lead first.",
+  "inviteInvalid": "This invite link is invalid or has expired. Ask for a new invite.",
+  "payloadTooLarge": "That file or request is too large. Try a smaller one.",
+  "unsupportedMediaType": "That file type isn't supported.",
+  "requiredFieldsMissing": "Fill in the required fields before continuing.",
+  "businessRuleViolation": "This action isn't allowed right now.",
+  "rateLimited": "Too many attempts. Wait {retryAfter, plural, one {# second} other {# seconds}} and try again.",
+  "internal": "Something went wrong on our side. Try again in a moment.",
+  "providerUnavailable": "A connected service isn't responding. Try again in a few minutes.",
+  "networkError": "You appear to be offline. Check your connection and try again."
+}
