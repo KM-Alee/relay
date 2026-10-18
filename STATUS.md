@@ -46,7 +46,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
 | T-120 | Teams + availability | A | todo |  |  |  |
-| T-121 | Routing domain (pure) | A | todo |  |  | critical path |
+| T-121 | Routing domain (pure) | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `core/domain/leads`: route + T1–T11 transitions + R1–R5, 58 unit tests (incl. §10 a/c/d pure, random-sequence invariants). Service layer next |
 | T-122 | Intake: manual + public form | A | todo |  |  | critical path |
 | T-123 | Acknowledge + notifications + countdown | A | todo |  |  | critical path |
 | T-124 | Escalation timer + chain | A | todo |  |  | critical path |
@@ -140,7 +140,11 @@ _None yet._ Format: `- [T-xxx] what is blocked · why · who can unblock · sinc
 
 ## Open questions
 
-_None open._ New ones go here as `| OQ-n | question | default we're building | source |`, and move to Resolved once decided.
+New ones go here as `| OQ-n | question | default we're building | source |`, and move to Resolved once decided.
+
+| OQ-1 | Must named escalation targets (team backup, team manager, `user` level) be team members to receive a lead? | No: membership is required only for round-robin rotation, manual reassign without override, and claims. Named targets are designated by an Admin | 03 §1 vs F3.5 (T-121) |
+| OQ-2 | After a full pass with no transfer and cycles remaining, when does the chain restart? | Overdue attempt now; `escalation_level=0`; next evaluation after level 1's timeout walks from level 1. Exhausted chain: `escalate_at` = retry cadence and a hit runs T4 (`routing_retry_assigned`) | 03 T3 steps 4–5 (T-121) |
+| OQ-3 | Does an idle re-trigger restart the escalation chain? | Yes: `escalation_level=1`, `escalation_cycle=0`; `escalation_count` untouched. The counter moves only if ownership actually changes | F3.10 (T-121) |
 
 ## Discrepancies with requirements
 
