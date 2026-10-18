@@ -27,5 +27,12 @@ export const qk = {
   integrations: () => ['integrations'] as const,
   team: {
     availability: (userId = 'me') => ['team', 'availability', userId] as const,
+    members: () => ['team', 'members'] as const,
+    invites: () => ['team', 'invites'] as const,
+    roles: () => ['team', 'roles'] as const,
+    levels: () => ['team', 'levels'] as const,
+    overrides: (userId: string) => ['team', 'overrides', userId] as const,
+    sessions: () => ['team', 'sessions'] as const,
   },
+  audit: (filters?: unknown) => ['audit', filters ?? {}] as const,
 } as const;

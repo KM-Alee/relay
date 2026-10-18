@@ -1,8 +1,19 @@
-// STUB (W0/T-013). Owner: Lane B (T-103) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Team (T-103/T-104/T-105; docs/design/screens.md §8): members + availability + open load, invites, deactivate.
+// Gate: nav.ts (users.manage). The APIs re-check every permission server-side.
+import { can } from '@relay/core/auth/permissions';
 import { requirePage } from '@/lib/http/page-auth';
+import { TeamView } from './team-view';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await requirePage('team'); // T-102: server-side gate (permission from nav.ts)
-  return <ComingSoon screen="nav.team" />;
+  const actor = await requirePage('team');
+  return (
+    <TeamView
+      selfId={actor.userId}
+      isOwner={actor.baseLevel === 'owner'}
+      canInvite={can(actor, 'users.invite')}
+      canManageRoles={can(actor, 'roles.manage')}
+    />
+  );
 }

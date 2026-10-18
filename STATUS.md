@@ -66,15 +66,15 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-127 | Deactivation transfer | A | todo |  |  |  |
 | T-128 | Manual reassign | A | todo |  |  |  |
 | T-129 | Recovery queue | A | todo |  |  |  |
-| T-103 | Invites | B | todo |  |  |  |
-| T-104 | Roles & permissions UI | B | todo |  |  |  |
-| T-105 | User deactivation + sessions UI | B | todo |  |  |  |
+| T-103 | Invites | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
+| T-104 | Roles & permissions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
+| T-105 | User deactivation + sessions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-113 | Stage-required fields | B | todo |  |  |  |
 | T-114 | Tags | B | todo |  |  |  |
 | T-115 | Filters + saved lists | B | todo |  |  |  |
 | T-117 | Contact 360 page | B | todo |  |  |  |
 | T-118 | CSV export | B | todo |  |  |  |
-| T-151 | Audit log viewer | B | todo |  |  |  |
+| T-151 | Audit log viewer | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-141 | Meta WhatsApp adapter + webhook | C | todo |  |  |  |
 | T-142 | WhatsApp media → Blob | C | todo |  |  |  |
 | T-143 | Stripe payments | C | todo |  |  |  |
@@ -107,7 +107,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 |---|---|---|---|---|---|---|
 | T-222 | First-to-claim + pond | A | todo |  |  |  |
 | T-225 | Urgency windows | A | todo |  |  |  |
-| T-220 | Audit verify-integrity UI | B | todo |  |  |  |
+| T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
 | T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
 | T-217 | Voice-note transcription | C | todo |  |  |  |
