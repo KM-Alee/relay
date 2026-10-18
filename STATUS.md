@@ -110,7 +110,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-222 | First-to-claim + pond | A | todo |  |  |  |
 | T-225 | Urgency windows | A | todo |  |  |  |
 | T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
-| T-221 | Stage rot | B | todo |  |  |  |
+| T-221 | Stage rot | B | review | agent:lane-B5 | worktree-agent-a32d162d1eea79dfe | built; typecheck/lint/test/build green; NOT live-verified (no browser/OpenAI run) |
 | T-216 | $ button, instant booking, confirmations | C | review | agent:lane-C5 | `worktree-agent-a0f777d685a83f5ed` | $ button, /f/slug slots+book, appointment.confirm WhatsApp; templates in docs/whatsapp-templates.md; not live-tested (needs Meta-approved templates + connected calendar) |
 | T-217 | Voice-note transcription | C | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | media.download enqueues ai.transcribe; transcript+summary on message; Transcript component mounted in inbox; Retry API; onTranscriptReady hook for stand-in/triage continuation (F8.2) not yet consumed. Real TTS->transcribe run passed |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
@@ -121,9 +121,9 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 |---|---|---|---|---|---|---|
 | T-223 | Skills + per-employee capacity | A | todo |  |  |  |
 | T-224 | Idle re-trigger + counter | A | todo |  |  |  |
-| T-226 | CSV import | B | todo |  |  |  |
-| T-218 | Describe-your-business onboarding | C | todo |  |  |  |
-| T-219 | AI field type | C | todo |  |  |  |
+| T-226 | CSV import | B | review | agent:lane-B5 | worktree-agent-a32d162d1eea79dfe | built; typecheck/lint/test/build green; NOT live-verified (no browser/OpenAI run) |
+| T-218 | Describe-your-business onboarding | B | review | agent:lane-B5 | worktree-agent-a32d162d1eea79dfe | built; typecheck/lint/test/build green; NOT live-verified (no browser/OpenAI run) |
+| T-219 | AI field type | B | review | agent:lane-B5 | worktree-agent-a32d162d1eea79dfe | built; typecheck/lint/test/build green; NOT live-verified (no browser/OpenAI run) |
 | T-227 | Event replay | C | todo |  |  |  |
 
 ### P2: stretch

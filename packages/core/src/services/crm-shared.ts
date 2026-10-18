@@ -163,6 +163,8 @@ export interface FieldRow extends Row {
   label: { en: string; ur: string };
   type: 'text' | 'number' | 'date' | 'dropdown' | 'checkbox' | 'ai';
   options: { value: string; label: { en: string; ur: string } }[];
+  /** `ai` fields only (F9.1). */
+  ai_config?: { prompt: string; outputType: 'text' | 'dropdown' | 'number' } | null;
 }
 
 export async function loadFields(tx: Tx, ids: readonly string[]): Promise<Map<string, FieldRow>> {
@@ -182,6 +184,13 @@ function validValue(f: FieldRow, v: FieldValue): boolean {
       return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
     case 'dropdown':
       return typeof v === 'string' && f.options.some((o) => o.value === v);
+    case 'ai': {
+      // An AI field stores the answer in its configured output shape (F9.1); a human may override it.
+      const out = f.ai_config?.outputType ?? 'text';
+      if (out === 'number') return typeof v === 'number' && Number.isFinite(v);
+      if (out === 'dropdown') return typeof v === 'string' && f.options.some((o) => o.value === v);
+      return typeof v === 'string';
+    }
     default:
       return typeof v === 'string';
   }
@@ -204,7 +213,7 @@ export async function saveFieldValues(
   entity: CrmEntity,
   recordId: string,
   values: Record<string, FieldValue | null>,
-  opts: { pipelineId?: string; source?: 'human' | 'import' } = {},
+  opts: { pipelineId?: string; source?: 'human' | 'import' | 'ai' } = {},
 ): Promise<FieldChange[]> {
   const ids = Object.keys(values);
   if (!ids.length) return [];
@@ -218,16 +227,27 @@ export async function saveFieldValues(
       throw validationFailed(`fields.${id}`, 'invalid_value');
   }
   const col = ENTITY[entity].idCol;
-  const existing = await rows<{ field_id: string; value: FieldValue }>(
+  const existing = await rows<{ field_id: string; value: FieldValue; source: string }>(
     tx,
-    sql`select field_id, value from field_values where ${sql.raw(col)} = ${recordId}::uuid and field_id in ${uuidList(ids)}`,
+    sql`select field_id, value, source from field_values where ${sql.raw(col)} = ${recordId}::uuid and field_id in ${uuidList(ids)}`,
   );
   const prev = new Map(existing.map((r) => [r.field_id, r.value]));
+  const prevSource = new Map(existing.map((r) => [r.field_id, r.source]));
+  const source = opts.source ?? 'human';
+  // An AI answer has no human author; a person saving the same text still takes ownership (human wins).
+  const updatedBy = source === 'ai' ? null : actor.userId;
   const changes: FieldChange[] = [];
   for (const id of ids) {
     const next = values[id] ?? null;
     const before = prev.get(id) ?? null;
-    if (JSON.stringify(before) === JSON.stringify(next)) continue;
+    if (JSON.stringify(before) === JSON.stringify(next)) {
+      if (next !== null && prevSource.get(id) !== source && source === 'human')
+        await tx.execute(
+          sql`update field_values set source = 'human', updated_by = ${updatedBy}::uuid, updated_at = now()
+              where field_id = ${id}::uuid and ${sql.raw(col)} = ${recordId}::uuid`,
+        );
+      continue;
+    }
     if (next === null) {
       await tx.execute(
         sql`delete from field_values where field_id = ${id}::uuid and ${sql.raw(col)} = ${recordId}::uuid`,
@@ -236,12 +256,12 @@ export async function saveFieldValues(
       await tx.execute(
         sql`insert into field_values (id, workspace_id, field_id, ${sql.raw(col)}, value, source, updated_by)
             values (${uuidv7()}::uuid, ${actor.workspaceId}::uuid, ${id}::uuid, ${recordId}::uuid, ${JSON.stringify(next)}::jsonb,
-                    ${opts.source ?? 'human'}, ${actor.userId}::uuid)`,
+                    ${source}, ${updatedBy}::uuid)`,
       );
     } else {
       await tx.execute(
-        sql`update field_values set value = ${JSON.stringify(next)}::jsonb, source = ${opts.source ?? 'human'},
-                updated_by = ${actor.userId}::uuid, updated_at = now()
+        sql`update field_values set value = ${JSON.stringify(next)}::jsonb, source = ${source},
+                updated_by = ${updatedBy}::uuid, updated_at = now()
             where field_id = ${id}::uuid and ${sql.raw(col)} = ${recordId}::uuid`,
       );
     }

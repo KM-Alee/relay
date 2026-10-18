@@ -142,6 +142,13 @@ export const tagAttachParams = z.object({ id: z.uuid(), tagId: z.uuid() });
 // ── Custom fields (F2.2, F2.3) ──────────────────────────────────────────
 export const fieldTypeSchema = z.enum(['text', 'number', 'date', 'dropdown', 'checkbox', 'ai']);
 export const fieldOption = z.object({ value: z.string().min(1).max(60), label: localizedLabel });
+/** AI field (F9.1): what to extract and the shape of the answer. Only on `type: 'ai'` fields. */
+export const aiOutputTypeSchema = z.enum(['text', 'dropdown', 'number']);
+export const aiConfigSchema = z.object({
+  prompt: z.string().trim().min(5).max(500),
+  outputType: aiOutputTypeSchema,
+});
+export type AiConfig = z.infer<typeof aiConfigSchema>;
 export const customFieldDto = z.object({
   id: z.uuid(),
   entity: crmEntitySchema,
@@ -151,6 +158,8 @@ export const customFieldDto = z.object({
   label: localizedLabel,
   type: fieldTypeSchema,
   options: z.array(fieldOption),
+  /** Prompt + output type for `ai` fields; null/absent otherwise. */
+  aiConfig: aiConfigSchema.nullable().optional(),
   position: z.number().int(),
   version: versionSchema,
 });
@@ -162,10 +171,13 @@ export const customFieldInput = z.object({
   label: localizedLabel,
   type: fieldTypeSchema,
   options: z.array(fieldOption).max(50).default([]),
+  /** Required for `type: 'ai'`. */
+  aiConfig: aiConfigSchema.nullish(),
 });
 export const customFieldUpdateInput = z.object({
   label: localizedLabel.optional(),
   options: z.array(fieldOption).max(50).optional(),
+  aiConfig: aiConfigSchema.optional(),
   position: z.number().int().min(0).optional(),
   version: versionSchema,
 });
@@ -224,6 +236,8 @@ export const stageUpdateInput = z.object({
   name: z.string().trim().min(1).max(60).optional(),
   kind: stageKindSchema.optional(),
   requiredFieldIds: z.array(z.uuid()).max(30).optional(),
+  /** Rot period in seconds (F2.9); null clears it. Open stages only. */
+  rotSeconds: z.number().int().min(1).max(31_536_000).nullable().optional(),
   version: versionSchema,
 });
 export const stageReorderInput = z.object({ stageIds: z.array(z.uuid()).min(1).max(30) });
@@ -351,7 +365,12 @@ export const boardColumn = z.object({
   total: moneyFigureSchema,
   opportunities: z.array(opportunityDto),
 });
-export const boardResponse = z.object({ pipeline: pipelineDto, columns: z.array(boardColumn) });
+export const boardResponse = z.object({
+  pipeline: pipelineDto,
+  columns: z.array(boardColumn),
+  /** Rotting cards (F2.9): opportunity id -> idle seconds (time-warp scaled), only those past their stage's rot period. */
+  rotting: z.record(z.uuid(), z.number().int()).optional(),
+});
 
 // ── Activities / timeline (F2.7, F2.13) ─────────────────────────────────
 export const activityTypeSchema = z.enum([

@@ -113,6 +113,11 @@ export function ContactsView() {
         <h1 className={ui.h1}>{t('title')}</h1>
         <div className={ui.row}>
           <ExportButton entity="contact" filter={filterStr} savedListId={listId || undefined} />
+          {has(me, 'crm.import') && has(me, 'crm.contact.create') && (
+            <Link href="/contacts/import" className={ui.btn}>
+              {t('import')}
+            </Link>
+          )}
           {has(me, 'crm.contact.create') && (
             <button type="button" className={ui.btnPrimary} onClick={() => setCreating((v) => !v)}>
               {t('new')}

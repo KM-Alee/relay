@@ -9,6 +9,7 @@ import { assertPermission } from '../auth/permissions';
 import { AppError, notFound, staleVersion } from '../errors';
 import { uuidv7 } from '../ids';
 import { emit } from '../realtime/index';
+import { rottingRows } from '../repos/crm-rot';
 import { recordActivity } from './crm-activity';
 import {
   buildWhere,
@@ -25,6 +26,7 @@ import {
   one,
   rows,
   saveFieldValues,
+  scopeSql,
   uuidList,
   validationFailed,
 } from './crm-shared';
@@ -345,7 +347,14 @@ export const pipelinesService = {
   async updateStage(
     actor: Actor,
     stageId: string,
-    input: { name?: string; kind?: 'open' | 'won' | 'lost'; requiredFieldIds?: string[]; version: number },
+    input: {
+      name?: string;
+      kind?: 'open' | 'won' | 'lost';
+      requiredFieldIds?: string[];
+      /** F2.9 rot period in seconds; null clears; undefined keeps. Won/lost stages cannot rot. */
+      rotSeconds?: number | null;
+      version: number;
+    },
     opts: TxOptions = {},
   ) {
     assertPermission(actor, 'crm.config.manage');
@@ -355,8 +364,14 @@ export const pipelinesService = {
         const cur = await lockStage(tx, stageId);
         if (cur.version !== input.version)
           throw staleVersion(await pipelineOr404(tx, actor, cur.pipeline_id));
+        const kind = input.kind ?? cur.kind;
+        let rot = input.rotSeconds === undefined ? cur.rot_seconds : input.rotSeconds;
+        if (kind !== 'open') {
+          if (input.rotSeconds != null) throw validationFailed('rotSeconds', 'open_stage_only');
+          rot = null; // closing a stage drops its rot period
+        }
         await tx.execute(
-          sql`update stages set name = ${input.name ?? cur.name}, kind = ${input.kind ?? cur.kind}, version = version + 1
+          sql`update stages set name = ${input.name ?? cur.name}, kind = ${kind}, rot_seconds = ${rot}, version = version + 1
               where id = ${stageId}::uuid and version = ${input.version}`,
         );
         if (input.requiredFieldIds) await setRequiredFields(tx, actor, cur, input.requiredFieldIds);
@@ -364,10 +379,11 @@ export const pipelinesService = {
           action: 'stage.updated',
           targetType: 'stage',
           targetId: stageId,
-          before: { name: cur.name, kind: cur.kind },
+          before: { name: cur.name, kind: cur.kind, rotSeconds: cur.rot_seconds },
           after: {
             name: input.name ?? cur.name,
-            kind: input.kind ?? cur.kind,
+            kind,
+            rotSeconds: rot,
             requiredFieldIds: input.requiredFieldIds,
           },
         });
@@ -521,10 +537,20 @@ export const pipelinesService = {
                 where ${where}) x where x.rn <= 50 order by x.stage_entered_at desc, x.id desc`,
         );
         const dtos = await opportunityDtos(tx, actor, cards);
+        // F2.9: which of the shown cards are past their stage's rot period (one shared definition).
+        const rot = pipeline.stages.some((st) => st.rotSeconds)
+          ? await rottingRows(tx, {
+              workspaceId: actor.workspaceId,
+              scope: scopeSql(actor, 'opportunity'),
+              pipelineId,
+              ids: cards.map((c) => c.id),
+            })
+          : [];
         const byStage = new Map<string, OpportunityDto[]>();
         for (const d of dtos) byStage.set(d.stageId, [...(byStage.get(d.stageId) ?? []), d]);
         return {
           pipeline,
+          rotting: Object.fromEntries(rot.map((r) => [r.id, Number(r.idle_seconds)])),
           columns: pipeline.stages.map((stage) => {
             const a = agg.find((x) => x.stage_id === stage.id);
             return {
