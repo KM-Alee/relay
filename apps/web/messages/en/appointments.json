@@ -1,0 +1,74 @@
+{
+  "title": "Appointments",
+  "subtitle": "Book customer appointments on real Google Calendars. Times are shown in your time zone.",
+  "loading": "Loading appointments…",
+  "loadFailed": "Could not load appointments.",
+  "empty": "Nothing scheduled this week.",
+  "connection": {
+    "title": "Your Google Calendar",
+    "status": {
+      "not_connected": "Not connected",
+      "connected": "Connected",
+      "needs_reconnect": "Needs reconnect",
+      "error": "Error"
+    },
+    "as": "Connected as {email}",
+    "connect": "Connect Google Calendar",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect",
+    "unavailable": "Google Calendar is not set up on this deployment.",
+    "banner": {
+      "connected": "Google Calendar connected.",
+      "denied": "Access was not granted. Nothing was connected.",
+      "error": "Could not connect Google Calendar. Please try again.",
+      "unavailable": "Google Calendar is not set up on this deployment."
+    }
+  },
+  "team": {
+    "title": "Team calendars",
+    "bookable": "Can be booked",
+    "reason": {
+      "no_calendar_connected": "No calendar connected",
+      "needs_reconnect": "Calendar needs to be reconnected",
+      "calendar_error": "Calendar error"
+    }
+  },
+  "week": {
+    "previous": "Previous week",
+    "next": "Next week",
+    "today": "This week"
+  },
+  "agenda": {
+    "synced": "On Google Calendar",
+    "pending": "Syncing…",
+    "failed": "Not synced",
+    "open": "Open in Google Calendar",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel",
+    "cancelled": "Cancelled"
+  },
+  "book": {
+    "open": "Book an appointment",
+    "title": "Book an appointment",
+    "employee": "Employee",
+    "name": "Title",
+    "date": "Date",
+    "time": "Start time",
+    "duration": "Duration",
+    "minutes": "{n} min",
+    "timezone": "Time zone: {tz}",
+    "grid": "Availability on this day",
+    "busyGoogle": "Busy (Google Calendar)",
+    "busyRelay": "Busy (Relay appointment)",
+    "free": "Free",
+    "partial": "Google Calendar could not be reached. Only Relay appointments are shown.",
+    "conflict": "This overlaps a busy time.",
+    "override": "Book anyway",
+    "notBookable": "{name}: {reason}",
+    "submit": "Book",
+    "saving": "Saving…",
+    "close": "Close",
+    "failed": "Could not save the appointment.",
+    "update": "Save new time"
+  }
+}

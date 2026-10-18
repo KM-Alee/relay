@@ -5,6 +5,11 @@
 // only after max_attempts. enqueue() validates payloads up front, so bad payloads fail at the source.
 import type { z } from 'zod';
 import { AppError } from '../errors';
+import {
+  calendarCancelEventJob,
+  calendarCreateEventJob,
+  calendarUpdateEventJob,
+} from './handlers/calendar-event';
 import { integrationProcessJob } from './handlers/integration-process';
 import { noopJob } from './handlers/noop';
 import { paymentCreateCheckoutJob, paymentExpireCheckoutJob } from './handlers/payment-checkout';
@@ -21,6 +26,9 @@ const handlers = [
   integrationProcessJob, // C: T-140/T-145
   paymentCreateCheckoutJob, // C: T-143
   paymentExpireCheckoutJob, // C: T-143
+  calendarCreateEventJob, // C: T-144
+  calendarUpdateEventJob, // C: T-144
+  calendarCancelEventJob, // C: T-144
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];

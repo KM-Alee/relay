@@ -78,7 +78,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-141 | Meta WhatsApp adapter + webhook | C | todo |  |  |  |
 | T-142 | WhatsApp media → Blob | C | todo |  |  |  |
 | T-143 | Stripe payments | C | review | agent:lane-C4 | `worktree-agent-a4ed361607e8f1719` | stripe@23 (API 2026-09-30.endive); `POST /api/webhooks/stripe/[key]`, `/api/v1/opportunities/:id/payment-links`, `/api/v1/payments`; real Checkout Session + signed-event round trip verified (scripts/stripe-smoke.ts); opp/contact ids are FK-less until B2; WhatsApp send awaits C3 |
-| T-144 | Google Calendar | C | todo |  |  |  |
+| T-144 | Google Calendar | C | review | agent:lane-C4 | `worktree-agent-a4ed361607e8f1719` | per-employee OAuth+PKCE, lazy refresh, needs_reconnect, free/busy UNION local, create/reschedule/cancel via outbox (deterministic event id), Appointments page; consent URL accepted by Google (real); full consent needs a human + redirect URIs registered |
 | T-146 | Conversations inbox UI | C | todo |  |  |  |
 | T-162 | Responsive + a11y pass | D | todo |  |  |  |
 | T-160 | P0 baseline acceptance suite | Q | todo |  |  |  |

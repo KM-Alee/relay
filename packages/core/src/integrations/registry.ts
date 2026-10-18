@@ -1,11 +1,13 @@
 // Adapter registry (04 §1): maps provider → adapter. Tests and the Judge Console swap fakes in here;
 // INTEGRATIONS_FAKE=1 selects them (refused in production by config.testing). Owner: Lane C.
 import { config } from '../config';
+import { createGoogleAdapter } from './google/adapter';
+import { createFakeGoogle, type FakeGoogle } from './google/fake';
 import { createSlackAdapter } from './slack/adapter';
 import { createFakeSlack, type FakeSlack } from './slack/fake';
 import { createStripeAdapter } from './stripe/adapter';
 import { createFakeStripe, type FakeStripe } from './stripe/fake';
-import type { Notifier, PaymentProvider } from './types';
+import type { CalendarProvider, Notifier, PaymentProvider } from './types';
 
 let override: Notifier | null = null;
 let fake: FakeSlack | null = null;
@@ -42,4 +44,21 @@ export function getPaymentProvider(): PaymentProvider {
   if (paymentOverride) return paymentOverride;
   if (config.testing.INTEGRATIONS_FAKE) return getFakeStripe();
   return realStripe;
+}
+
+// ── Google Calendar (T-144) ─────────────────────────────────────────────
+let calendarOverride: CalendarProvider | null = null;
+let fakeGoogle: FakeGoogle | null = null;
+const realGoogle = createGoogleAdapter();
+
+export function setCalendarProvider(p: CalendarProvider | null): void {
+  calendarOverride = p;
+}
+export function getFakeGoogle(): FakeGoogle {
+  return (fakeGoogle ??= createFakeGoogle());
+}
+export function getCalendarProvider(): CalendarProvider {
+  if (calendarOverride) return calendarOverride;
+  if (config.testing.INTEGRATIONS_FAKE) return getFakeGoogle();
+  return realGoogle;
 }
