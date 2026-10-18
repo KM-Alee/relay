@@ -53,10 +53,9 @@ import { api, localizeError } from '@/lib/api-client';
 type Team = Awaited<ReturnType<typeof api.calendar.team>>['members'];
 const DAY_MS = 86_400_000;
 
+// Rolling 7-day window starting today (a Monday-based week hid tomorrow's bookings on a Sunday).
 function mondayOf(d: Date): Date {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  return x;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 const ymd = (d: Date, tz: string) => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
 
