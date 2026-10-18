@@ -647,9 +647,9 @@ async function activity(
   try {
     await tx.transaction(async (sp) => {
       if (!(await tableExists(sp, 'activities'))) return;
-      await sp.execute(sql`insert into activities (workspace_id, contact_id, opportunity_id, lead_id, type, actor_type, actor_user_id, payload, occurred_at)
-        values (${workspaceId}, ${a.contact_id}, ${a.opportunity_id}, ${a.lead_id}, 'appointment', 'user', ${actorUserId},
-                ${JSON.stringify({ appointmentId: a.id, what, startsAt: iso(a.starts_at), timezone: a.timezone })}::jsonb, now())`);
+      await sp.execute(sql`insert into activities (id, workspace_id, contact_id, opportunity_id, lead_id, type, actor_type, actor_user_id, payload, occurred_at)
+        values (gen_random_uuid(), ${workspaceId}, ${a.contact_id}, ${a.opportunity_id}, ${a.lead_id}, 'appointment', 'user', ${actorUserId},
+                ${JSON.stringify({ appointmentId: a.id, what, title: a.title, startsAt: iso(a.starts_at), timezone: a.timezone })}::jsonb, now())`);
     });
   } catch (err) {
     log.warn('calendar.activity_skipped', { appointmentId: a.id, err });

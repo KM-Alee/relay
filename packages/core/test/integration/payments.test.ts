@@ -9,6 +9,8 @@ import { withOwner } from '../../../db/test/helpers';
 import type { Actor } from '../../src/auth/actor';
 import { setPaymentProvider } from '../../src/integrations/registry';
 import { createFakeStripe, signStripePayload, stripeEventBody } from '../../src/integrations/stripe/fake';
+import '../../src/services/contact360-providers';
+import { contact360Service } from '../../src/services/crm-contact360';
 import { integrationsService } from '../../src/services/integrations';
 import { createRequest, list, processStripeEvent } from '../../src/services/payments';
 import { ingestStripe } from '../../src/services/stripe-ingest';
@@ -17,6 +19,7 @@ const RUN = randomUUID().slice(0, 8);
 const ws = randomUUID();
 const userId = randomUUID();
 const oppId = randomUUID();
+const contactId = randomUUID();
 const WHSEC = 'whsec_test_secret_for_contract_tests_0123456789';
 const fake = createFakeStripe();
 const actor: Actor = {
@@ -47,7 +50,6 @@ beforeAll(async () => {
     await tx.execute(sql`insert into users (id, workspace_id, email, name, password_hash, base_level)
       values (${userId}, ${ws}, ${`u-${userId}@example.com`}, 'Ayesha', 'x', 'owner')`);
     // Payment links hang off a real opportunity (CRM tables, T-110).
-    const contactId = randomUUID();
     const pipelineId = randomUUID();
     const stageId = randomUUID();
     await tx.execute(
@@ -168,6 +170,13 @@ describe('[I2.2][I2.4] paid + idempotency', () => {
     const res = await list(actor, { limit: 10 });
     expect(res.totals.collected).toEqual({ value: 17_857, masked: false });
     expect(res.totals.projected.value).toBe(0);
+  });
+
+  it('[F2.8][I2.5] the paid payment lands on the contact timeline and in Contact 360 payments', async (ctx) => {
+    if (!ready) return ctx.skip();
+    const v = await contact360Service.get(actor, contactId);
+    expect(v.related.payments.map((p) => p.status)).toEqual(['paid']);
+    expect(v.timeline.items.some((a) => a.type === 'payment' && a.payload.status === 'paid')).toBe(true);
   });
 
   it('[I2.4] the same event delivered again is recorded once and changes nothing', async (ctx) => {

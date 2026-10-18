@@ -34,6 +34,7 @@ import { appendAudit, enqueueJob } from '../integrations/upstream';
 import { DeferJobError } from '../jobs/policy';
 import { log } from '../log';
 import { emit } from '../realtime';
+import { messagingService } from './messaging';
 import { ensurePlatformConnection, getWorkspaceConnection, recordOutcome } from './integrations';
 import { mergeStripeCreds } from './stripe-ingest';
 
@@ -366,6 +367,40 @@ export async function linkMessageText(
   );
 }
 
+/**
+ * POST /payments/:id/send-whatsapp: send the payment link to the customer in the WhatsApp thread (I2.1, I1.3).
+ * Goes through messaging.send, so the opt-out and 24 h window rules apply and the delivery is an outbox job.
+ */
+export async function sendViaWhatsApp(actor: Actor, id: string): Promise<{ ok: true; messageId: string }> {
+  assertPermission(actor, 'payments.request');
+  assertPermission(actor, 'messaging.send');
+  const found = await withWorkspaceTx(actor.workspaceId, async (tx) => {
+    const scope = await scopeSql(tx, actor);
+    const pr = foundOr404(
+      (await tx.execute<PrRow>(sql`select pr.* from payment_requests pr where pr.id = ${id} and ${scope}`))
+        .rows[0],
+    );
+    const conv = (
+      await tx.execute<{ id: string }>(sql`select c.id from conversations c
+        where c.contact_id = ${pr.contact_id}::uuid
+           or c.external_key = (select phone_e164 from contacts where id = ${pr.contact_id}::uuid)
+        order by c.last_message_at desc nulls last limit 1`)
+    ).rows[0];
+    return { pr, conversationId: conv?.id ?? null };
+  });
+  if (!found.pr.url || found.pr.status !== 'pending') {
+    throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'payment_link_unavailable' } });
+  }
+  if (!found.conversationId) {
+    throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'no_conversation' } });
+  }
+  const text = await linkMessageText(actor.workspaceId, id, actor.locale);
+  if (!text)
+    throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'payment_link_unavailable' } });
+  const msg = await messagingService.send(actor, found.conversationId, { kind: 'text', text });
+  return { ok: true, messageId: msg.id };
+}
+
 // ── webhook event processing (I2.2, I2.4, I2.5) ─────────────────────────
 const finish =
   (eventId: string, status: 'processed' | 'ignored' | 'failed', reference: string | null, error?: string) =>
@@ -520,8 +555,8 @@ async function timeline(tx: Tx, workspaceId: string, pr: PrRow, status: PaymentS
   try {
     await tx.transaction(async (sp) => {
       if (await tableExists(sp, 'activities')) {
-        await sp.execute(sql`insert into activities (workspace_id, contact_id, opportunity_id, type, actor_type, payload, occurred_at)
-          values (${workspaceId}, ${pr.contact_id}, ${pr.opportunity_id}, 'payment', 'system',
+        await sp.execute(sql`insert into activities (id, workspace_id, contact_id, opportunity_id, type, actor_type, payload, occurred_at)
+          values (gen_random_uuid(), ${workspaceId}, ${pr.contact_id}, ${pr.opportunity_id}, 'payment', 'system',
                   ${JSON.stringify({ paymentRequestId: pr.id, status })}::jsonb, now())`);
       }
       if (status === 'paid' && pr.conversation_id && (await tableExists(sp, 'messages'))) {
@@ -547,4 +582,5 @@ export const paymentsService = {
   fulfillCheckout,
   processStripeEvent,
   linkMessageText,
+  sendViaWhatsApp,
 };

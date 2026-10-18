@@ -88,6 +88,12 @@ export const paymentsEndpoints = {
     query: paymentsListQuery,
     response: paymentsListResponse,
   }),
+  sendWhatsapp: endpoint({
+    method: 'POST',
+    path: '/api/v1/payments/:id/send-whatsapp',
+    params: idParams,
+    response: z.object({ ok: z.literal(true), messageId: z.uuid() }),
+  }),
   cancel: endpoint({
     method: 'POST',
     path: '/api/v1/payments/:id/cancel',

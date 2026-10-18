@@ -90,5 +90,18 @@
     "user_not_found": "Slack could not find that user",
     "account_inactive": "The Slack account is inactive",
     "generic": "The provider reported an error"
+  },
+  "slackLink": {
+    "title": "Slack alerts",
+    "description": "Get escalation alerts as a Slack direct message, with a link straight to the lead.",
+    "unavailable": "Slack is not set up for this workspace yet. Ask an admin to connect it in Integrations.",
+    "linked": "Connected. Escalation alerts will reach you in Slack.",
+    "notLinked": "Not connected. Link your Slack account to receive alerts.",
+    "connect": "Connect Slack",
+    "unlink": "Disconnect",
+    "codeIntro": "Type this command in any Slack channel or DM to finish linking:",
+    "expires": "Code expires at {when}",
+    "statusLinked": "Connected",
+    "statusNotLinked": "Not connected"
   }
 }
