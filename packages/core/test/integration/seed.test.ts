@@ -11,6 +11,8 @@ beforeAll(async () => {
   try {
     await runSeeds({ db, log: () => undefined });
     await runSeeds({ db, log: () => undefined }); // idempotent: second run is a no-op
+    // Repeated local runs share the test DB: clear login rate-limit windows so this test isn't flaky.
+    await pool.query(`delete from rate_limits where key like 'login:%'`);
   } finally {
     await pool.end();
   }
