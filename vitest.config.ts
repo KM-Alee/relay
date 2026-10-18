@@ -30,6 +30,10 @@ export default defineConfig({
           environment: 'node',
           include: ['packages/*/test/integration/**/*.test.ts'],
           // Creates the test DB named in TEST_DATABASE_URL if missing and runs migrations.
+          globalSetup: ['packages/db/test/global-setup.ts'],
+          // Runtime code under test connects as app_user to the test DB.
+          setupFiles: ['packages/db/test/setup-env.ts'],
+          // Creates the test DB named in TEST_DATABASE_URL if missing and runs migrations.
           // Runtime code under test connects as app_user to the test DB.
           testTimeout: 20_000,
           hookTimeout: 60_000,

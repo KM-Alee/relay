@@ -1,7 +1,7 @@
 # 06 — Security, Permissions, RLS and Audit
 
 > **Status:** Accepted baseline. Requirement IDs: F1.1–F1.8, F2.11, F2.12, F4.1–F4.4, I1.2, I2.3, I2.8, I5.3, I5.7, I6.1, I6.6, Q1–Q4.
-> **Code home:** `packages/core/src/auth/*`, `packages/core/src/audit/*`, `packages/db/sql/*` (roles, RLS, triggers, SECURITY DEFINER functions), `apps/web/lib/http/*` (session, CSRF, error mapping).
+> **Code home:** `packages/core/src/auth/*`, `packages/core/src/audit/*`, `packages/db/migrations/*` (roles, RLS, triggers, SECURITY DEFINER functions; template in `packages/db/sql/templates/`), `apps/web/lib/http/*` (session, CSRF, error mapping).
 > Section numbers are referenced from other docs, so **don't renumber**.
 
 ## 1. Authentication (F1.1, F1.2, F1.8, Q1)
@@ -105,18 +105,21 @@ Mandatory call sites (each gets a test): list/detail serializers, CSV export row
 | `neondb_owner` (Neon default; member of `neon_superuser`, effectively **bypasses RLS**) | Migrations only, via `DATABASE_URL_UNPOOLED` | Owns all tables |
 | `app_user` | All runtime code (web routes, `runDueWork`, scripts) via pooled `DATABASE_URL` | `LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB`, **not** owner of any table |
 
-Migration `0001_roles.sql` creates `app_user` if missing (password from `APP_DB_PASSWORD` at migrate time). Neon also allows creating it in the console. `app/api` code **must never** use the owner URL. `config.ts` refuses to boot if `DATABASE_URL`'s user is not `app_user` (the check is skipped in tests that create their own roles).
+Migration `202610181200_w0_roles.sql` creates `app_user` if missing (password from `APP_DB_PASSWORD` at migrate time: the runner sets it transaction-locally as `relay.app_db_password`; empty → the role is created `NOLOGIN` and the password is left untouched). Locally, `docker/postgres/init/01-relay.sql` also creates it with the dev password. Neon also allows creating it in the console. `app/api` code **must never** use the owner URL. `config.ts` refuses to boot if `DATABASE_URL`'s user is not `app_user` (the check is skipped in tests that create their own roles).
 
 ### Policy template (every workspace-scoped table)
 ```sql
+SELECT relay_enable_tenant_rls('contacts');   -- helper from the W0 roles migration; does all of the below
+-- expanded:
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts FORCE ROW LEVEL SECURITY;          -- applies even to the owner role's normal queries
 CREATE POLICY tenant_isolation ON contacts
-  USING      (workspace_id = current_setting('app.workspace_id', true)::uuid)
-  WITH CHECK (workspace_id = current_setting('app.workspace_id', true)::uuid);
+  USING      (workspace_id = nullif(current_setting('app.workspace_id', true), '')::uuid)
+  WITH CHECK (workspace_id = nullif(current_setting('app.workspace_id', true), '')::uuid);
 GRANT SELECT, INSERT, UPDATE, DELETE ON contacts TO app_user;
 ```
-- `current_setting(..., true)` returns NULL when unset → the comparison is NULL → **no rows**. Forgetting the context fails closed.
+Full copyable template: `packages/db/sql/templates/tenant-table.sql`. Restricted grants: `relay_enable_tenant_rls('lead_events', 'SELECT, INSERT, UPDATE')`.
+- `current_setting(..., true)` returns NULL when unset → the comparison is NULL → **no rows**. Forgetting the context fails closed. The `nullif(…, '')` is required: once a transaction-local value has been set on a pooled connection, later transactions on that session see `''` (not NULL), and `''::uuid` would raise instead of matching nothing.
 - `workspaces` uses `id = current_setting(...)`. Global tables without RLS: `rate_limits`, `scheduler_state`, `job_runs`, `test_results`.
 - `audit_events`: `GRANT SELECT, INSERT` only (§6). `lead_events`, `integration_events`: `SELECT, INSERT, UPDATE` (no DELETE).
 - A CI check (`scripts/check-rls.ts`) queries `pg_class`/`pg_policies` and fails if any table with a `workspace_id` column lacks `relrowsecurity AND relforcerowsecurity` and a policy.

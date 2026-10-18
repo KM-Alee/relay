@@ -74,7 +74,7 @@ QStash ─signed POST─►│  • /api/internal/tick  runDueWork│  (QStash: 
 │     ├─ components/  lib/  messages/{en,ur}.json
 ├─ packages/
 │  ├─ contracts/  Zod schemas + TS types shared by client & server. NO server deps.
-│  ├─ db/         Drizzle schema, sql/ migrations, tx helpers, seed, roles setup
+│  ├─ db/         Drizzle schema (src/schema), migrations/ (timestamped SQL) + own runner (src/migrate.ts), sql/templates/, tx helpers (src/tx.ts), seed
 │  └─ core/       All business logic. NO Next.js / React imports.
 │     └─ src/
 │        ├─ domain/        pure rules: routing, escalation, eligibility, metrics, health score

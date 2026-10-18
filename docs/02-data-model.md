@@ -11,6 +11,7 @@
 4. **Soft delete only for CRM records** (`contacts`, `companies`, `opportunities`: `deleted_at`). Users are **deactivated**, never deleted (F1.8). Configuration (stages, fields, tags) is hard-deleted through the safe flows below. Audit rows are never deleted.
 5. `created_at`, `updated_at` on everything. `updated_at` is maintained by a trigger.
 6. Enums are Postgres enums where the value set is fixed, and `text` + check where a workspace configures the values.
+7. Migrations are hand-written SQL in `packages/db/migrations/<YYYYMMDDHHmm>_<lane>_<slug>.sql`, applied in filename order by `packages/db/src/migrate.ts` and recorded (with a sha256 checksum) in the runner-internal table `schema_migrations(filename, checksum, applied_at)`. Helpers available to every migration: `set_updated_at()` (trigger fn) and `relay_enable_tenant_rls(table, privs)` (template: `packages/db/sql/templates/tenant-table.sql`).
 
 ## 1. Tenancy, identity, access
 

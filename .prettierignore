@@ -11,3 +11,4 @@ packages/db/drizzle
 docs/
 *.pdf
 *.zip
+*.sql

@@ -46,6 +46,9 @@ cp .env.example apps/web/.env.local     # or: vercel env pull apps/web/.env.loca
 pnpm db:up && pnpm db:migrate && pnpm db:seed
 pnpm dev                                 # Next.js + dev ticker (runs runDueWork every 1 s)
 ```
+- Docker Postgres 16 (`docker-compose.yml`): owner `postgres/postgres`, databases `relay` + `relay_test`; `docker/postgres/init/01-relay.sql` creates the `app_user` LOGIN role with the dev password (first start only). Fill `APP_ENCRYPTION_KEY` / `SESSION_SECRET` in `.env.local` with `openssl rand -base64 32`.
+- `pnpm test` needs the DB up. The integration setup takes the DB **name** from `TEST_DATABASE_URL` (owner credentials from `TEST_DATABASE_URL_UNPOOLED`), creates it if missing and runs all migrations, so per-worktree DBs (`relay_test_t124`) just work. It refuses non-local hosts unless `ALLOW_REMOTE_TEST_DB=1`.
+- `pnpm db:reset` drops + recreates + migrates the local DB (refuses non-local hosts). `pnpm db:migrate --test` migrates the test DB by hand.
 Webhooks locally (use **dev** credentials only):
 - Stripe: `stripe listen --forward-to localhost:3000/api/webhooks/stripe/<connectionKey>`
 - Telegram / Meta: `cloudflared tunnel --url http://localhost:3000`, then register the dev bot webhook / dev Meta app webhook to that URL.
