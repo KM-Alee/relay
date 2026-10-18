@@ -22,6 +22,7 @@
     "test:ci": "vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json",
     "traceability": "tsx scripts/traceability.ts",
     "slack:manifest": "tsx scripts/slack-manifest.ts",
+    "ai:eval": "tsx --env-file-if-exists=apps/web/.env.local scripts/ai-eval.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "e2e": "playwright test",
