@@ -44,6 +44,7 @@ export default defineConfig(
   {
     ignores: [
       '**/node_modules/**',
+      '.claude/**',
       '**/.next/**',
       '**/dist/**',
       '**/coverage/**',
