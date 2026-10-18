@@ -53,6 +53,27 @@
 | POST | `/exports` `{entity | savedListId}` → CSV stream | `crm.export` (audited) |
 | POST | `/imports` (P1) → mapping → `/imports/:id/commit` | `crm.import` + `crm.contact.create` |
 
+**As built (T-110…T-118, Lane B; contracts `contracts/api/crm.ts`, fixtures off):** lists are keyset `?cursor&limit` (+ `q`, `filter`); out-of-scope or other-workspace ids → 404; stale `version` → 409 `STALE_VERSION` with `details.current` (the masked DTO). Opportunity `value` is `{masked:true}` or `{masked:false, amountMinor, currency}` (via `core/auth/mask.ts`); setting a value needs `crm.opportunity.value.view`.
+| Method | Path | Notes |
+|---|---|---|
+| GET / POST | `/contacts` · `/companies` · `/opportunities` | list (`q`, `filter`, `companyId` / `pipelineId` / `stageId` / `contactId`) · create (201; phone normalised to E.164; duplicate phone/email → 409 `CONFLICT` `{field}`) |
+| GET / PATCH / DELETE | `/contacts/:id` · `/companies/:id` · `/opportunities/:id` | PATCH needs `version`; DELETE = soft delete (audited; a contact's opportunities go with it, a company's contacts are unlinked) |
+| GET | `/contacts/:id/360` | contact + company + opportunities + `related{conversations,payments,appointments}` (filled by Lane C via `registerContact360Provider`) + first timeline page |
+| GET | `/contacts/:id/timeline` · `/opportunities/:id/timeline` | newest first; AI entries carry `ai:true` |
+| POST / DELETE | `/contacts/:id/tags` `{tagId}` · `/contacts/:id/tags/:tagId` (same for `/opportunities`) | attach is idempotent; returns the record |
+| POST | `/opportunities/:id/move` `{stageId, version, fields?}` | 422 `REQUIRED_FIELDS_MISSING` `details{stageId, fields[{fieldId,key,label,entity}]}`; `fields` fills them in the same atomic request |
+| GET / POST | `/pipelines` · PATCH / DELETE `/pipelines/:id` | DELETE only an empty, non-default pipeline (422 `BUSINESS_RULE_VIOLATION`) |
+| GET | `/pipelines/:id/board?filter&q` | columns `{stage, count, total (masked figure), opportunities (≤50)}` |
+| POST | `/pipelines/:id/stages` · `/pipelines/:id/stages/reorder` `{stageIds}` | |
+| PATCH / DELETE | `/stages/:id` | DELETE `{moveToStageId?}`: a non-empty stage without a target → 422 `BUSINESS_RULE_VIOLATION` `{reason:'move_target_required'}`; with it, opportunities move + `stage_change` activities + audit in one tx |
+| GET / POST / PATCH / DELETE | `/custom-fields` (`?entity&pipelineId`) | `pipelineId` null = shared; DELETE cascades values + required links and rewrites saved lists (`needsReview`) |
+| GET / POST / PATCH / DELETE | `/tags` | DELETE cascades joins and cleans saved lists |
+| GET / POST / PATCH / DELETE | `/saved-lists` · GET `/saved-lists/:id/items` | own + shared lists; items are evaluated LIVE with the viewer's scope and masking |
+| POST | `/activities` `{contactId\|opportunityId, type:'note'\|'call', body, direction?, outcome?, durationSeconds?}` | counts as a human action: `onHumanAction` hook (see `core/services/crm-activity.ts`) |
+| POST | `/exports` `{entity\|savedListId, filter?}` | `crm.export`; UTF-8 CSV (BOM), formula-injection guard, masked value cells, audited `crm.exported` `{scope,rowCount}`; cap 50,000 rows |
+
+**Filter criteria** (`?filter=` base64url JSON, same schema as saved lists): `{match:'all'|'any', clauses[]}` with `tag`, `owner`, `stage`, `pipeline`, `company`, `name`, `value` (needs the value permission, else 403), `created_at`/`last_activity_at`/`stage_entered_at` (`before|after|older_than_days|within_days`) and `custom` (`fieldId` + op by field type). Invalid clauses → 400; unsupported field for the entity → 400.
+
 ### Leads (F3) — spec in `03-lead-engine.md`
 | Method | Path | Permission | Transition |
 |---|---|---|---|

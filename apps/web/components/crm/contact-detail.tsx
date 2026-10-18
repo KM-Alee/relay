@@ -87,7 +87,8 @@ export function ContactDetail({ id }: { id: string }) {
 
   async function addActivity(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const f = new FormData(form);
     const type = String(f.get('type')) as 'note' | 'call';
     try {
       await api.crm.activities.create({
@@ -102,7 +103,7 @@ export function ContactDetail({ id }: { id: string }) {
             }
           : {}),
       });
-      e.currentTarget.reset();
+      form.reset();
       setError(null);
       setMore([]);
       setCursor(undefined);
