@@ -153,7 +153,7 @@ function PolicyEditorBody({
   });
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
       <Card aria-labelledby="policy-title" className="space-y-5">
         <CardHeader
           titleId="policy-title"
