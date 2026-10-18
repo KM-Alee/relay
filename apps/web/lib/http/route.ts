@@ -103,6 +103,10 @@ function parseWith<S extends Schema | undefined>(
 
 async function readJsonBody(req: Request): Promise<unknown> {
   const type = req.headers.get('content-type') ?? '';
+  // A body-less request (e.g. `DELETE /stages/:id` without a JSON body) is `{}`; the schema still decides
+  // whether that is valid. Anything that does carry a body must declare JSON.
+  if (!type && (req.headers.get('content-length') ?? '0') === '0' && !req.headers.has('transfer-encoding'))
+    return {};
   if (!/^application\/(.+\+)?json\b/i.test(type)) throw new AppError('UNSUPPORTED_MEDIA_TYPE');
   try {
     return await req.json();

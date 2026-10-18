@@ -7,6 +7,7 @@ import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '@/lib/api-client';
 import { Link } from '@/lib/i18n/navigation';
 import { ExportButton } from './export-button';
+import { RotBadge, RotPanel, useDurationText } from './rot';
 import { EMPTY_FILTER, FilterBar, filterParam, toCriteria, type FilterState } from './filter-bar';
 import { ErrorNote, FieldInput, Money, has, ui, useFieldLabel, useLoad, useMe } from './ui';
 
@@ -28,6 +29,7 @@ export function PipelineView() {
   const [notice, setNotice] = useState<string | null>(null);
   const [block, setBlock] = useState<Block | null>(null);
   const [adding, setAdding] = useState(false);
+  const duration = useDurationText();
 
   const pipelines = useLoad(() => api.crm.pipelines.list(), 'pipelines');
   const current =
@@ -212,6 +214,12 @@ export function PipelineView() {
         </p>
       )}
       <ErrorNote error={error ?? board.error ?? table.error} />
+      {pid && (
+        <RotPanel
+          pipelineId={pid}
+          refreshKey={`${board.data?.columns.length ?? 0}:${Object.keys(board.data?.rotting ?? {}).join()}`}
+        />
+      )}
 
       {block && (
         <section role="alert" className={ui.alert} aria-labelledby="req-title">
@@ -273,7 +281,14 @@ export function PipelineView() {
                 }}
               >
                 <header className="mb-2 flex items-center justify-between">
-                  <h2 className="font-medium">{col.stage.name}</h2>
+                  <h2 className="font-medium">
+                    {col.stage.name}
+                    {col.stage.rotSeconds ? (
+                      <span className="block text-xs font-normal text-[var(--text-muted)]">
+                        {t('rotsAfter', { duration: duration(col.stage.rotSeconds) })}
+                      </span>
+                    ) : null}
+                  </h2>
                   <span className={ui.muted}>
                     {col.count} ·{' '}
                     {col.total.masked ? (
@@ -295,8 +310,12 @@ export function PipelineView() {
                       key={o.id}
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData('text/plain', o.id)}
-                      className={`${ui.card} cursor-grab`}
+                      className={`${ui.card} cursor-grab ${board.data?.rotting?.[o.id] != null ? 'border-[var(--danger)] bg-[var(--danger-surface)]' : ''}`}
+                      data-rotting={board.data?.rotting?.[o.id] != null ? 'true' : undefined}
                     >
+                      {board.data?.rotting?.[o.id] != null && (
+                        <RotBadge idleSeconds={board.data.rotting[o.id]!} className="mb-1" />
+                      )}
                       <p className="font-medium">{o.title}</p>
                       <p className={ui.muted}>
                         <Link href={`/contacts/${o.contactId}`} className="underline">

@@ -5,7 +5,11 @@ import type { CustomFieldDto, PipelineDto, StageDto } from '@relay/contracts/api
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '@/lib/api-client';
+import { splitDuration } from './rot';
 import { ErrorNote, ui, useFieldLabel, useLoad } from './ui';
+
+const UNIT_SECONDS = { day: 86_400, hour: 3600, minute: 60 } as const;
+type RotUnit = keyof typeof UNIT_SECONDS;
 
 export function SettingsPipelines() {
   const t = useTranslations('crm.settings.pipelines');
@@ -163,6 +167,9 @@ function StageRow({
   const [kind, setKind] = useState(s.kind);
   const [req, setReq] = useState<string[]>(s.requiredFieldIds);
   const [target, setTarget] = useState<string | null>(null);
+  const initialRot = s.rotSeconds ? splitDuration(s.rotSeconds) : null;
+  const [rotN, setRotN] = useState(initialRot ? String(initialRot.n) : '');
+  const [rotUnit, setRotUnit] = useState<RotUnit>(initialRot?.unit ?? 'day');
   const applicable = fields.filter((f) => !f.pipelineId || f.pipelineId === p.id);
 
   const move = (delta: number) => {
@@ -232,7 +239,16 @@ function StageRow({
           className={ui.btn}
           onClick={() =>
             run(() =>
-              api.crm.pipelines.updateStage(s.id, { name, kind, requiredFieldIds: req, version: s.version }),
+              api.crm.pipelines.updateStage(s.id, {
+                name,
+                kind,
+                requiredFieldIds: req,
+                rotSeconds:
+                  kind === 'open' && rotN !== ''
+                    ? Math.max(1, Math.round(Number(rotN) * UNIT_SECONDS[rotUnit]))
+                    : null,
+                version: s.version,
+              }),
             )
           }
         >
@@ -242,6 +258,36 @@ function StageRow({
           {t('deleteStage')}
         </button>
       </div>
+      {kind === 'open' && (
+        <div className={`${ui.row} mt-2`}>
+          <label htmlFor={`rot-${s.id}`} className={ui.muted}>
+            {t('rotAfter')}
+          </label>
+          <input
+            id={`rot-${s.id}`}
+            type="number"
+            min={1}
+            step="any"
+            className={`${ui.input} w-24`}
+            placeholder={t('rotOff')}
+            value={rotN}
+            onChange={(e) => setRotN(e.target.value)}
+          />
+          <select
+            className={ui.input}
+            aria-label={t('rotUnit')}
+            value={rotUnit}
+            onChange={(e) => setRotUnit(e.target.value as RotUnit)}
+          >
+            {(['day', 'hour', 'minute'] as const).map((u) => (
+              <option key={u} value={u}>
+                {t(`rotUnits.${u}`)}
+              </option>
+            ))}
+          </select>
+          <span className={ui.muted}>{t('rotHint')}</span>
+        </div>
+      )}
       {applicable.length > 0 && (
         <fieldset className="mt-2">
           <legend className={ui.muted}>{t('requiredFields')}</legend>
