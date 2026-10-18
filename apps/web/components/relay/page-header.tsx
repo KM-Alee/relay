@@ -30,7 +30,14 @@ export function PageHeader({
 }) {
   return (
     <header className={cn('relative isolate', hero ? 'py-6 md:py-10' : 'py-4 md:py-6', className)}>
-      {art ? <GlassArt className="absolute inset-y-0 end-0 -z-10 h-full w-1/2 max-w-[640px]" /> : null}
+      {art ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 end-0 -z-10 hidden w-1/2 max-w-[640px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_18%,black_70%,transparent)] md:block"
+        >
+          <GlassArt className="h-full w-full" />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 max-w-3xl">
           {eyebrow ? <p className="mb-2 text-eyebrow text-fg-muted">{eyebrow}</p> : null}

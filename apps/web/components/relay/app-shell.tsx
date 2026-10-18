@@ -9,6 +9,7 @@ import { api } from '@/lib/api-client';
 import { qk } from '@/lib/query/keys';
 import { useAvailability } from '@/lib/query/use-availability';
 import { visibleNav } from '@/nav';
+import { PageTransition } from './motion/presence';
 import { TopNav } from './top-nav';
 
 export function AppShell({ children, demoMode = false }: { children: ReactNode; demoMode?: boolean }) {
@@ -46,7 +47,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
         tabIndex={-1}
         className="mx-auto w-full max-w-(--shell-max) px-(--page-pad) pb-16 pt-2 outline-none"
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
     </div>
   );

@@ -38,7 +38,7 @@ export function GlassArt({ className }: { className?: string }) {
         </radialGradient>
       </defs>
       <ellipse cx="380" cy="130" rx="260" ry="150" fill="url(#glass-glow)" />
-      <g transform="skewY(-8) translate(0 40)">
+      <g transform="translate(0 92) skewY(-8)">
         {PANES.map((p) => (
           <g key={p.x} opacity={p.o}>
             <rect x={p.x} y={p.y} width={p.w} height={p.h} rx="12" fill="url(#glass-pane)" />

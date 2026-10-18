@@ -94,7 +94,7 @@ export function AvailabilitySwitcher({
           disabled={disabled}
           aria-label={t('availability.change', { status: t(`availability.${value}`) })}
           className={cn(
-            'inline-flex min-h-11 items-center gap-2 rounded-chip border border-line bg-surface px-3 text-button text-fg transition-colors hover:bg-surface-muted disabled:opacity-60',
+            'inline-flex h-11 shrink-0 items-center gap-2 rounded-control border border-line bg-surface px-3 text-button text-fg transition-colors hover:bg-surface-muted disabled:opacity-60',
             className,
           )}
         >
