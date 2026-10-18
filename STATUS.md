@@ -56,7 +56,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
 | T-140 | Integrations page + sync history | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | page at settings/integrations; connections CRUD + secrets + breaker + sync history API; audit via seam until T-007 merges |
 | T-145 | Slack alerts + linking | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | critical path; Lane A hook: `enqueueSlackAlert(tx, …)` in core/services/slack.ts; real-Slack smoke pending (token not in worktree env) |
-| T-150 | Metrics + dashboard | D | todo |  |  |  |
+| T-150 | Metrics + dashboard | D | review | agent:lane-D2 | `worktree-agent-a8fa593907a99a8b6` | all F5.1 figures, role-aware, hide/show (localStorage), drill-downs; `repos/metrics.ts` is defensive (guarded) until A/B2/C4 tables land; login/signup/me/user menu/Sign out restyled |
 
 ### W3: P0 complete
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
@@ -98,7 +98,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-206 | AI stand-in | C2 | todo |  |  |  |
 | T-207 | Handoff card + AI brief | C2 | todo |  |  |  |
 | T-214 | Customer language matching | C2 | todo |  |  |  |
-| T-201 | Lead Radar | D | todo |  |  |  |
+| T-201 | Lead Radar | D | review | agent:lane-D2 | `worktree-agent-a8fa593907a99a8b6` | `?tab=radar`; fixture radar plays live; Lane A must emit realtime topic `radar` |
 | T-213 | Full Urdu + RTL pass | D | todo |  |  |  |
 | T-212 | Traceability page | Q | todo |  |  |  |
 

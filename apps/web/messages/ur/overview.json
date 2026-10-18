@@ -1,18 +1,177 @@
 {
   "tabs": {
+    "label": "اوور ویو کے منظر",
     "summary": "خلاصہ",
     "radar": "ریڈار"
   },
   "greeting": {
     "morning": "صبح بخیر",
     "afternoon": "سلام",
-    "evening": "شام بخیر"
+    "evening": "شام بخیر",
+    "named": "{greeting}، {name}"
   },
   "subtitle": "آج جن چیزوں پر آپ کی توجہ درکار ہے وہ یہ ہیں۔",
+  "header": {
+    "sentence": "{newToday, plural, one {آج # نئی لیڈ} other {آج # نئی لیڈز}} · {attention} پر توجہ درکار",
+    "sentenceMine": "{newToday, plural, one {آج آپ کی # نئی لیڈ} other {آج آپ کی # نئی لیڈز}} · {attention} پر توجہ درکار"
+  },
+  "chips": {
+    "waiting": "تسلیم کے منتظر",
+    "escalated": "آج آگے بڑھائی گئیں"
+  },
   "kpi": {
     "newLeads": "آج کی نئی لیڈز",
+    "newLeadsMine": "آج میری نئی لیڈز",
     "response": "اوسط پہلا جواب",
+    "responseMine": "میرا اوسط پہلا جواب",
     "recovery": "بحالی کی قطار",
-    "emptyText": "جب لیڈز آنا شروع ہوں گی تو اعداد و شمار یہاں نظر آئیں گے۔"
+    "recoveryMine": "میری تاخیر والی لیڈز",
+    "emptyText": "جب لیڈز آنا شروع ہوں گی تو اعداد و شمار یہاں نظر آئیں گے۔",
+    "vsYesterday": "کل کے مقابلے میں ({value})",
+    "noResponses": "آج ابھی کوئی لیڈ تسلیم نہیں ہوئی",
+    "critical": "{count, plural, one {# نازک} other {# نازک}}",
+    "allClear": "کوئی منتظر نہیں"
+  },
+  "payments": {
+    "title": "ہم نے کتنی وصولی کی؟",
+    "titleLeads": "کتنی لیڈز آئیں اور کتنی آگے بڑھائی گئیں؟",
+    "scope": "{scope} · پچھلے {days} دن",
+    "scopeCompany": "تمام ٹیمیں",
+    "scopeMine": "آپ کی لیڈز",
+    "totalLabel": "پچھلے {days} دنوں میں وصول",
+    "viewAll": "ادائیگیاں دیکھیں",
+    "unit": "PKR",
+    "period": "مدت",
+    "days7": "پچھلے 7 دن",
+    "days30": "پچھلے 30 دن",
+    "days90": "پچھلے 90 دن",
+    "collected": "وصول شدہ",
+    "count": "ادائیگیاں",
+    "leads": "نئی لیڈز",
+    "escalations": "ایسکلیشنز",
+    "emptyTitle": "اس مدت میں کوئی ادائیگی نہیں ہوئی۔",
+    "emptyLeads": "اس مدت میں کوئی لیڈ نہیں آئی۔",
+    "summary": "{days} دن میں {count, plural, one {# ادائیگی} other {# ادائیگیوں}} سے {total} وصول ہوئے۔ بہترین دن: {bestDay}، رقم {best}۔",
+    "summaryLeads": "{days} دن میں {leads, plural, one {# لیڈ} other {# لیڈز}} اور {escalations, plural, one {# ایسکلیشن} other {# ایسکلیشنز}}۔",
+    "tableDate": "تاریخ",
+    "tableAmount": "وصول شدہ",
+    "tableCount": "ادائیگیاں",
+    "maskedNote": "آپ کے کردار کے لیے وصول شدہ رقم پوشیدہ ہے، اس لیے یہاں لیڈز کی تعداد دکھائی گئی ہے۔"
+  },
+  "team": {
+    "title": "کون دستیاب ہے؟",
+    "scope": "ٹیم کی براہِ راست صورتحال",
+    "openLeads": "{count, plural, one {# کھلی لیڈ} other {# کھلی لیڈز}}",
+    "total": "{count, plural, one {# فرد} other {# افراد}}",
+    "empty": "ابھی ٹیم میں کوئی رکن نہیں۔"
+  },
+  "pipeline": {
+    "title": "پائپ لائن میں رقم کہاں ہے؟",
+    "scope": "مرحلے کے لحاظ سے کھلے مواقع",
+    "count": "{count, plural, one {# سودا} other {# سودے}}",
+    "total": "کل کھلی مالیت",
+    "empty": "ابھی کوئی کھلا موقع نہیں۔",
+    "emptyAction": "پائپ لائن کھولیں",
+    "maskedNote": "آپ کے کردار کے لیے مالیت پوشیدہ ہے۔ تعداد دکھائی گئی ہے۔"
+  },
+  "appointments": {
+    "title": "آگے کیا آ رہا ہے؟",
+    "scope": "آئندہ ملاقاتیں",
+    "empty": "کوئی آئندہ ملاقات نہیں۔",
+    "with": "{contact} · {owner}",
+    "more": "{count, plural, one {# اور ملاقات} other {# اور ملاقاتیں}}",
+    "viewAll": "سب دیکھیں"
+  },
+  "escalations": {
+    "title": "ایسکلیشنز (24 گھنٹے)",
+    "scope": "تسلیم کی مہلت ختم ہونے پر",
+    "count": "{count, plural, one {# ایسکلیشن} other {# ایسکلیشنز}}",
+    "idle": "غیر فعالی پر دوبارہ ٹرگر: {count}",
+    "none": "پچھلے 24 گھنٹوں میں کوئی ایسکلیشن نہیں۔"
+  },
+  "risk": {
+    "atRisk": "خطرے میں آمدنی",
+    "atRiskHelp": "وہ مالیت جو کسی انسان کے تسلیم کرنے کی منتظر ہے",
+    "rescued": "بچائی گئی آمدنی",
+    "rescuedHelp": "اس مہینے ان لیڈز سے وصولی جو پہلے آگے بڑھائی گئی تھیں",
+    "badge": "براہِ راست"
+  },
+  "customize": {
+    "button": "ترتیب",
+    "title": "اعداد و شمار دکھائیں یا چھپائیں",
+    "description": "آپ کا انتخاب اس ڈیوائس پر محفوظ رہتا ہے۔",
+    "reset": "سب کچھ دکھائیں",
+    "done": "مکمل",
+    "figures": {
+      "newLeads": "آج کی نئی لیڈز",
+      "response": "اوسط پہلا جواب",
+      "recovery": "بحالی کی قطار",
+      "payments": "ادائیگیوں کا چارٹ",
+      "team": "ٹیم کی دستیابی",
+      "pipeline": "مرحلے کے لحاظ سے کھلی پائپ لائن",
+      "appointments": "آئندہ ملاقاتیں",
+      "escalations": "ایسکلیشنز (24 گھنٹے)",
+      "risk": "خطرے میں اور بچائی گئی آمدنی",
+      "about": "ریلے کے بارے میں کارڈ"
+    },
+    "hiddenCount": "{count, plural, one {# چیز چھپی ہے} other {# چیزیں چھپی ہیں}}"
+  },
+  "about": {
+    "title": "ریلے کے بارے میں",
+    "badge": "ڈیمو ورک اسپیس",
+    "promise": "ہر لیڈ کا ایک ہی جواب دہ انسان ہوتا ہے۔ اگر وہ خاموش رہے تو لیڈ خود آگے بڑھ جاتی ہے۔",
+    "ai": "اے آئی وقت خریدتا ہے۔ جواب دہی انسان کی رہتی ہے۔",
+    "points": {
+      "owner": "کبھی بغیر مالک نہیں: ہر لمحے ایک نامزد مالک۔",
+      "escalate": "تسلیم کی مہلت ختم ہوتے ہی خود بخود آگے بڑھتی ہے۔",
+      "ai": "واٹس ایپ اور اردو اے آئی نائب گاہک کو مصروف رکھتا ہے۔ اسے کبھی جواب شمار نہیں کیا جاتا۔"
+    },
+    "tryRadar": "لیڈ ریڈار پر براہِ راست دیکھیں",
+    "dismiss": "یہ کارڈ چھپائیں"
+  },
+  "radar": {
+    "title": "لیڈ ریڈار",
+    "subtitle": "منتظر لیڈز، براہِ راست۔ ایسکلیشن پر لیڈ خود اگلے مالک کے پاس چلی جاتی ہے۔",
+    "live": "براہِ راست",
+    "paused": "رکا ہوا",
+    "team": "ٹیم",
+    "teamLabel": "ٹیم کے ارکان اور ان کی منتظر لیڈز",
+    "free": "کوئی منتظر نہیں",
+    "waitingCount": "{count, plural, one {# منتظر} other {# منتظر}}",
+    "awaitingTitle": "ہینڈلر کا انتظار",
+    "awaitingHelp": "کوئی ہینڈلر یہ لیڈز نہیں لے سکا۔ جب تک کوئی نہ لے، ایک نگران انہیں سنبھالے رکھتا ہے۔",
+    "custodian": "نگران: {name}",
+    "awaitingNone": "کوئی لیڈ نگرانی میں نہیں۔",
+    "reason": {
+      "no_available": "کوئی دستیاب نہیں",
+      "all_at_capacity": "سب اپنی گنجائش پر ہیں",
+      "no_skill_match": "مہارت سے مطابقت نہیں",
+      "first_to_claim_pending": "کسی کے لینے کا انتظار",
+      "chain_exhausted": "ایسکلیشن کی زنجیر ختم",
+      "owner_absent": "مالک غیر حاضر ہے",
+      "owner_deactivated": "مالک غیر فعال کر دیا گیا"
+    },
+    "urgent": "فوری",
+    "critical": "نازک",
+    "escalated": "درجہ {level} پر آگے بڑھائی گئی",
+    "movedTo": "{lead} اب {owner} کے پاس ہے",
+    "openLead": "{lead} کھولیں، مالک {owner}",
+    "empty": "سب ٹھیک ہے",
+    "emptyBody": "اس وقت کوئی لیڈ تسلیم کی منتظر نہیں۔",
+    "errorTitle": "ریڈار لوڈ نہیں ہو سکا",
+    "listTitle": "تمام منتظر لیڈز",
+    "listSummary": "منتظر لیڈز کی متنی فہرست",
+    "listItem": "{lead} ({source})، مالک {owner}",
+    "listNoOwner": "{lead}: کوئی مالک نہیں",
+    "colLead": "لیڈ",
+    "colOwner": "مالک",
+    "colSource": "ذریعہ",
+    "colTime": "وقت",
+    "drawerTitle": "لیڈ کا جائزہ",
+    "drawerBody": "لیڈز کی اسکرین تیار ہوتے ہی مکمل لیڈ یہیں سے کھلے گی۔",
+    "drawerOpen": "لیڈ کا صفحہ کھولیں",
+    "ownerLabel": "مالک",
+    "statusLabel": "کیفیت",
+    "ackWindow": "تسلیم کی مہلت"
   }
 }
