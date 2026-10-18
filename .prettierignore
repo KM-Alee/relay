@@ -1,0 +1,13 @@
+node_modules
+.next
+pnpm-lock.yaml
+coverage
+reports
+playwright-report
+test-results
+packages/db/drizzle
+# Docs/requirements are hand-formatted; don't churn them.
+*.md
+docs/
+*.pdf
+*.zip

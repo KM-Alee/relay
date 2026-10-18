@@ -18,3 +18,7 @@ test-results/
 blob-report/
 /tmp/
 ClientIQ_4_Themes_and_Design_Guide.zip
+.claude/worktrees/
+reports/
+packages/db/drizzle/
+next-env.d.ts
