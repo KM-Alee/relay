@@ -325,11 +325,11 @@ export async function list(
       await tx.execute<{ charged: string | null; refunded: string | null; projected: string | null }>(sql`
         select
           (select coalesce(sum(p.amount_minor), 0) from payments p join payment_requests pr on pr.id = p.payment_request_id
-             where p.kind = 'charge' and p.currency = ${currency} and ${scope}) as charged,
+             where p.kind = 'charge' and ${scope}) as charged,
           (select coalesce(sum(p.amount_minor), 0) from payments p join payment_requests pr on pr.id = p.payment_request_id
-             where p.kind = 'refund' and p.currency = ${currency} and ${scope}) as refunded,
+             where p.kind = 'refund' and ${scope}) as refunded,
           (select coalesce(sum(pr.amount_minor), 0) from payment_requests pr
-             where pr.status = 'pending' and pr.currency = ${currency} and ${scope}) as projected`)
+             where pr.status = 'pending' and ${scope}) as projected`)
     ).rows[0]!;
     const charged = Number(sums.charged ?? 0);
     const refunded = Number(sums.refunded ?? 0);

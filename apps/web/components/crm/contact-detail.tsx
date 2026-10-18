@@ -461,7 +461,7 @@ export function ContactDetail({ id }: { id: string }) {
           {timeline.map((a) => (
             <li key={a.id} className="border-b border-[var(--border)] pb-2">
               <div className={ui.row}>
-                <strong>{t(`types.${a.type}`)}</strong>
+                <strong>{leadEventLabel(a, t) ?? t(`types.${a.type}`)}</strong>
                 {a.ai && <AIBadge />}
                 <span className={ui.muted}>
                   {a.ai ? t('byAi') : a.actorName ? t('by', { name: a.actorName }) : t('bySystem')} ·{' '}
@@ -480,6 +480,30 @@ export function ContactDetail({ id }: { id: string }) {
       </section>
     </div>
   );
+}
+
+const LEAD_EVENT_KEYS = new Set([
+  'intake_assigned',
+  'routing_retry_assigned',
+  'escalation',
+  'overdue_attempt',
+  'absence_reassign',
+  'deactivation_reassign',
+  'manual_reassign',
+  'claim',
+  'pond_claim',
+  'idle_retrigger',
+  'acknowledged',
+  'critical_flagged',
+  'closed',
+  'ai_started',
+  'handoff',
+]);
+
+function leadEventLabel(a: ActivityDto, t: (k: string) => string): string | null {
+  if (a.type !== 'assignment') return null;
+  const ev = (a.payload as Record<string, unknown>).leadEvent;
+  return typeof ev === 'string' && LEAD_EVENT_KEYS.has(ev) ? t(`leadEvents.${ev}`) : null;
 }
 
 function ActivityBody({ a }: { a: ActivityDto }) {
