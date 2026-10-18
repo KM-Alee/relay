@@ -47,6 +47,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Overview dashboard (all F5.1 figures, role-aware, show/hide, drill-downs) + metrics service; Lead Radar live mission control [T-150] [T-201] [F5.1] [F5.6]
 - Login/signup brand panel with motion, `/me` profile page, user menu with sign-out
 - Lead engine: pure routing/transitions domain, teams + availability, intake (manual + public form), acknowledge, escalation timers with overdue attempts and end-of-chain critical, fallback custody, notifications API + bell, leads pages; concurrency invariants tested on Postgres [T-120] [T-121] [T-122] [T-123] [T-124] [F3.1] [F3.3] [F3.4] [F3.5] [F3.8]
+- Contact 360 includes conversations, payments and appointments; payment/appointment events on the contact timeline [T-117] [F2.8]
+- "Send payment link" + status badges + "Send via WhatsApp" on opportunities; "Book appointment" from the contact page [T-117] [I2.1] [I3.3]
+- Slack connect card translations + design-system styling [T-145] [I4.3]
+- README quickstart (`pnpm setup:env`), team explainer `docs/15-how-it-works.md`; Vercel Blob store for WhatsApp media
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
