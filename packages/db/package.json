@@ -6,13 +6,17 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
-    "./*": "./src/*.ts"
+    "./*": "./src/*.ts",
+    "./seed": "./seed/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "migrate": "tsx scripts/migrate.ts",
     "reset": "tsx scripts/reset.ts",
-    "generate": "drizzle-kit generate"
+    "generate": "drizzle-kit generate",
+    "seed": "tsx scripts/seed.ts",
+    "new-migration": "tsx scripts/new-migration.ts",
+    "drop-worktree-dbs": "tsx scripts/drop-worktree-dbs.ts"
   },
   "dependencies": {
     "@vercel/functions": "3.10.1",
