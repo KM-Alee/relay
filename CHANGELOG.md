@@ -35,6 +35,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Meta WhatsApp Cloud API adapter (Graph v25.0), signed `/api/webhooks/meta/[connectionKey]`, idempotent inbound + statuses, `whatsapp.send` outbox job with retry, 24 h window + templates, opt-out; real send verified to test numbers [T-141] [I1.1] [I1.10]
 - WhatsApp media → private Vercel Blob (Postgres fallback) behind authed `/api/v1/media/:id` [T-142] [I1.11]
 - Conversations inbox + thread UI (status ticks, retry, window indicator, template composer, opt-out) [T-146]
+- Stripe test-mode Checkout payment links, signed idempotent webhook, collected vs projected totals, Payments page; real session + webhook endpoint verified [T-143] [I2.1] [I2.8]
+- Google Calendar OAuth connect, free/busy conflict check, outbox create/reschedule/cancel, Appointments page [T-144] [I3.1] [I3.7]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]

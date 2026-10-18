@@ -246,8 +246,11 @@ function NewLinkForm({ onCreated }: { onCreated: () => Promise<void> }) {
         <label className="block text-sm">
           {t('form.currency')}
           <select name="currency" defaultValue="PKR" className="mt-1 w-full rounded border px-2 py-1">
-            <option value="PKR">PKR</option>
-            <option value="USD">USD</option>
+            {['PKR', 'USD'].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-sm">
