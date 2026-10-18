@@ -10,6 +10,7 @@ import {
   calendarCreateEventJob,
   calendarUpdateEventJob,
 } from './handlers/calendar-event';
+import { aiTranscribeJob } from './handlers/ai-transcribe';
 import { integrationProcessJob } from './handlers/integration-process';
 import { noopJob } from './handlers/noop';
 import { paymentCreateCheckoutJob, paymentExpireCheckoutJob } from './handlers/payment-checkout';
@@ -33,6 +34,7 @@ const handlers = [
   calendarCreateEventJob, // C: T-144
   calendarUpdateEventJob, // C: T-144
   calendarCancelEventJob, // C: T-144
+  aiTranscribeJob, // C2b: T-217
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];

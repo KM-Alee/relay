@@ -31,5 +31,6 @@ export {
   type HandoffBrief,
   type HandoffBriefInput,
 } from './tasks/handoff';
+export { transcribeAudio, MAX_AUDIO_BYTES, TRANSCRIBE_PROMPT_VERSION } from './tasks/transcribe';
 export type { Turn } from './tasks/context';
 export type { AIProvider, AiResult, AiError, AiTask, Lang } from './types';

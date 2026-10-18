@@ -11,6 +11,9 @@ export default async function Page() {
     ['/settings/fields', 'fields'],
     ['/settings/tags', 'tags'],
     ['/settings/integrations', 'integrations'],
+    ['/settings/ai', 'ai'],
+    ['/settings/knowledge', 'knowledge'],
+    ['/settings/templates', 'templates'],
   ] as const;
   return (
     <main className="mx-auto max-w-3xl space-y-4 px-4 py-6">

@@ -11,6 +11,7 @@ import {
   type StandInInput,
   type Turn,
 } from '../packages/core/src/ai/index';
+import { runGroundedEval } from './ai-eval-grounded';
 
 const WS = '00000000-0000-4000-8000-000000000001';
 const usage = new MemoryUsageStore();
@@ -199,6 +200,8 @@ async function main() {
     const g = checkReply(bad, { ...ctx, lang });
     check(g.violations.length > 0, `blocked [${lang}] "${bad}" -> [${g.violations.join(',')}]`);
   }
+
+  failures += await runGroundedEval(WS, deps);
 
   console.log('\n=== Handoff brief');
   const brief = await generateHandoffBrief({

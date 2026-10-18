@@ -95,7 +95,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-209 | Judge Console | B | todo |  |  |  |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
 | T-204 | AI foundation | C1 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | Provider (OpenAI/fake), runAiTask, cap, ai_usage, prompts registry. `pnpm ai:eval` ran for real. Not yet: integration_events row, breaker, DB-store integration test. |
-| T-208 | Knowledge base + templates editor | C1 | todo |  |  |  |
+| T-208 | Knowledge base + templates editor | C1 | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | settings/ai, /knowledge, /templates (ai.manage); ai_knowledge + ai_settings tables; loadKnowledge()/getAiSettings()/aiDepsFor() for the stand-in trigger (T-206 must call them); seeds for both workspaces; ai:eval grounded cases |
 | T-205 | AI triage + urgency | C2 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | triageMessage + heuristic fallback + shouldMarkUrgent; caller applies setUrgent(source:ai). |
 | T-206 | AI stand-in | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateStandInReply + guards + templates. Remaining: handleInbound trigger/outbox job, send, state machine, audit. |
 | T-207 | Handoff card + AI brief | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateHandoffBrief + baseline + en/ur i18n keys. Remaining: card UI, Slack wait, conversations.ai_brief storage. |
@@ -112,7 +112,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
 | T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
-| T-217 | Voice-note transcription | C | todo |  |  |  |
+| T-217 | Voice-note transcription | C | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | media.download enqueues ai.transcribe; transcript+summary on message; Transcript component mounted in inbox; Retry API; onTranscriptReady hook for stand-in/triage continuation (F8.2) not yet consumed. Real TTS->transcribe run passed |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
 | T-228 | PWA + demo polish | D | todo |  |  |  |
 
