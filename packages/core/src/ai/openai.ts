@@ -22,7 +22,7 @@ export class OpenAIProvider implements AIProvider {
   async json<T>(i: AiJsonRequest<T>): Promise<AiResult<T>> {
     const t0 = Date.now();
     try {
-      const reasoning = /^(gpt-5|o\d)/.test(i.model);
+      const reasoning = /^(gpt-([5-9]|\d{2})|o\d)/.test(i.model); // reasoning models reject temperature
       const res = await this.client.chat.completions.create(
         {
           model: i.model,
@@ -32,7 +32,12 @@ export class OpenAIProvider implements AIProvider {
             json_schema: { name: i.task, strict: true, schema: i.jsonSchema },
           },
           max_completion_tokens: reasoning ? i.maxOutputTokens * 4 : i.maxOutputTokens,
-          ...(reasoning ? { reasoning_effort: 'minimal' as const } : { temperature: 0.3 }),
+          ...(reasoning
+            ? {
+                reasoning_effort: (/^gpt-5(\.0)?(-|$)/.test(i.model) ? 'minimal' : 'low') as
+                  'minimal' | 'low',
+              }
+            : { temperature: 0.3 }),
         },
         { timeout: i.timeoutMs },
       );
