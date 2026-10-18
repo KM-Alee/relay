@@ -39,8 +39,8 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-004 | Vercel + Neon pipeline, `/api/health` | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | vercel.json + vercel-build (migrate as owner, then next build); runtime URL rewrite to app_user via APP_DB_PASSWORD; health asserts role |
 | T-009 | Realtime change feed (polling) | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | emit(), /changes, useRealtime(); Lane A wires pruneRealtimeEvents into the tick; Lane D mounts the hook |
 | T-011 | CI + traceability reporter | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | ci.yml (static/test/build), `pnpm test:ci`, `pnpm traceability` |
-| T-005 | i18n + RTL scaffold | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
-| T-012 | Design system + app shell + kitchen sink | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
+| T-005 | i18n + RTL scaffold | D | review | agent:lane-D | `t-d-w1-design` |  |
+| T-012 | Design system + app shell + kitchen sink | D | review | agent:lane-D | `t-d-w1-design` |  |
 
 ### W2: P0 core loop
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |

@@ -10,6 +10,7 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { defineConfig } from 'eslint/config';
+import relay from './tools/eslint-plugin-relay/index.mjs';
 
 const FRAMEWORK = [
   { group: ['next', 'next/*'], message: 'Only apps/web may import Next.js (01 §3).' },
@@ -95,6 +96,23 @@ export default defineConfig(
         },
       ]),
     },
+  },
+
+  // ── apps/web UI rules (Lane D, T-005/T-012): i18n, logical properties, tokens only ───────────
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    ignores: ['apps/web/**/*.test.{ts,tsx}', 'apps/web/**/*.d.ts'],
+    plugins: { relay },
+    rules: {
+      'relay/no-physical-direction': 'error',
+      'relay/no-raw-colors': 'error',
+    },
+  },
+  {
+    files: ['apps/web/**/*.tsx'],
+    ignores: ['apps/web/**/*.test.tsx'],
+    plugins: { relay },
+    rules: { 'relay/no-literal-jsx-strings': 'error' },
   },
 
   // ── packages/contracts: types + Zod only ─────────────────────────────────
