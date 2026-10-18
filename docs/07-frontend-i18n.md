@@ -75,6 +75,8 @@ qk.contacts.*  qk.opportunities.*  qk.dashboard(figureKey)  qk.notifications()  
 // 3. store `now` from the response as the next `since` (server clock, so no client skew)
 // 4. after 3 consecutive poll failures, show a small "Live updates paused" indicator; keep retrying with backoff
 ```
+**As built (T-009):** `apps/web/lib/realtime/` — `useRealtime({ queryClient, onChange? })` (mount once in the shell inside the Query provider; `queryClient` is typed structurally; returns `{status: 'live'|'paused'}`), `useRealtimeLive()` (call in Lead Radar / countdown screens for 1 s polling), framework-free `RealtimePoller`. The cursor is the server `now` re-sent minus a 5 s overlap; duplicates are dropped by event id; the server answers `reset: true` (cursor older than 10 min, or more than 500 hints) and the client then invalidates every query. A hint invalidates `[topic]`. Server side: `emit(tx, {workspaceId, topic, ids, userId?})` from `@relay/core/realtime` inside the change's transaction; topics live in `contracts/api/realtime.ts` (`REALTIME_TOPICS`, additive); topics needing a permission are gated in `core/services/realtime.ts` (`TOPIC_PERMISSION`). `pruneRealtimeEvents(tx)` (SECURITY DEFINER, all workspaces) is called from the tick.
+
 Payloads never contain data, only hints (architecture rule 5). New-lead / escalation / payment hints also feed the toast + optional sound cue system.
 
 ## 3. State patterns (Q10, Q17)
