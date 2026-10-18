@@ -6,6 +6,7 @@ import { log } from '../log';
 import * as jobRunsRepo from '../repos/job-runs';
 import * as outboxRepo from '../repos/outbox';
 import * as rateLimitsRepo from '../repos/rate-limits';
+import { pruneRealtimeEvents } from '../realtime/index';
 import * as stateRepo from '../repos/scheduler-state';
 import { defineProcessor, isScoped } from './due-work';
 
@@ -29,6 +30,7 @@ export const maintenanceProcessor = defineProcessor({
       outbox: await outboxRepo.prune(tx, RETENTION.outboxDoneSeconds, RETENTION.outboxDeadSeconds),
       jobRuns: await jobRunsRepo.prune(tx, RETENTION.jobRunsSeconds),
       rateLimits: await rateLimitsRepo.prune(tx, RETENTION.rateLimitsSeconds),
+      realtimeEvents: await pruneRealtimeEvents(tx),
     }));
     log.info('jobs.maintenance', { pruned });
     return 0;

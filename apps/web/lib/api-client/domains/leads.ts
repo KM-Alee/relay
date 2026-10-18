@@ -1,5 +1,5 @@
 // api.leads.*: owner Lane A. One method per endpoint in contracts/api/leads.ts; pattern: ./users.ts.
-import { leadsEndpoints } from '@relay/contracts/api/leads';
+import { leadsEndpoints, type CreateLeadInput } from '@relay/contracts/api/leads';
 import { leadsFixtures } from '@relay/contracts/fixtures/leads';
 import { call, type CallOptions } from '../http';
 
@@ -7,4 +7,27 @@ export const leads = {
   /** Countdown reached 0: run due work now (the caller debounces once per lead). */
   tickNudge: (opts?: CallOptions) =>
     call('leads', leadsEndpoints.tickNudge, {}, () => leadsFixtures.tickNudge(), opts),
+  list: (
+    query: {
+      view?: 'mine' | 'all';
+      status?: 'open' | 'closed' | 'all';
+      cursor?: string;
+      limit?: number;
+    } = {},
+    opts?: CallOptions,
+  ) => call('leads', leadsEndpoints.list, { query }, () => leadsFixtures.list(), opts),
+  get: (id: string, opts?: CallOptions) =>
+    call('leads', leadsEndpoints.get, { params: { id } }, () => leadsFixtures.get(), opts),
+  create: (body: CreateLeadInput, opts?: CallOptions) =>
+    call('leads', leadsEndpoints.create, { body }, () => leadsFixtures.create(), opts),
+  acknowledge: (id: string, version?: number, opts?: CallOptions) =>
+    call(
+      'leads',
+      leadsEndpoints.acknowledge,
+      { params: { id }, body: { version } },
+      () => leadsFixtures.acknowledge(),
+      opts,
+    ),
+  sources: (opts?: CallOptions) =>
+    call('leads', leadsEndpoints.sources, {}, () => leadsFixtures.sources(), opts),
 };

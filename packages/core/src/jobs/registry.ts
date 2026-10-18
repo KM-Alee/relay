@@ -6,6 +6,7 @@
 import type { z } from 'zod';
 import { AppError } from '../errors';
 import { integrationProcessJob } from './handlers/integration-process';
+import { leadRetryRoutingJob } from './handlers/lead-retry-routing';
 import { noopJob } from './handlers/noop';
 import { wakeScheduleJob } from './handlers/wake-schedule';
 import { slackSendJob } from './handlers/slack-send';
@@ -18,6 +19,7 @@ const handlers = [
   slackSendJob, // C: T-145
   slackUpdateJob, // C: T-145
   integrationProcessJob, // C: T-140/T-145
+  leadRetryRoutingJob, // A · T-125: lead.retry_routing {teamId}
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];
