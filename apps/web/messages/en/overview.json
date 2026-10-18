@@ -1,1 +1,18 @@
-{ "tabs": { "summary": "Summary", "radar": "Radar" } }
+{
+  "tabs": {
+    "summary": "Summary",
+    "radar": "Radar"
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "subtitle": "Here's what needs your attention today.",
+  "kpi": {
+    "newLeads": "New leads today",
+    "response": "Average first response",
+    "recovery": "Recovery queue",
+    "emptyText": "Figures appear here once leads start arriving."
+  }
+}

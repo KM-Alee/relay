@@ -39,8 +39,8 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-004 | Vercel + Neon pipeline, `/api/health` | C | in-progress | agent:lane-C | `t-c-w1-infra` | needs accounts |
 | T-009 | Realtime change feed (polling) | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
 | T-011 | CI + traceability reporter | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
-| T-005 | i18n + RTL scaffold | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
-| T-012 | Design system + app shell + kitchen sink | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
+| T-005 | i18n + RTL scaffold | D | review | agent:lane-D | `t-d-w1-design` |  |
+| T-012 | Design system + app shell + kitchen sink | D | review | agent:lane-D | `t-d-w1-design` |  |
 
 ### W2: P0 core loop
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |

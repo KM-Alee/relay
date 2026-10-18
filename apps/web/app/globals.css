@@ -1,2 +1,498 @@
-/* Minimal Tailwind v4 entry. Design tokens (docs/design/tokens.md) are added by Lane D in T-012. */
+/*
+ * Relay design tokens: Warm Orange (docs/design/tokens.md). Owner: Lane D.
+ * This is the ONLY place raw colour values may appear; components use tokens (lint: relay/no-raw-colors).
+ */
 @import 'tailwindcss';
+
+/* Dark theme is `data-theme="dark"` on <html> (set before paint by the inline script in the root layout). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+  color-scheme: light;
+
+  /* neutrals */
+  --page-bg: #f7f8f9;
+  --surface: #ffffff;
+  --surface-muted: #f3f5f6;
+  --text-primary: #111318;
+  --text-secondary: #586273;
+  --text-muted: #657184;
+  --border: #e6e9ed;
+  --border-strong: #cdd3da;
+  --focus-ring: #242a34;
+
+  /* brand: Warm Orange. --brand is FILL / chart only; accent text uses --brand-text. */
+  --brand: #f36b21;
+  --brand-strong: #c2410c;
+  --brand-strong-hover: #a93a0b;
+  --brand-soft: #ffe0c5;
+  --brand-faint: #fff3e9;
+  --brand-text: #99420c;
+  --on-brand: #111318;
+  --on-brand-strong: #ffffff;
+  --data-series-b: #ffd3ad;
+
+  /* semantic: never themed, never replaced by brand */
+  --danger: #b42318;
+  --danger-surface: #fff0ee;
+  --on-danger: #ffffff;
+  --warning: #925900;
+  --warning-surface: #fff6e6;
+  --success: #126b46;
+  --success-surface: #e7f7ef;
+  --info: #185abc;
+  --info-surface: #eaf2ff;
+  --neutral-status: #586273;
+  --neutral-surface: #f3f5f6;
+
+  /* AI marker */
+  --ai: #5b3fd6;
+  --ai-surface: #f1edff;
+
+  /* charts */
+  --chart-primary: #111318;
+  --chart-highlight: var(--brand);
+  --chart-secondary: var(--data-series-b);
+  --chart-cat-1: #f36b21;
+  --chart-cat-2: #111318;
+  --chart-cat-3: #ffb37a;
+  --chart-cat-4: #8a94a6;
+  --chart-cat-5: #c9ccd0;
+  --chart-grid: #eef0f3;
+
+  /* space, shape, elevation */
+  --space-unit: 4px;
+  --page-pad: 16px;
+  --section-gap: 24px;
+  --card-gap: 16px;
+  --card-pad: 20px;
+  --radius-card: 18px;
+  --radius-control: 11px;
+  --radius-chip: 999px;
+  --shadow-card: 0 8px 32px rgba(19, 25, 38, 0.035);
+  --shadow-pop: 0 12px 40px rgba(19, 25, 38, 0.1);
+  --nav-height: 72px;
+  --nav-margin-top: 8px;
+  --target-min: 44px;
+  --shell-max: 1600px;
+
+  /* motion */
+  --dur-fast: 120ms;
+  --dur-base: 150ms;
+  --dur-slow: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* z-index scale */
+  --z-nav: 40;
+  --z-drawer: 50;
+  --z-modal: 60;
+  --z-popover: 70;
+  --z-toast: 80;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --page-pad: 24px;
+    --card-pad: 24px;
+    --nav-margin-top: 14px;
+  }
+}
+@media (min-width: 960px) {
+  :root {
+    --page-pad: 32px;
+    --nav-margin-top: 18px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --page-pad: 40px;
+  }
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --page-bg: #0f1115;
+  --surface: #171a20;
+  --surface-muted: #1e222a;
+  --text-primary: #e8eaed;
+  --text-secondary: #a3acb9;
+  --text-muted: #8b95a3;
+  --border: #2a2f38;
+  --border-strong: #3a404b;
+  --focus-ring: #e8eaed;
+
+  --brand: #ff8a4c;
+  --brand-strong: #ff8a4c;
+  --brand-strong-hover: #ff9d66;
+  --on-brand: #111318;
+  --on-brand-strong: #111318;
+  --brand-soft: #3a2416;
+  --brand-faint: #24180f;
+  --brand-text: #ffb088;
+  --data-series-b: #6b3a1c;
+
+  --danger: #ff8a80;
+  --danger-surface: #3a1714;
+  --on-danger: #111318;
+  --warning: #f5b54a;
+  --warning-surface: #332408;
+  --success: #5dd39e;
+  --success-surface: #0e2e21;
+  --info: #7fb2ff;
+  --info-surface: #12233f;
+  --neutral-status: #a3acb9;
+  --neutral-surface: #1e222a;
+  --ai: #b4a3ff;
+  --ai-surface: #241c47;
+
+  --chart-primary: #e8eaed;
+  --chart-cat-1: #ff8a4c;
+  --chart-cat-2: #e8eaed;
+  --chart-cat-3: #b85c24;
+  --chart-cat-4: #7d8796;
+  --chart-cat-5: #4a505b;
+  --chart-grid: #242830;
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Tailwind theme: default palette removed on purpose, so `bg-orange-500` etc. generate nothing. */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-canvas: var(--page-bg); /* not "page": text-page is the type style */
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-fg: var(--text-primary);
+  --color-fg-2: var(--text-secondary);
+  --color-fg-muted: var(--text-muted);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-focus: var(--focus-ring);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-strong-hover: var(--brand-strong-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-faint: var(--brand-faint);
+  --color-brand-text: var(--brand-text);
+  --color-on-brand: var(--on-brand);
+  --color-on-brand-strong: var(--on-brand-strong);
+  --color-data-b: var(--data-series-b);
+
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-on-danger: var(--on-danger);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --color-neutral: var(--neutral-status);
+  --color-neutral-surface: var(--neutral-surface);
+  --color-ai: var(--ai);
+  --color-ai-surface: var(--ai-surface);
+
+  --color-chart-primary: var(--chart-primary);
+  --color-chart-highlight: var(--chart-highlight);
+  --color-chart-secondary: var(--chart-secondary);
+  --color-chart-1: var(--chart-cat-1);
+  --color-chart-2: var(--chart-cat-2);
+  --color-chart-3: var(--chart-cat-3);
+  --color-chart-4: var(--chart-cat-4);
+  --color-chart-5: var(--chart-cat-5);
+  --color-chart-grid: var(--chart-grid);
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-urdu: var(--font-nastaliq), 'Jameel Noori Nastaleeq', serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1600px;
+}
+
+/* ---- base ---- */
+html {
+  background: var(--page-bg);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100dvh;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+/* Urdu: Latin text keeps Inter (listed first; it has no Arabic glyphs), Urdu script uses Nastaliq. */
+:lang(ur) {
+  font-family: var(--font-inter), var(--font-nastaliq), 'Jameel Noori Nastaleeq', serif;
+}
+body:lang(ur) {
+  font-size: 16px;
+  line-height: 2;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--brand-soft);
+  color: var(--text-primary);
+}
+button,
+[role='button'],
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- typography scale (tokens.md §3). Urdu: larger line-heights, no tracking/uppercase (DS-11) ---- */
+@layer components {
+  .text-hero {
+    font-size: 32px;
+    line-height: 1.15;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    @media (min-width: 960px) {
+      font-size: 52px;
+      line-height: 1.1;
+    }
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 30px;
+      line-height: 1.9;
+      letter-spacing: 0;
+      @media (min-width: 960px) {
+        font-size: 40px;
+      }
+    }
+  }
+  .text-page {
+    font-size: 26px;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    @media (min-width: 960px) {
+      font-size: 32px;
+      line-height: 1.2;
+    }
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 26px;
+      line-height: 2;
+      letter-spacing: 0;
+      @media (min-width: 960px) {
+        font-size: 28px;
+      }
+    }
+  }
+  .text-panel {
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 600;
+    @media (min-width: 960px) {
+      font-size: 17px;
+    }
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 17px;
+      line-height: 2;
+    }
+  }
+  .text-kpi {
+    font-size: 30px;
+    line-height: 1.15;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    @media (min-width: 960px) {
+      font-size: 36px;
+    }
+    &:lang(ur),
+    :lang(ur) & {
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+  }
+  .text-body {
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 16px;
+      line-height: 2;
+    }
+  }
+  .text-meta {
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 450;
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 14px;
+      line-height: 1.9;
+    }
+  }
+  .text-button {
+    font-size: 14.5px;
+    line-height: 1.25;
+    font-weight: 550;
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 15px;
+      line-height: 1.8;
+    }
+  }
+  .text-eyebrow {
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    &:lang(ur),
+    :lang(ur) & {
+      font-size: 13px;
+      line-height: 1.9;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  }
+}
+
+/* shape + elevation utilities read the root tokens (dark mode swaps shadows) */
+@utility rounded-card {
+  border-radius: var(--radius-card);
+}
+@utility rounded-control {
+  border-radius: var(--radius-control);
+}
+@utility rounded-chip {
+  border-radius: var(--radius-chip);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-pop {
+  box-shadow: var(--shadow-pop);
+}
+
+/* z-index scale */
+@utility z-nav {
+  z-index: var(--z-nav);
+}
+@utility z-drawer {
+  z-index: var(--z-drawer);
+}
+@utility z-modal {
+  z-index: var(--z-modal);
+}
+@utility z-popover {
+  z-index: var(--z-popover);
+}
+@utility z-toast {
+  z-index: var(--z-toast);
+}
+
+/* Page container used by every screen under the shell. */
+@utility page-x {
+  padding-inline: var(--page-pad);
+}
+
+/* ---- motion ---- */
+@keyframes relay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes relay-slide-in-end {
+  from {
+    transform: translateX(var(--slide-from, 24px));
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes relay-pop-in {
+  from {
+    transform: translateY(-4px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes relay-pulse-ring {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes relay-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+[dir='rtl'] {
+  --slide-from: -24px;
+}
+.anim-fade {
+  animation: relay-fade-in var(--dur-base) var(--ease-standard);
+}
+.anim-pop {
+  animation: relay-pop-in var(--dur-base) var(--ease-standard);
+}
+.anim-slide-end {
+  animation: relay-slide-in-end var(--dur-slow) var(--ease-standard);
+}
+.anim-pulse {
+  animation: relay-pulse-ring 1.2s ease-in-out infinite;
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--border) 37%, var(--surface-muted) 63%);
+  background-size: 200% 100%;
+  animation: relay-shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Radix overlays animate via data-state, using the motion tokens. */
+[data-state='open'][data-relay-overlay] {
+  animation: relay-fade-in var(--dur-base) var(--ease-standard);
+}
