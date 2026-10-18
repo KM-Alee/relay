@@ -1,5 +1,5 @@
 {
-  "appName": "Relay",
+  "appName": "Hisaab",
   "nav": {
     "overview": "Overview",
     "leads": "Leads",
@@ -221,7 +221,7 @@
     "save": "Save"
   },
   "shell": {
-    "homeLink": "Relay, go to Overview",
+    "homeLink": "Hisaab, go to Overview",
     "primaryNav": "Main navigation",
     "menu": "Menu",
     "userMenu": "User menu",
@@ -316,7 +316,7 @@
   },
   "brand": {
     "pitch": "AI buys time, humans stay accountable.",
-    "proofTitle": "Why teams switch to Relay",
+    "proofTitle": "Why teams switch to Hisaab",
     "proof": {
       "owner": {
         "title": "Never ownerless",

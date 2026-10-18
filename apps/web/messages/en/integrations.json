@@ -1,6 +1,6 @@
 {
   "title": "Integrations",
-  "subtitle": "Connect the services Relay talks to. Secrets are encrypted and never shown again.",
+  "subtitle": "Connect the services Hisaab talks to. Secrets are encrypted and never shown again.",
   "loading": "Loading integrations…",
   "loadFailed": "Could not load integrations.",
   "status": {
@@ -70,11 +70,11 @@
     },
     "google_calendar": {
       "name": "Google Calendar",
-      "limits": "Each employee connects their own calendar. Relay reads free/busy only to avoid double-booking and writes only the appointments it creates."
+      "limits": "Each employee connects their own calendar. Hisaab reads free/busy only to avoid double-booking and writes only the appointments it creates."
     },
     "openai": {
       "name": "OpenAI",
-      "limits": "Optional. Relay works fully with AI off. Daily spend caps apply and AI never acknowledges or owns a lead."
+      "limits": "Optional. Hisaab works fully with AI off. Daily spend caps apply and AI never acknowledges or owns a lead."
     }
   },
   "errorCodes": {
@@ -105,7 +105,7 @@
     "statusNotLinked": "Not connected"
   },
   "retry": "Try again",
-  "saved": "{name} saved. Relay will verify it on the next call.",
+  "saved": "{name} saved. Hisaab will verify it on the next call.",
   "copy": "Copy {label}",
   "copied": "Copied",
   "recentErrorsCount": "{count, plural, one {# recent problem} other {# recent problems}}",
@@ -118,7 +118,7 @@
     "subtitle": "Every webhook received and every provider call, newest first. Payloads are redacted.",
     "filter": "Provider",
     "all": "All providers",
-    "empty": "No events yet. They appear here as soon as a provider talks to Relay.",
+    "empty": "No events yet. They appear here as soon as a provider talks to Hisaab.",
     "loadFailed": "Could not load the sync history.",
     "loadMore": "Load more",
     "duplicates": "{count, plural, one {# duplicate ignored} other {# duplicates ignored}}",

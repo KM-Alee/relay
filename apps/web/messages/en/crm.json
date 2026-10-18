@@ -363,7 +363,7 @@
       },
       "stats": {
         "create": "New contacts",
-        "dup": "Already in Relay",
+        "dup": "Already in Hisaab",
         "error": "Rows with problems"
       },
       "tabs": "Row lists",
