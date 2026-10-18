@@ -32,7 +32,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
 | T-007 | Audit log core + hash chain trigger | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-008 | Outbox + runDueWork + tick + QStash wake | A | in-progress | agent:lane-A | `t-008-jobs-tick` |  |
+| T-008 | Outbox + runDueWork + tick + QStash wake | A | review | agent:lane-A | `worktree-agent-a7f316dc34f62c56e` | Due-work processor list `core/jobs/processors.ts` (W2 adds lead timers). `QSTASH_URL` added. Nudge happy path untested until T-101 sessions |
 | T-010 | Seed framework | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
 | T-101 | Signup/login/sessions | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
 | T-102 | Permissions, visibility, masking | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |

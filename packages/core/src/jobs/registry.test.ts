@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { getJobHandler, jobRegistry, runJob } from './registry';
 
-const ctx = { jobId: 'j1', workspaceId: null, attempt: 1, now: new Date('2026-10-18T00:00:00Z') };
+const ctx = {
+  jobId: 'j1',
+  workspaceId: null,
+  attempt: 1,
+  maxAttempts: 6,
+  now: new Date('2026-10-18T00:00:00Z'),
+};
 
 describe('job registry', () => {
   it('[Q14] resolves registered handlers by type', () => {

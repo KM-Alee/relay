@@ -81,8 +81,9 @@ interface BlobStorage {                                                // Vercel
 interface WakeScheduler {                                              // QStash
   scheduleAt(at: Date, dedupeId: string): Promise<{ messageId: string }>;  // POST /api/internal/tick at `at`
   cancel(messageId: string): Promise<void>;
-  verify(req: RawRequest): Promise<boolean>;                           // Upstash-Signature, current + next signing key
 }
+// As built (T-008): verification is a separate TickVerifier (core/integrations/qstash/verify.ts,
+// @upstash/qstash Receiver, current + next key, URL-bound, raw body).
 ```
 
 The registry (`integrations/registry.ts`) maps `integration_connections.provider` to an adapter. Tests and the Judge Console swap in `Fake*` adapters through the same registry. The env flag `INTEGRATIONS_FAKE=1` is allowed **only** in tests and local dev, and boot refuses it when `VERCEL_ENV=production`.

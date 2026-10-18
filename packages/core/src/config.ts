@@ -77,6 +77,8 @@ export const sections = {
   // Lane A / T-008: jobs, timers, wake-ups
   jobs: z.object({
     QSTASH_TOKEN: optStr(),
+    // Region-specific QStash API endpoint shown in the Upstash console (default: SDK global URL).
+    QSTASH_URL: z.preprocess(blankToUndefined, z.url().optional()),
     QSTASH_CURRENT_SIGNING_KEY: optStr(),
     QSTASH_NEXT_SIGNING_KEY: optStr(),
     CRON_SECRET: optStr(),

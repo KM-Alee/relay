@@ -147,10 +147,10 @@ The calendar connection is an `integration_connections` row with `user_id` set (
 | `oauth_states` | `state_hash UNIQUE, workspace_id, user_id, code_verifier_enc, expires_at, used_at` | Google OAuth state + PKCE (I3.1), single use, 10 min |
 | `slack_link_tokens` | `token_hash UNIQUE, workspace_id, user_id, expires_at, used_at` | one-time code for `/relay link <code>` (I4.3), single use, 10 min |
 | `ai_usage_daily` | `workspace_id, day date, tokens int, cost_micros bigint` | Cap check (I6.4) |
-| `outbox` | `id, workspace_id NULL, type, payload jsonb, status ('pending'|'in_flight'|'done'|'failed'|'dead'), attempts, max_attempts, available_at, locked_until, last_error, dedupe_key UNIQUE NULL, created_at, done_at` | Outbox job types are listed in `04-integrations.md` §7 |
-| `scheduler_state` | singleton: `next_wake_at, qstash_message_id, updated_at` | Global |
+| `outbox` | `id, workspace_id NULL, type, payload jsonb, status ('pending'|'in_flight'|'done'|'failed'|'dead'), attempts, max_attempts, available_at, locked_until, last_error, dedupe_key UNIQUE NULL, created_at, done_at` | Outbox job types are listed in `04-integrations.md` §7. `id` = `gen_random_uuid()`. RLS: own workspace rows in `withWorkspaceTx`, NULL-workspace (system) rows only in `withSystemTx`; the runner claims cross-workspace via SECURITY DEFINER `relay_outbox_claim/next_due/prune` (T-008). Also `updated_at` |
+| `scheduler_state` | singleton: `next_wake_at, qstash_message_id, last_maintenance_at, updated_at` | Global |
 | `realtime_events` | `id uuid, workspace_id, topic text, ids uuid[], occurred_at` (index `(workspace_id, occurred_at)`) | Change feed for polling clients (ADR-0003). Written in the same tx as the change; pruned after 10 min |
-| `job_runs` | `id, trigger ('qstash'|'cron'|'after'|'nudge'|'dev'|'judge'), started_at, duration_ms, leads_processed, outbox_processed, error` | Heartbeat for Judge Console / integrations page |
+| `job_runs` | `id, trigger ('qstash'|'cron'|'after'|'nudge'|'dev'|'judge'|'manual'), started_at, finished_at, duration_ms, budget_ms, leads_processed, outbox_processed, details jsonb, next_wake_at, error` (`manual` = Bearer CRON_SECRET; pruned after 3 days) | Heartbeat for Judge Console / integrations page |
 
 ## 9. AI, knowledge, audit, demo
 
