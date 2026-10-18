@@ -25,7 +25,7 @@ If two sources conflict, the higher one wins. **Never silently override a requir
 
 | Working on | Must read |
 |---|---|
-| Anything | `docs/00-product-overview.md`, `docs/01-architecture.md`, `docs/10-conventions.md` |
+| Anything | **`docs/14-rubric.md` (judging scorecard)**, `docs/00-product-overview.md`, `docs/01-architecture.md`, `docs/10-conventions.md` |
 | DB / schema | `docs/02-data-model.md`, `docs/06-security.md` §3 (RLS) |
 | Leads, routing, escalation, timers | `docs/03-lead-engine.md` (all of it), `docs/01-architecture.md` §6 |
 | Webhooks / providers | `docs/04-integrations.md`, `docs/06-security.md` §7 |

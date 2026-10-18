@@ -22,3 +22,4 @@
 | – | [Design system](design/README.md) | Warm Orange tokens, components, screens/IA, integration decisions | Before any UI work |
 
 **Reading order for a new agent:** `AGENTS.md` → `STATUS.md` → 00 → 01 → your area's docs (see the table in `AGENTS.md` §2).
+| `14-rubric.md` | Judging rubric scorecard + self-check mapping (what we're scored on) |

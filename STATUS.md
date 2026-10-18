@@ -8,6 +8,8 @@
 
 ## Now / next
 
+> **RUBRIC FIRST:** we are judged on `docs/14-rubric.md` (100 pts, live). Every task must move a scorecard row to ✅. Rubric-maxxing phase starts once the current lanes merge.
+
 - [x] Pre-dev docs, ADRs, agent workflow (this commit)
 - [x] Design guidelines integrated: `docs/design/` (Warm Orange)
 - [x] Parallel development playbook: `docs/13-parallel-development.md`, `scripts/wt.sh`, `/launch-wave`
