@@ -31,16 +31,16 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W1: platform
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-007 | Audit log core + hash chain trigger | B | todo |  |  |  |
-| T-008 | Outbox + runDueWork + tick + QStash wake | A | todo |  |  |  |
-| T-010 | Seed framework | B | todo |  |  |  |
-| T-101 | Signup/login/sessions | B | todo |  |  |  |
-| T-102 | Permissions, visibility, masking | B | todo |  |  |  |
-| T-004 | Vercel + Neon pipeline, `/api/health` | C | todo |  |  | needs accounts |
-| T-009 | Realtime change feed (polling) | C | todo |  |  |  |
-| T-011 | CI + traceability reporter | C | todo |  |  |  |
-| T-005 | i18n + RTL scaffold | D | todo |  |  |  |
-| T-012 | Design system + app shell + kitchen sink | D | todo |  |  |  |
+| T-007 | Audit log core + hash chain trigger | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-008 | Outbox + runDueWork + tick + QStash wake | A | in-progress | agent:lane-A | `t-008-jobs-tick` |  |
+| T-010 | Seed framework | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-101 | Signup/login/sessions | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-102 | Permissions, visibility, masking | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-004 | Vercel + Neon pipeline, `/api/health` | C | in-progress | agent:lane-C | `t-c-w1-infra` | needs accounts |
+| T-009 | Realtime change feed (polling) | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
+| T-011 | CI + traceability reporter | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
+| T-005 | i18n + RTL scaffold | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
+| T-012 | Design system + app shell + kitchen sink | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
 
 ### W2: P0 core loop
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
