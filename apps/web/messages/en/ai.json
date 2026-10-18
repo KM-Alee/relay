@@ -1,1 +1,15 @@
-{ "badge": "AI", "standIn": { "label": "AI stand-in" } }
+{
+  "badge": "AI",
+  "standIn": { "label": "AI stand-in" },
+  "filledByAi": "Filled by AI",
+  "unavailable": "AI unavailable",
+  "handoffCard": {
+    "title": "Handoff from AI",
+    "goal": "Customer wants",
+    "mood": "Mood",
+    "summary": "Summary",
+    "collected": "Collected by AI",
+    "suggestedReply": "Suggested first reply",
+    "insert": "Insert into reply"
+  }
+}

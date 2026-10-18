@@ -92,12 +92,12 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-210 | Time-warp | A | todo |  |  |  |
 | T-209 | Judge Console | B | todo |  |  |  |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
-| T-204 | AI foundation | C1 | todo |  |  |  |
+| T-204 | AI foundation | C1 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | Provider (OpenAI/fake), runAiTask, cap, ai_usage, prompts registry. `pnpm ai:eval` ran for real. Not yet: integration_events row, breaker, DB-store integration test. |
 | T-208 | Knowledge base + templates editor | C1 | todo |  |  |  |
-| T-205 | AI triage + urgency | C2 | todo |  |  |  |
-| T-206 | AI stand-in | C2 | todo |  |  |  |
-| T-207 | Handoff card + AI brief | C2 | todo |  |  |  |
-| T-214 | Customer language matching | C2 | todo |  |  |  |
+| T-205 | AI triage + urgency | C2 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | triageMessage + heuristic fallback + shouldMarkUrgent; caller applies setUrgent(source:ai). |
+| T-206 | AI stand-in | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateStandInReply + guards + templates. Remaining: handleInbound trigger/outbox job, send, state machine, audit. |
+| T-207 | Handoff card + AI brief | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateHandoffBrief + baseline + en/ur i18n keys. Remaining: card UI, Slack wait, conversations.ai_brief storage. |
+| T-214 | Customer language matching | C2 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | ai/lang.ts detect(); contacts.language update left to messaging lane. |
 | T-201 | Lead Radar | D | todo |  |  |  |
 | T-213 | Full Urdu + RTL pass | D | todo |  |  |  |
 | T-212 | Traceability page | Q | todo |  |  |  |
@@ -168,3 +168,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · Claude (docs):** Switched the I4 notification channel from Telegram to Slack: ADR-0011, amendment A-1 in `AGENTS.md` §1, and all docs/`.env.example`/agent files updated (Slack app manifest, `/relay link`, `slack.send`, Block Kit Acknowledge button). `requirements.md` untouched. No code yet; T-145/T-203 renamed.
 - **2026-10-18 · agent:w0:** T-001, T-002, T-003, T-006 done on `w0-skeleton` (4 commits). `pnpm check` + `pnpm build` green locally against Docker Postgres. Slack replaces Telegram in config/.env.example per coordinator (ADR-0011; other docs handled elsewhere). Extension points for T-013/T-101 listed in the W0 report: `lib/http/session.ts#resolveActor`, `core/auth/actor.ts`, `contracts/src/errors.ts`, `db/src/schema/index.ts`, `messages/<locale>/errors.json`.
 - **2026-10-18 · agent:w0:** T-013 done on `w0-t013` (6 commits). Skeleton per 13 §10; endpoint recipe in 13 §4. Proved two `wt.sh` worktrees run `pnpm test` simultaneously (105/105 each) after fixing a real clash: concurrent first-time migrations collided on the cluster-global `app_user` role ("tuple concurrently updated"); runner now retries. `pnpm check` + `pnpm build` green. Note: an uncommitted `.gitignore` edit (`.vercel`, `.env*`) appeared from outside this task and was left uncommitted (`.env*` after `!.env.example` re-ignores it).
+- **2026-10-18 · agent:c2-ai:** T-204/T-205/T-214 -> review; T-206/T-207 core done (branch `worktree-agent-a4c320d0e5d09ec69`). `@relay/core/ai` exports triage, stand-in (+guards, static en/ur/ur-Latn templates), handoff brief, runAiTask with daily cap + `ai_usage`. Defaults gpt-4.1-mini (chat) / gpt-4.1-nano (triage) / gpt-4o-mini-transcribe. `pnpm ai:eval` run against real OpenAI, ~$0.0003/call. Not built: outbox jobs, trigger/state machine (messaging lane), integration_events row, breaker, transcription task.
