@@ -126,6 +126,19 @@
     "failed": "Something went wrong. Please try again.",
     "rateLimited": "Too many submissions. Please try again later.",
     "needContact": "Please give a phone number or an email.",
-    "notFound": "This form is not available."
+    "notFound": "This form is not available.",
+    "booking": {
+      "title": "Book a time now",
+      "help": "Pick a time that suits you. Times are shown in Pakistan time (PKT).",
+      "loading": "Loading available times…",
+      "none": "No free times right now. A team member will contact you shortly.",
+      "book": "Book this time",
+      "booking": "Booking…",
+      "confirmed": "You are booked for {when}. We will confirm on WhatsApp if you gave a phone number.",
+      "taken": "That time was just taken. Please pick another.",
+      "alreadyBooked": "You have already booked a time.",
+      "failed": "We could not book that time. Please try again.",
+      "expired": "This booking offer has expired. A team member will contact you shortly."
+    }
   }
 }

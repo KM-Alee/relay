@@ -4,6 +4,7 @@
 // no raw colours, logical properties only (ms-/me-/ps-/pe-/start-/end-), every string from next-intl (`inbox`).
 // Data refreshes by polling while visible (4 s) and immediately after local actions.
 import type { ConversationDto, MessageDto, TemplateDto } from '@relay/contracts/api/messaging';
+import { PayLinkButton } from './pay-link-button';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { api, ApiError, localizeError } from '@/lib/api-client';
@@ -405,13 +406,16 @@ function Composer({
           }}
         />
       )}
-      <button
-        type="submit"
-        disabled={busy || (useTemplate ? !tplKey : !text.trim())}
-        className="self-end rounded border px-4 py-1 font-semibold disabled:opacity-50"
-      >
-        {t('composer.send')}
-      </button>
+      <div className="flex items-start justify-between gap-2">
+        <PayLinkButton conversationId={c.id} onSent={onSent} />
+        <button
+          type="submit"
+          disabled={busy || (useTemplate ? !tplKey : !text.trim())}
+          className="self-end rounded border px-4 py-1 font-semibold disabled:opacity-50"
+        >
+          {t('composer.send')}
+        </button>
+      </div>
     </form>
   );
 }

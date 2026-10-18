@@ -522,6 +522,15 @@ export async function createAppointment(
       payload: { appointmentId: ins.id, version: ins.version },
       dedupeKey: `cal:create:${ins.id}:${ins.version}`,
     });
+    if (ins.contact_id) {
+      // I3.9: localized WhatsApp confirmation (skipped later when the contact has no phone / opted out).
+      await enqueueJob(tx, {
+        type: 'appointment.confirm',
+        payload: { appointmentId: ins.id },
+        dedupeKey: `appt:confirm:${ins.id}:${ins.version}`,
+        maxAttempts: 4,
+      });
+    }
     await appendAudit(tx, actor, {
       action: 'appointment.created',
       targetType: 'appointment',

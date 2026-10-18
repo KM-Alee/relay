@@ -90,7 +90,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
 | T-202 | Policy builder + routing trace UI | A | todo |  |  |  |
-| T-203 | Slack Acknowledge button | A | todo |  |  |  |
+| T-203 | Slack Acknowledge button | A | review | agent:lane-C5 | `worktree-agent-a0f777d685a83f5ed` | real-Slack e2e green (scripts/slack-ack-e2e.ts); event claim (`processing`) fixes Slack double-process; `?next=` login redirect via proxy `x-relay-path` |
 | T-210 | Time-warp | A | todo |  |  |  |
 | T-209 | Judge Console | B | todo |  |  |  |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
@@ -111,7 +111,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-225 | Urgency windows | A | todo |  |  |  |
 | T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
-| T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
+| T-216 | $ button, instant booking, confirmations | C | review | agent:lane-C5 | `worktree-agent-a0f777d685a83f5ed` | $ button, /f/slug slots+book, appointment.confirm WhatsApp; templates in docs/whatsapp-templates.md; not live-tested (needs Meta-approved templates + connected calendar) |
 | T-217 | Voice-note transcription | C | todo |  |  |  |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
 | T-228 | PWA + demo polish | D | todo |  |  |  |

@@ -21,11 +21,13 @@ import {
   chargeFor,
   clampExpiryMinutes,
   nextPaymentStatus,
+  formatMoneyText,
   paymentLinkText,
   type PaymentStatus,
 } from '../domain/payments';
 import { AppError } from '../errors';
 import { breakerAllows, type Breaker } from '../integrations/breaker';
+import { templateKeyFor, templateLocaleOf } from '../integrations/meta/templates';
 import { redactText } from '../integrations/redact';
 import { getPaymentProvider } from '../integrations/registry';
 import type { NormalizedStripeEvent } from '../integrations/stripe/normalize';
@@ -34,7 +36,7 @@ import { appendAudit, enqueueJob } from '../integrations/upstream';
 import { DeferJobError } from '../jobs/policy';
 import { log } from '../log';
 import { emit } from '../realtime';
-import { messagingService } from './messaging';
+import { messagingService, scopeSql as messagingScopeSql } from './messaging';
 import { ensurePlatformConnection, getWorkspaceConnection, recordOutcome } from './integrations';
 import { mergeStripeCreds } from './stripe-ingest';
 
@@ -370,6 +372,8 @@ export async function linkMessageText(
 /**
  * POST /payments/:id/send-whatsapp: send the payment link to the customer in the WhatsApp thread (I2.1, I1.3).
  * Goes through messaging.send, so the opt-out and 24 h window rules apply and the delivery is an outbox job.
+ * Inside the window the link goes as free text; outside it as the approved `payment_link` template in the
+ * customer's language (I1.10, docs/whatsapp-templates.md).
  */
 export async function sendViaWhatsApp(actor: Actor, id: string): Promise<{ ok: true; messageId: string }> {
   assertPermission(actor, 'payments.request');
@@ -381,24 +385,91 @@ export async function sendViaWhatsApp(actor: Actor, id: string): Promise<{ ok: t
         .rows[0],
     );
     const conv = (
-      await tx.execute<{ id: string }>(sql`select c.id from conversations c
-        where c.contact_id = ${pr.contact_id}::uuid
-           or c.external_key = (select phone_e164 from contacts where id = ${pr.contact_id}::uuid)
-        order by c.last_message_at desc nulls last limit 1`)
+      await tx.execute<{
+        id: string;
+        last_inbound_at: Date | string | null;
+        name: string | null;
+        language: string | null;
+      }>(
+        sql`select c.id, c.last_inbound_at, ct.name, ct.language
+          from conversations c left join contacts ct on ct.id = c.contact_id
+          where c.id = ${pr.conversation_id}::uuid
+             or c.contact_id = ${pr.contact_id}::uuid
+             or c.external_key = (select phone_e164 from contacts where id = ${pr.contact_id}::uuid)
+          order by coalesce(c.id = ${pr.conversation_id}::uuid, false) desc, c.last_message_at desc nulls last
+          limit 1`,
+      )
     ).rows[0];
-    return { pr, conversationId: conv?.id ?? null };
+    return { pr, conv };
   });
   if (!found.pr.url || found.pr.status !== 'pending') {
     throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'payment_link_unavailable' } });
   }
-  if (!found.conversationId) {
+  if (!found.conv) {
     throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'no_conversation' } });
   }
-  const text = await linkMessageText(actor.workspaceId, id, actor.locale);
-  if (!text)
-    throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'payment_link_unavailable' } });
-  const msg = await messagingService.send(actor, found.conversationId, { kind: 'text', text });
+  const { pr, conv } = found;
+  const tl = templateLocaleOf(conv.language);
+  const windowOpen =
+    !!conv.last_inbound_at && Date.now() < new Date(conv.last_inbound_at).getTime() + 24 * 3600_000;
+  let msg;
+  if (windowOpen) {
+    const text = await linkMessageText(actor.workspaceId, id, tl === 'ur' ? 'ur' : 'en');
+    if (!text)
+      throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'payment_link_unavailable' } });
+    msg = await messagingService.send(actor, conv.id, { kind: 'text', text });
+  } else {
+    const amount = pr.display_text ?? formatMoneyText(Number(pr.amount_minor), pr.currency);
+    msg = await messagingService.send(actor, conv.id, {
+      kind: 'template',
+      templateKey: templateKeyFor('payment_link', tl),
+      params: [conv.name ?? '-', amount, pr.description ?? 'Payment', pr.url ?? ''],
+    });
+  }
   return { ok: true, messageId: msg.id };
+}
+
+/**
+ * "$" button in the inbox composer (T-216, I2.1): create a payment link for the conversation contact's open
+ * opportunity and send it in the thread. The amount defaults to the opportunity value; when that is empty or
+ * hidden from the caller (F1.4) the caller must pass `amountMinor` (VALIDATION_FAILED `amountMinor`).
+ */
+export async function sendLinkInConversation(
+  actor: Actor,
+  conversationId: string,
+  input: { amountMinor?: number; currency?: string; description?: string },
+): Promise<{ payment: PaymentRequestDto; messageId: string }> {
+  assertPermission(actor, 'payments.request');
+  assertPermission(actor, 'messaging.send');
+  const ctx = await withWorkspaceTx(actor.workspaceId, async (tx) => {
+    const scope = await messagingScopeSql(tx, actor, 'c');
+    const conv = foundOr404(
+      (
+        await tx.execute<{ id: string; contact_id: string | null }>(
+          sql`select c.id, c.contact_id from conversations c where c.id = ${conversationId} and ${scope}`,
+        )
+      ).rows[0],
+    );
+    if (!conv.contact_id)
+      throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'no_contact' } });
+    const opp = (
+      await tx.execute<{ id: string }>(
+        sql`select o.id from opportunities o
+          where o.contact_id = ${conv.contact_id} and o.deleted_at is null and o.closed_at is null
+            and ${contactScopeSql(actor, sql.raw('o.contact_id'), sql.raw('o.owner_user_id'))}
+          order by coalesce(o.last_activity_at, o.created_at) desc limit 1`,
+      )
+    ).rows[0];
+    if (!opp) throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'no_open_opportunity' } });
+    return { contactId: conv.contact_id, opportunityId: opp.id };
+  });
+  const payment = await createRequest(actor, ctx.opportunityId, {
+    ...input,
+    contactId: ctx.contactId,
+    conversationId,
+  });
+  const sent = await sendViaWhatsApp(actor, payment.id);
+  return { payment, messageId: sent.messageId };
 }
 
 // ── webhook event processing (I2.2, I2.4, I2.5) ─────────────────────────
@@ -583,4 +654,5 @@ export const paymentsService = {
   processStripeEvent,
   linkMessageText,
   sendViaWhatsApp,
+  sendLinkInConversation,
 };

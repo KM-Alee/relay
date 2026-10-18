@@ -2,12 +2,14 @@
 // Public form body (F3.1). Plain fetch: the endpoint is public + CSRF-exempt (/api/public/*).
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
+import { BookingSlots } from './booking-slots';
 
 type Status = 'idle' | 'sending' | 'done' | 'error' | 'limited' | 'needContact';
 
 export function PublicForm({ slug }: { slug: string }) {
   const t = useTranslations('leads.form');
   const [status, setStatus] = useState<Status>('idle');
+  const [bookingToken, setBookingToken] = useState<string | null>(null); // I3.8 instant booking
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,6 +25,13 @@ export function PublicForm({ slug }: { slug: string }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });
+      if (res.ok) {
+        const out = (await res.json().catch(() => null)) as {
+          bookingAvailable?: boolean;
+          bookingToken?: string;
+        } | null;
+        if (out?.bookingAvailable && out.bookingToken) setBookingToken(out.bookingToken);
+      }
       setStatus(res.ok ? 'done' : res.status === 429 ? 'limited' : 'error');
     } catch {
       setStatus('error');
@@ -31,9 +40,12 @@ export function PublicForm({ slug }: { slug: string }) {
 
   if (status === 'done')
     return (
-      <p role="status" className="rounded-card bg-success-surface p-4 text-body text-success">
-        {t('success')}
-      </p>
+      <>
+        <p role="status" className="rounded-card bg-success-surface p-4 text-body text-success">
+          {t('success')}
+        </p>
+        {bookingToken ? <BookingSlots slug={slug} token={bookingToken} /> : null}
+      </>
     );
   const field =
     'mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-body text-fg';
