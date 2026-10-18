@@ -44,7 +44,7 @@ export function SearchCommand({ pages, className }: { pages: readonly NavItem[];
         onClick={() => setOpen(true)}
         aria-keyshortcuts="Control+K Meta+K"
         className={cn(
-          'inline-flex min-h-11 items-center gap-2 rounded-control text-body text-fg-muted transition-colors hover:bg-surface-muted',
+          'inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-control text-body min-[1280px]:justify-start text-fg-muted transition-colors hover:bg-surface-muted',
           'bg-surface-muted/60 px-3 min-[1280px]:w-44 min-[1440px]:w-52',
           className,
         )}

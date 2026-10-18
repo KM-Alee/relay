@@ -8,7 +8,12 @@
     "collected": "Collected",
     "projected": "Projected (unpaid)",
     "refunded": "Refunded",
-    "masked": "Hidden"
+    "masked": "Hidden",
+    "label": "Payment totals",
+    "rate": "{pct} of requested value collected",
+    "collectedHint": "Money actually received",
+    "projectedHint": "Open links, not yet paid",
+    "refundedHint": "Returned to customers"
   },
   "columns": {
     "opportunity": "Opportunity",
@@ -40,7 +45,8 @@
     "amount": "Amount",
     "currency": "Currency",
     "description": "Description",
-    "hint": "Billed through Stripe in test mode. A PKR value is converted for the test account and the original value stays visible."
+    "hint": "Billed through Stripe in test mode. A PKR value is converted for the test account and the original value stays visible.",
+    "close": "Close"
   },
   "preparing": "Preparing the link…",
   "failureReason": "Reason: {reason}",
@@ -54,5 +60,18 @@
       "title": "Payment not completed",
       "body": "No payment was taken. You can use the same link again while it is valid."
     }
+  },
+  "retry": "Try again",
+  "emptyTitle": "No payment links yet",
+  "requestFor": "Payment request",
+  "paidToast": "Payment received: {amount}",
+  "created": "Payment link created. It appears below as soon as Stripe returns it.",
+  "requests": {
+    "title": "Payment requests",
+    "count": "{count, plural, one {# request} other {# requests}}"
+  },
+  "cancelConfirm": {
+    "title": "Cancel this payment link?",
+    "body": "The customer will no longer be able to pay with it. You can create a new link at any time."
   }
 }

@@ -38,7 +38,10 @@ export function Wordmark({ className, textClassName }: { className?: string; tex
     <Link
       href="/"
       aria-label={t('shell.homeLink')}
-      className={cn('inline-flex min-h-11 items-center gap-2 rounded-control pe-2 ps-1', className)}
+      className={cn(
+        'inline-flex min-h-11 items-center gap-2 rounded-control border-0 pe-2 ps-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
+        className,
+      )}
     >
       <BrandMark />
       <span className={cn('text-[22px] font-semibold leading-none tracking-tight text-fg', textClassName)}>

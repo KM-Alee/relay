@@ -57,6 +57,7 @@ import { toast } from '@/components/ui/toaster';
 import { useFormat } from '@/lib/format/use-format';
 import { visibleNav } from '@/nav';
 import { PERMISSION_KEYS } from '@relay/contracts/permissions';
+import { MotionSection } from './motion-section';
 
 const NOW = Date.parse('2026-10-18T09:00:00Z');
 const WINDOW = 120_000;
@@ -121,6 +122,7 @@ function Swatch({ name, cls }: { name: string; cls: string }) {
 
 export function KitchenSink() {
   const t = useTranslations('common');
+  const tu = useTranslations('ui.kitchen');
   const k = (key: string, values?: Record<string, string | number>) => t(`dev.kitchen.${key}`, values);
   const f = useFormat();
   const locale = useLocale();
@@ -678,6 +680,10 @@ export function KitchenSink() {
               <FormatRow label={k('format.zone')} value={<Ltr>{f.timeZone}</Ltr>} />
             </dl>
           </Card>
+        </Section>
+
+        <Section id="motion" title={tu('section')}>
+          <MotionSection />
         </Section>
 
         <Section id="art" title={k('sections.art')}>

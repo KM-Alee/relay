@@ -13,6 +13,7 @@ import { useRealtime } from '@/lib/realtime';
 import { useNotificationItems } from '@/lib/query/use-notifications';
 import { visibleNav } from '@/nav';
 import { useTimeWarp } from '@/components/automations/use-automations';
+import { PageTransition } from './motion/presence';
 import { TopNav } from './top-nav';
 
 export function AppShell({ children, demoMode = false }: { children: ReactNode; demoMode?: boolean }) {
@@ -65,7 +66,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
         tabIndex={-1}
         className="mx-auto w-full max-w-(--shell-max) px-(--page-pad) pb-16 pt-2 outline-none"
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
     </div>
   );

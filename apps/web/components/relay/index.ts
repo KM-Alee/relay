@@ -28,3 +28,5 @@ export { ThemeSwitcher } from './theme-switcher';
 export { TimeWarpBadge } from './time-warp-badge';
 export { TopNav } from './top-nav';
 export { ComingSoon } from './coming-soon';
+export * from './motion';
+export { RelayLottie, LOTTIE_NAMES, type LottieName } from './lottie';

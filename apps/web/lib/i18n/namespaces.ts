@@ -16,5 +16,6 @@ export const NAMESPACES = [
   'payments', // C (T-143)
   'appointments', // C (T-144)
   'judge', // B (T-209)
+  'ui', // D3 (T-228): motion/Lottie kit + kitchen-sink motion section
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

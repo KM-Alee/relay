@@ -1,0 +1,41 @@
+{
+  "kitchen": {
+    "section": "Motion and Lottie",
+    "intro": "The motion kit and the Lottie budget. Everything is subtle, purposeful and switches off with reduced motion.",
+    "countUp": "Number tickers",
+    "leadsToday": "leads today",
+    "replay": "Replay",
+    "interaction": "Press and layout",
+    "interactionHint": "Hover lift, press squeeze and a sliding selection pill.",
+    "press": "Press me",
+    "lift": "Hover lift",
+    "segmented": "Time range",
+    "seg": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "presence": "Enter and exit",
+    "add": "Add",
+    "remove": "Remove",
+    "item": "New lead #{n}",
+    "expand": "Show details",
+    "collapse": "Hide details",
+    "collapseBody": "Collapse animates height automatically and unmounts its content once closed.",
+    "stagger1": "Stagger: first",
+    "stagger2": "Stagger: second",
+    "stagger3": "Stagger: third",
+    "stagger4": "Stagger: fourth",
+    "lottie": "Lottie animations",
+    "lottieHint": "{count} hand-made files, re-coloured from the theme tokens at runtime.",
+    "loops": "Loops",
+    "oneShot": "Plays once",
+    "emptyTitle": "Recovery queue is empty",
+    "emptyBody": "Every lead has an owner who acknowledged it. Nice work.",
+    "toastButton": "Show a success toast",
+    "toast": "Payment received: PKR 25,000",
+    "handoffTitle": "Handing over to a human",
+    "handoffBody": "The AI stand-in passes the conversation to the lead owner.",
+    "reduced": "Reduced motion: turn it on in your OS to see the still versions."
+  }
+}

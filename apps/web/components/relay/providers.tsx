@@ -3,15 +3,18 @@
 import type { ReactNode } from 'react';
 import { TooltipProvider } from '@/components/ui/popover';
 import { Toaster } from '@/components/ui/toaster';
+import { MotionProvider } from './motion/provider';
 import { ThemeProvider } from './theme';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <TooltipProvider delayDuration={250}>
-        {children}
-        <Toaster />
-      </TooltipProvider>
+      <MotionProvider>
+        <TooltipProvider delayDuration={250}>
+          {children}
+          <Toaster />
+        </TooltipProvider>
+      </MotionProvider>
     </ThemeProvider>
   );
 }

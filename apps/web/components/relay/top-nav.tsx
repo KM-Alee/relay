@@ -28,6 +28,8 @@ import {
 import { Tagline, Wordmark } from './brand';
 import { Avatar } from './owner-chip';
 import { LocaleRadioItems, LocaleSwitcher } from './locale-switcher';
+import { Highlight } from './motion/highlight';
+import { LayoutGroup } from './motion/presence';
 import { navIcon } from './nav-icons';
 import { NotificationsPanel, type NotificationItem } from './notifications-panel';
 import { SearchCommand } from './search-command';
@@ -67,12 +69,14 @@ function NavLink({ item, className }: { item: NavItem; className?: string }) {
       href={item.href}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'min-h-11 items-center gap-2 whitespace-nowrap rounded-control px-2.5 text-button transition-colors duration-(--dur-fast) lg:px-3',
-        active ? 'bg-brand-soft text-fg' : 'text-fg-2 hover:bg-surface-muted hover:text-fg',
+        'relative isolate min-h-11 items-center gap-2 whitespace-nowrap rounded-control px-2.5 text-button transition-colors duration-(--dur-fast) lg:px-3',
+        active ? 'text-fg' : 'text-fg-2 hover:bg-surface-muted hover:text-fg',
         className,
       )}
     >
-      <Icon icon={navIcon(item.icon)} className="size-[18px]" />
+      {/* the orange capsule slides between items (shared layout); aria-current carries the state */}
+      {active ? <Highlight layoutId="topnav-capsule" className="rounded-control bg-brand-soft" /> : null}
+      <Icon icon={navIcon(item.icon)} strokeWidth={1.85} className="size-[18px]" />
       <span>{t(item.labelKey)}</span>
     </Link>
   );
@@ -119,33 +123,38 @@ export function TopNav({
       <div className="mx-auto max-w-(--shell-max)">
         <nav
           aria-label={t('shell.primaryNav')}
-          className="flex h-16 items-center gap-1 rounded-card border border-line bg-surface px-2 shadow-card sm:gap-2 sm:px-3 md:h-(--nav-height)"
+          className="flex h-16 items-center gap-1 rounded-card border border-line bg-surface ps-2 pe-2 shadow-card sm:gap-2 sm:ps-3 sm:pe-3 md:h-(--nav-height)"
         >
           <Wordmark className="shrink-0" />
 
           {/* destinations (>= 600) */}
-          <ul className="ms-2 hidden items-center gap-1 sm:flex lg:ms-4">
-            {loading ? (
-              <li aria-hidden className="flex gap-2">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="skeleton h-9 w-20 rounded-control" />
-                ))}
-              </li>
-            ) : (
-              primary.map((item) => (
-                <li key={item.id} className="contents">
-                  <NavLink item={item} className={SHOW_FROM[item.id] ?? 'hidden min-[1440px]:inline-flex'} />
+          <LayoutGroup id="topnav">
+            <ul className="ms-2 hidden min-w-0 items-center gap-1 overflow-clip [overflow-clip-margin:8px] sm:flex lg:ms-4">
+              {loading ? (
+                <li aria-hidden className="flex gap-2">
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="skeleton h-9 w-20 rounded-control" />
+                  ))}
                 </li>
-              ))
-            )}
-            <li className={cn('hidden sm:block', more.length === 0 && 'min-[1440px]:hidden')}>
-              <MoreMenu primary={primary} more={more} />
-            </li>
-          </ul>
+              ) : (
+                primary.map((item) => (
+                  <li key={item.id} className="contents">
+                    <NavLink
+                      item={item}
+                      className={SHOW_FROM[item.id] ?? 'hidden min-[1440px]:inline-flex'}
+                    />
+                  </li>
+                ))
+              )}
+              <li className={cn('hidden sm:block', more.length === 0 && 'min-[1440px]:hidden')}>
+                <MoreMenu primary={primary} more={more} />
+              </li>
+            </ul>
+          </LayoutGroup>
 
-          <div className="ms-auto flex items-center gap-1 sm:gap-2">
+          <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
             {timeWarp && timeWarp !== 1 ? (
-              <TimeWarpBadge factor={timeWarp} className="hidden sm:inline-flex" />
+              <TimeWarpBadge factor={timeWarp} className="hidden min-[1600px]:inline-flex" />
             ) : null}
             <SearchCommand pages={items} />
             <NotificationsPanel items={notifications} />
@@ -219,10 +228,11 @@ function MoreMenu({ primary, more }: { primary: readonly NavItem[]; more: readon
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'inline-flex min-h-11 items-center gap-1.5 rounded-control px-2.5 text-button transition-colors lg:px-3',
-          anyActive ? 'bg-brand-soft text-fg' : 'text-fg-2 hover:bg-surface-muted hover:text-fg',
+          'relative isolate inline-flex min-h-11 items-center gap-1.5 rounded-control px-2.5 text-button transition-colors lg:px-3',
+          anyActive ? 'text-fg' : 'text-fg-2 hover:bg-surface-muted hover:text-fg',
         )}
       >
+        {anyActive ? <Highlight layoutId="topnav-capsule" className="rounded-control bg-brand-soft" /> : null}
         {t('nav.more')}
         <Icon icon={ChevronDown} />
       </DropdownMenuTrigger>
@@ -262,7 +272,7 @@ function UserMenu({
       <DropdownMenu>
         <DropdownMenuTrigger
           className={cn(
-            'min-h-11 items-center gap-2 rounded-control ps-1 pe-2 transition-colors hover:bg-surface-muted',
+            'h-11 shrink-0 items-center gap-2 rounded-control ps-1 pe-2.5 transition-colors hover:bg-surface-muted',
             className,
           )}
         >
