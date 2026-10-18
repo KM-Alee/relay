@@ -27,6 +27,8 @@
 | `invites` | `id, workspace_id, token_hash UNIQUE, base_level, role_id NULL, created_by, expires_at, used_at, used_by, revoked_at` | Single-use (F1.2) |
 | `rate_limits` | `key text, window_start timestamptz, count int` PK(key, window_start) | Global (no RLS). Login, public form, nudge |
 
+**As built (T-101/T-102, `202610181302_b_identity.sql`):** `users` (enums `user_base_level`, `user_availability` default `available`; CHECK inactive ⇒ `deactivated_at`; RLS SELECT/INSERT/UPDATE, no DELETE), `level_permissions` PK `(workspace_id, base_level)` (rows for `admin`/`user`; a missing row falls back to the code defaults in `contracts/permission-defaults.ts`), `roles` (+ `key` for seeded roles, e.g. `'manager'`; unique `(workspace_id, lower(name))`), `user_roles`, `user_permission_overrides` (`effect` CHECK), `sessions` (+ `rotate_required bool`: set on privilege change, the next API request swaps the token; `token_hash` CHECK 32 bytes). Composite FKs `(workspace_id, user_id)` everywhere; `workspaces (id, owner_user_id)` → `users (workspace_id, id)`; `audit_events (workspace_id, actor_user_id)` → users. SECURITY DEFINER: `auth_find_user_by_email(citext)`, `auth_resolve_session(bytea)` (returns also `last_seen_at`, `rotate_required`). `invites` comes with T-103.
+
 **Effective permissions** = `level_permissions[base_level]` ∪ permissions of all assigned roles, then apply overrides (`deny` wins over `grant`). `owner` always has everything. The permission catalogue is in `06-security.md` §2.
 
 ## 2. Teams and routing configuration
