@@ -1,8 +1,12 @@
-// STUB (W0/T-013). Owner: Lane B (T-111) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Pipeline board + table (T-111, F2.5).
+import { PipelineView } from '@/components/crm/pipeline-view';
 import { requirePage } from '@/lib/http/page-auth';
 
 export default async function Page() {
-  await requirePage('pipeline'); // T-102: server-side gate (permission from nav.ts)
-  return <ComingSoon screen="nav.pipeline" />;
+  await requirePage('pipeline');
+  return (
+    <main className="mx-auto max-w-[96rem] px-4 py-6">
+      <PipelineView />
+    </main>
+  );
 }
