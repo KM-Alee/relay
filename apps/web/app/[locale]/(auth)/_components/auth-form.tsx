@@ -1,9 +1,13 @@
 'use client';
 // Minimal, i18n'd sign-in / sign-up form (T-101). Plain semantic markup; Lane D restyles with the
 // design system. Calls the typed api-client (CSRF handled there) and then navigates.
+import { CircleAlert, Lock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/relay/form-field';
 import { api, localizeError } from '@/lib/api-client';
 import { Link, useRouter } from '@/lib/i18n/navigation';
 
@@ -14,6 +18,7 @@ function safeNext(next: string | null): string {
 
 export function AuthForm({ mode, locale }: { mode: 'login' | 'signup'; locale: 'en' | 'ur' }) {
   const t = useTranslations('auth');
+  const tc = useTranslations('common');
   const te = useTranslations();
   const router = useRouter();
   const params = useSearchParams();
@@ -45,66 +50,71 @@ export function AuthForm({ mode, locale }: { mode: 'login' | 'signup'; locale: '
   }
 
   return (
-    <main className="mx-auto max-w-sm px-4 py-12">
-      <h1 className="text-2xl font-semibold">{t(`${mode}.title`)}</h1>
-      <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4" noValidate={false}>
-        {mode === 'signup' && (
-          <>
-            <label className="flex flex-col gap-1">
-              <span>{t('fields.workspaceName')}</span>
-              <input name="workspaceName" required maxLength={80} className="rounded border px-3 py-2" />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>{t('fields.name')}</span>
-              <input
-                name="name"
+    <main className="w-full max-w-md">
+      <div className="rounded-card border border-line bg-surface p-6 shadow-card sm:p-8">
+        <h1 className="text-page text-fg">{t(`${mode}.title`)}</h1>
+        <p className="mt-1 text-body text-fg-2">
+          {tc(mode === 'login' ? 'brand.welcomeSub' : 'brand.signupSub')}
+        </p>
+        <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4" noValidate={false}>
+          {mode === 'signup' && (
+            <>
+              <FormField label={t('fields.workspaceName')} required>
+                {(p) => <Input {...p} name="workspaceName" required maxLength={80} />}
+              </FormField>
+              <FormField label={t('fields.name')} required>
+                {(p) => <Input {...p} name="name" required maxLength={80} autoComplete="name" />}
+              </FormField>
+            </>
+          )}
+          <FormField label={t('fields.email')} required>
+            {(p) => <Input {...p} name="email" type="email" required autoComplete="email" dir="ltr" />}
+          </FormField>
+          <FormField
+            label={t('fields.password')}
+            required
+            helper={mode === 'signup' ? t('fields.passwordHint') : undefined}
+          >
+            {(p) => (
+              <Input
+                {...p}
+                name="password"
+                type="password"
                 required
-                maxLength={80}
-                autoComplete="name"
-                className="rounded border px-3 py-2"
+                minLength={mode === 'signup' ? 10 : 1}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                dir="ltr"
               />
-            </label>
-          </>
-        )}
-        <label className="flex flex-col gap-1">
-          <span>{t('fields.email')}</span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            dir="ltr"
-            className="rounded border px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span>{t('fields.password')}</span>
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={mode === 'signup' ? 10 : 1}
-            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            dir="ltr"
-            className="rounded border px-3 py-2"
-          />
-          {mode === 'signup' && <span className="text-sm opacity-70">{t('fields.passwordHint')}</span>}
-        </label>
-        {error && (
-          <p role="alert" className="text-sm">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={busy} className="rounded border px-3 py-2 font-medium">
-          {t(`${mode}.submit`)}
-        </button>
-      </form>
-      <p className="mt-6 text-sm">
-        {mode === 'login' ? (
-          <Link href="/signup">{t('login.toSignup')}</Link>
-        ) : (
-          <Link href="/login">{t('signup.toLogin')}</Link>
-        )}
+            )}
+          </FormField>
+          {error && (
+            <p
+              role="alert"
+              className="flex items-start gap-2 rounded-control bg-danger-surface px-3 py-2 text-body text-danger"
+            >
+              <CircleAlert aria-hidden className="mt-1 size-4 shrink-0" />
+              <span>{error}</span>
+            </p>
+          )}
+          <Button type="submit" variant="primary" size="lg" loading={busy} className="mt-1 w-full">
+            {t(`${mode}.submit`)}
+          </Button>
+        </form>
+        <p className="mt-6 border-t border-line pt-4 text-body text-fg-2">
+          {mode === 'login' ? (
+            <Link href="/signup" className="font-medium text-brand-text underline-offset-4 hover:underline">
+              {t('login.toSignup')}
+            </Link>
+          ) : (
+            <Link href="/login" className="font-medium text-brand-text underline-offset-4 hover:underline">
+              {t('signup.toLogin')}
+            </Link>
+          )}
+        </p>
+      </div>
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-meta text-fg-muted">
+        <Lock aria-hidden className="size-3.5" />
+        {tc('brand.secure')}
       </p>
     </main>
   );

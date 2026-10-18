@@ -1,18 +1,177 @@
 {
   "tabs": {
+    "label": "Overview views",
     "summary": "Summary",
     "radar": "Radar"
   },
   "greeting": {
     "morning": "Good morning",
     "afternoon": "Good afternoon",
-    "evening": "Good evening"
+    "evening": "Good evening",
+    "named": "{greeting}, {name}"
   },
   "subtitle": "Here's what needs your attention today.",
+  "header": {
+    "sentence": "{newToday, plural, one {# new lead today} other {# new leads today}} · {attention} need attention",
+    "sentenceMine": "{newToday, plural, one {# new lead of yours today} other {# new leads of yours today}} · {attention} need attention"
+  },
+  "chips": {
+    "waiting": "waiting acknowledgement",
+    "escalated": "escalated today"
+  },
   "kpi": {
     "newLeads": "New leads today",
+    "newLeadsMine": "My new leads today",
     "response": "Average first response",
+    "responseMine": "My average first response",
     "recovery": "Recovery queue",
-    "emptyText": "Figures appear here once leads start arriving."
+    "recoveryMine": "My overdue leads",
+    "emptyText": "Figures appear here once leads start arriving.",
+    "vsYesterday": "vs yesterday ({value})",
+    "noResponses": "No lead acknowledged yet today",
+    "critical": "{count, plural, one {# critical} other {# critical}}",
+    "allClear": "Nothing waiting"
+  },
+  "payments": {
+    "title": "How much did we collect?",
+    "titleLeads": "How many leads came in, and how many escalated?",
+    "scope": "{scope} · Last {days} days",
+    "scopeCompany": "All teams",
+    "scopeMine": "Your leads",
+    "totalLabel": "collected in the last {days} days",
+    "viewAll": "View payments",
+    "unit": "PKR",
+    "period": "Time period",
+    "days7": "Last 7 days",
+    "days30": "Last 30 days",
+    "days90": "Last 90 days",
+    "collected": "Collected",
+    "count": "Payments",
+    "leads": "New leads",
+    "escalations": "Escalations",
+    "emptyTitle": "No payments in this period.",
+    "emptyLeads": "No leads in this period.",
+    "summary": "{total} collected over {days} days across {count, plural, one {# payment} other {# payments}}. Best day: {bestDay} with {best}.",
+    "summaryLeads": "{leads, plural, one {# lead} other {# leads}} and {escalations, plural, one {# escalation} other {# escalations}} over {days} days.",
+    "tableDate": "Date",
+    "tableAmount": "Collected",
+    "tableCount": "Payments",
+    "maskedNote": "Collected revenue is hidden for your role, so this shows lead volume instead."
+  },
+  "team": {
+    "title": "Who is available?",
+    "scope": "Live team status",
+    "openLeads": "{count, plural, one {# open lead} other {# open leads}}",
+    "total": "{count, plural, one {# person} other {# people}}",
+    "empty": "No team members yet."
+  },
+  "pipeline": {
+    "title": "Where is the money in the pipeline?",
+    "scope": "Open opportunities by stage",
+    "count": "{count, plural, one {# deal} other {# deals}}",
+    "total": "Total open value",
+    "empty": "No open opportunities yet.",
+    "emptyAction": "Open pipeline",
+    "maskedNote": "Values are hidden for your role. Counts are shown."
+  },
+  "appointments": {
+    "title": "What is coming up?",
+    "scope": "Next appointments",
+    "empty": "No upcoming appointments.",
+    "with": "{contact} · {owner}",
+    "more": "{count, plural, one {# more appointment} other {# more appointments}}",
+    "viewAll": "View all"
+  },
+  "escalations": {
+    "title": "Escalations (24 h)",
+    "scope": "Acknowledgement timeouts",
+    "count": "{count, plural, one {# escalation} other {# escalations}}",
+    "idle": "Idle re-triggers: {count}",
+    "none": "No escalations in the last 24 hours."
+  },
+  "risk": {
+    "atRisk": "Revenue at risk",
+    "atRiskHelp": "Value waiting for a human to acknowledge",
+    "rescued": "Revenue rescued",
+    "rescuedHelp": "Collected this month from leads that escalated first",
+    "badge": "Live"
+  },
+  "customize": {
+    "button": "Customize",
+    "title": "Show or hide figures",
+    "description": "Your choice is remembered on this device.",
+    "reset": "Show everything",
+    "done": "Done",
+    "figures": {
+      "newLeads": "New leads today",
+      "response": "Average first response",
+      "recovery": "Recovery queue",
+      "payments": "Payments chart",
+      "team": "Team availability",
+      "pipeline": "Open pipeline by stage",
+      "appointments": "Upcoming appointments",
+      "escalations": "Escalations (24 h)",
+      "risk": "Revenue at risk and rescued",
+      "about": "About Relay card"
+    },
+    "hiddenCount": "{count, plural, one {# figure hidden} other {# figures hidden}}"
+  },
+  "about": {
+    "title": "About Relay",
+    "badge": "Demo workspace",
+    "promise": "Every lead has exactly one accountable human. If they stay silent, the lead escalates on its own.",
+    "ai": "AI buys time. Humans stay accountable.",
+    "points": {
+      "owner": "Never ownerless: one named owner at every moment.",
+      "escalate": "Escalates automatically when an acknowledgement window runs out.",
+      "ai": "A WhatsApp and Urdu AI stand-in keeps the customer warm. It never counts as a response."
+    },
+    "tryRadar": "Watch it live on Lead Radar",
+    "dismiss": "Hide this card"
+  },
+  "radar": {
+    "title": "Lead Radar",
+    "subtitle": "Waiting leads, live. Escalations move to the next owner on their own.",
+    "live": "Live",
+    "paused": "Paused",
+    "team": "Team",
+    "teamLabel": "Team members and their waiting leads",
+    "free": "Nothing waiting",
+    "waitingCount": "{count, plural, one {# waiting} other {# waiting}}",
+    "awaitingTitle": "Awaiting handler",
+    "awaitingHelp": "No handler could take these leads. A custodian holds them until someone claims them.",
+    "custodian": "Custodian: {name}",
+    "awaitingNone": "No leads in fallback custody.",
+    "reason": {
+      "no_available": "Nobody is available",
+      "all_at_capacity": "Everyone is at capacity",
+      "no_skill_match": "No skill match",
+      "first_to_claim_pending": "Waiting for a claim",
+      "chain_exhausted": "Escalation chain exhausted",
+      "owner_absent": "Owner is away",
+      "owner_deactivated": "Owner was deactivated"
+    },
+    "urgent": "Urgent",
+    "critical": "Critical",
+    "escalated": "Escalated to level {level}",
+    "movedTo": "{lead} moved to {owner}",
+    "openLead": "Open {lead}, owned by {owner}",
+    "empty": "All clear",
+    "emptyBody": "No lead is waiting for acknowledgement right now.",
+    "errorTitle": "Radar couldn't load",
+    "listTitle": "All waiting leads",
+    "listSummary": "Text list of waiting leads",
+    "listItem": "{lead} ({source}), owner {owner}",
+    "listNoOwner": "{lead}: no owner",
+    "colLead": "Lead",
+    "colOwner": "Owner",
+    "colSource": "Source",
+    "colTime": "Time",
+    "drawerTitle": "Lead preview",
+    "drawerBody": "The full lead view opens from here once the leads screen is ready.",
+    "drawerOpen": "Open lead page",
+    "ownerLabel": "Owner",
+    "statusLabel": "Status",
+    "ackWindow": "Acknowledgement window"
   }
 }

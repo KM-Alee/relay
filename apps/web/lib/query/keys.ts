@@ -3,6 +3,7 @@
 // dashboard, notifications, integrations, team. Add keys for your domain here (additive edits only).
 export const qk = {
   me: () => ['me'] as const,
+  mySessions: () => ['me', 'sessions'] as const,
   leads: {
     list: (filters?: unknown) => ['leads', 'list', filters ?? {}] as const,
     detail: (id: string) => ['leads', 'detail', id] as const,

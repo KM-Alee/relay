@@ -4,7 +4,7 @@
 // Responsive (CSS only, no JS measuring, so SSR never flashes the wrong layout):
 //   >= 1280  every primary item + More          960-1279  Automations moves to More
 //   600-959  Overview, Leads (+Inbox >= 760) + More          < 600  wordmark + search + bell + labelled Menu sheet
-import { ChevronDown, LogIn, Menu, User } from 'lucide-react';
+import { ChevronDown, LogIn, LogOut, Menu, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { cn } from '@/components/ui/cn';
@@ -26,6 +26,7 @@ import {
   useAvailabilityRequest,
 } from './availability-switcher';
 import { Tagline, Wordmark } from './brand';
+import { Avatar } from './owner-chip';
 import { LocaleRadioItems, LocaleSwitcher } from './locale-switcher';
 import { navIcon } from './nav-icons';
 import { NotificationsPanel, type NotificationItem } from './notifications-panel';
@@ -83,6 +84,10 @@ export interface TopNavProps {
   /** Whether the user is signed in (shows avatar/availability vs a Sign in link). */
   signedIn: boolean;
   roleLabel?: string;
+  /** Signed-in profile for the user menu (from GET /api/v1/me). */
+  user?: { name: string; email: string; workspace: string };
+  onSignOut?: () => void;
+  signingOut?: boolean;
   availability: Availability;
   onAvailabilityChange: (next: Availability) => void;
   notifications?: readonly NotificationItem[];
@@ -95,6 +100,9 @@ export function TopNav({
   items,
   signedIn,
   roleLabel,
+  user,
+  onSignOut,
+  signingOut,
   availability,
   onAvailabilityChange,
   notifications,
@@ -150,6 +158,9 @@ export function TopNav({
                 />
                 <UserMenu
                   roleLabel={roleLabel}
+                  user={user}
+                  onSignOut={onSignOut}
+                  signingOut={signingOut}
                   availability={availability}
                   onAvailabilityChange={onAvailabilityChange}
                   className="hidden sm:inline-flex"
@@ -176,6 +187,9 @@ export function TopNav({
                 <MobileMenu
                   items={items}
                   signedIn={signedIn}
+                  user={user}
+                  onSignOut={onSignOut}
+                  signingOut={signingOut}
                   availability={availability}
                   onAvailabilityChange={onAvailabilityChange}
                   onNavigate={() => setMenuOpen(false)}
@@ -226,11 +240,17 @@ function MoreMenu({ primary, more }: { primary: readonly NavItem[]; more: readon
 
 function UserMenu({
   roleLabel,
+  user,
+  onSignOut,
+  signingOut,
   availability,
   onAvailabilityChange,
   className,
 }: {
   roleLabel?: string;
+  user?: { name: string; email: string; workspace: string };
+  onSignOut?: () => void;
+  signingOut?: boolean;
   availability: Availability;
   onAvailabilityChange: (a: Availability) => void;
   className?: string;
@@ -246,12 +266,18 @@ function UserMenu({
             className,
           )}
         >
-          <span className="relative inline-flex size-9 items-center justify-center rounded-chip bg-brand-soft text-fg">
-            <User aria-hidden className="size-4" />
-          </span>
+          {user ? (
+            <Avatar name={user.name} className="size-9 text-button" />
+          ) : (
+            <span className="relative inline-flex size-9 items-center justify-center rounded-chip bg-brand-soft text-fg">
+              <User aria-hidden className="size-4" />
+            </span>
+          )}
           <span className="sr-only">{t('shell.userMenu')}</span>
           <span className="hidden text-start min-[1280px]:block">
-            <span className="block text-body font-medium leading-tight text-fg">{t('shell.you')}</span>
+            <span className="block max-w-36 truncate text-body font-medium leading-tight text-fg">
+              {user?.name ?? t('shell.you')}
+            </span>
             {roleLabel ? (
               <span className="block text-meta leading-tight text-fg-muted">{roleLabel}</span>
             ) : null}
@@ -259,9 +285,19 @@ function UserMenu({
           <Icon icon={ChevronDown} className="text-fg-muted" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-64">
-          <div className="px-3 py-2">
-            <p className="text-body font-medium text-fg">{t('shell.you')}</p>
-            {roleLabel ? <p className="text-meta text-fg-muted">{roleLabel}</p> : null}
+          <div className="flex items-center gap-3 px-3 py-2">
+            {user ? <Avatar name={user.name} className="size-10" /> : null}
+            <div className="min-w-0">
+              <p className="truncate text-body font-medium text-fg">{user?.name ?? t('shell.you')}</p>
+              {user ? (
+                <p dir="ltr" className="truncate text-start text-meta text-fg-2">
+                  {user.email}
+                </p>
+              ) : null}
+              <p className="truncate text-meta text-fg-muted">
+                {[user?.workspace, roleLabel].filter(Boolean).join(' · ')}
+              </p>
+            </div>
           </div>
           <DropdownMenuSeparator />
           <AvailabilityRadioItems value={availability} onRequest={request} />
@@ -276,6 +312,15 @@ function UserMenu({
           <ThemeRadioItems />
           <DropdownMenuSeparator />
           <LocaleRadioItems />
+          {onSignOut ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={onSignOut} disabled={signingOut}>
+                <Icon icon={LogOut} flipInRtl className="text-fg-2" />
+                {t('actions.signOut')}
+              </DropdownMenuItem>
+            </>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
       {dialog}
@@ -286,12 +331,18 @@ function UserMenu({
 function MobileMenu({
   items,
   signedIn,
+  user,
+  onSignOut,
+  signingOut,
   availability,
   onAvailabilityChange,
   onNavigate,
 }: {
   items: readonly NavItem[];
   signedIn: boolean;
+  user?: { name: string; email: string; workspace: string };
+  onSignOut?: () => void;
+  signingOut?: boolean;
   availability: Availability;
   onAvailabilityChange: (a: Availability) => void;
   onNavigate: () => void;
@@ -301,6 +352,18 @@ function MobileMenu({
   const list = items.filter((i) => i.group !== 'hidden' || i.id === 'me');
   return (
     <div className="flex flex-col gap-6">
+      {user ? (
+        <div className="flex items-center gap-3 rounded-card bg-surface-muted p-3">
+          <Avatar name={user.name} className="size-11 text-button" />
+          <div className="min-w-0">
+            <p className="truncate text-body font-medium text-fg">{user.name}</p>
+            <p dir="ltr" className="truncate text-start text-meta text-fg-2">
+              {user.email}
+            </p>
+            <p className="truncate text-meta text-fg-muted">{user.workspace}</p>
+          </div>
+        </div>
+      ) : null}
       <ul className="flex flex-col gap-1">
         {list.map((item) => {
           const active = isActive(pathname, item.href);
@@ -342,6 +405,12 @@ function MobileMenu({
         <p className="text-meta text-fg-muted">{t('theme.label')}</p>
         <ThemeSwitcher className="w-full [&>button]:flex-1 [&>button]:justify-center" />
       </div>
+      {signedIn && onSignOut ? (
+        <Button variant="secondary" onClick={onSignOut} loading={signingOut}>
+          <Icon icon={LogOut} flipInRtl />
+          {t('actions.signOut')}
+        </Button>
+      ) : null}
       <Tagline className="border-t border-line pt-4" />
       <div className="space-y-2">
         <p className="text-meta text-fg-muted">{t('locale.label')}</p>

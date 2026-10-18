@@ -215,7 +215,10 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "acknowledge": "Acknowledge",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "signUp": "Create workspace",
+    "save": "Save"
   },
   "shell": {
     "homeLink": "Relay, go to Overview",
@@ -310,5 +313,54 @@
   },
   "owner": {
     "fallback": "Fallback custody"
+  },
+  "brand": {
+    "pitch": "AI buys time, humans stay accountable.",
+    "proofTitle": "Why teams switch to Relay",
+    "proof": {
+      "owner": {
+        "title": "Never ownerless",
+        "body": "Every lead has exactly one named owner, at every moment."
+      },
+      "escalate": {
+        "title": "Escalates automatically",
+        "body": "Ignored leads move to the next person before the customer goes cold."
+      },
+      "ai": {
+        "title": "WhatsApp + Urdu AI stand-in",
+        "body": "Keeps the customer warm in their language. It never counts as a response."
+      }
+    },
+    "welcome": "Welcome back",
+    "welcomeSub": "Sign in to see who is on your leads right now.",
+    "signupTitle": "Start catching every lead",
+    "signupSub": "Create a workspace in a minute. No card needed.",
+    "demoHint": "Demo workspace",
+    "secure": "Your data stays in your workspace.",
+    "demo": { "from": "Hamza Ali", "to": "Sana Malik" }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Your preferences, availability and signed-in devices.",
+    "account": "Account",
+    "workspace": "Workspace",
+    "role": "Role",
+    "language": "Language",
+    "languageHelp": "Switches the whole app, including right-to-left layout for Urdu.",
+    "theme": "Theme",
+    "availabilityHelp": "Teammates see this, and unacknowledged leads move on when you are away.",
+    "sessions": {
+      "title": "Signed-in devices",
+      "help": "End any session you do not recognise.",
+      "current": "This device",
+      "revoke": "Sign out",
+      "revokeAria": "Sign out of the session started {when}",
+      "revoked": "Session ended.",
+      "lastSeen": "Last active {when}",
+      "started": "Signed in {when}",
+      "unknownDevice": "Unknown device",
+      "empty": "No active sessions.",
+      "loadError": "Sessions could not be loaded."
+    }
   }
 }
