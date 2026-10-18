@@ -1,24 +1,39 @@
 // Outbox job registry: job type → handler (13 §3). ONE line per handler; lanes add their own lines.
-// runDueWork() (T-008) looks up the handler with getJobHandler() and parses the payload before
-// calling it; an unknown type or invalid payload is a permanent failure (dead-letter), not a retry.
+// runDueWork() (outbox processor) looks up the handler by type and parses the payload before
+// calling it. An invalid payload is a permanent failure ('dead'); an UNKNOWN type is retried with
+// backoff (deploy skew: an older instance may claim a row enqueued by newer code) and dead-letters
+// only after max_attempts. enqueue() validates payloads up front, so bad payloads fail at the source.
+import type { z } from 'zod';
 import { AppError } from '../errors';
 import { noopJob } from './handlers/noop';
+import { wakeScheduleJob } from './handlers/wake-schedule';
 import type { JobContext, JobHandler } from './types';
 
 const handlers = [
   noopJob, // W0 example
+  wakeScheduleJob, // A · T-008: QStash wake-up (ensureWakeBy)
 ] as const satisfies readonly JobHandler[];
 
-export type JobType = (typeof handlers)[number]['type'];
+type Handlers = (typeof handlers)[number];
+export type JobType = Handlers['type'];
+/** Payload accepted by enqueue() for each registered type. */
+export type JobPayload<T extends JobType> = z.input<Extract<Handlers, { type: T }>['payload']>;
 
-export const jobRegistry: ReadonlyMap<string, JobHandler> = new Map(
-  handlers.map((h) => [h.type, h as unknown as JobHandler]),
-);
+export type JobRegistry = ReadonlyMap<string, JobHandler>;
+
+export const jobRegistry: JobRegistry = new Map(handlers.map((h) => [h.type, h as unknown as JobHandler]));
 
 if (jobRegistry.size !== handlers.length) throw new Error('duplicate job type in core/jobs/registry.ts');
 
-export function getJobHandler(type: string): JobHandler {
-  const h = jobRegistry.get(type);
+/** Build a registry from handlers (tests, Judge Console scenarios). */
+export function createJobRegistry(list: readonly JobHandler[]): JobRegistry {
+  const m = new Map(list.map((h) => [h.type, h]));
+  if (m.size !== list.length) throw new Error('duplicate job type');
+  return m;
+}
+
+export function getJobHandler(type: string, registry: JobRegistry = jobRegistry): JobHandler {
+  const h = registry.get(type);
   if (!h) throw new AppError('INTERNAL', { message: `unknown job type: ${type}` });
   return h;
 }
