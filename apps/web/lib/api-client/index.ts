@@ -2,6 +2,7 @@
 // Shared file: ONE import + ONE entry per domain (already complete for 13 §2 domains).
 import { ai } from './domains/ai';
 import { audit } from './domains/audit';
+import { automations } from './domains/automations';
 import { auth } from './domains/auth';
 import { calendar } from './domains/calendar';
 import { crm } from './domains/crm';
@@ -19,6 +20,7 @@ import { users } from './domains/users';
 export const api = {
   ai,
   audit,
+  automations,
   auth,
   calendar,
   crm,

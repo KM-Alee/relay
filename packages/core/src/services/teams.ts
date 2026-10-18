@@ -1,12 +1,14 @@
 // Teams + availability use cases (F3.2, F3.6; docs/03-lead-engine.md T5). Owner: Lane A.
 import type { TeamDto } from '@relay/contracts/api/teams';
 import { withWorkspaceTx, type Tx, type TxOptions } from '@relay/db';
-import { sql } from 'drizzle-orm';
+import { teams as teamsTable } from '@relay/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { append as auditAppend } from '../audit/index';
 import type { Actor } from '../auth/actor';
 import { assertPermission, can } from '../auth/permissions';
+import { uuidv7 } from '../ids';
 import { reassignOnAbsence, type Availability } from '../domain/leads';
-import { notFound } from '../errors';
+import { AppError, notFound, staleVersion } from '../errors';
 import { enqueueWith } from '../jobs/outbox';
 import { jobRegistry } from '../jobs/registry';
 import { emit } from '../realtime/index';
@@ -37,6 +39,9 @@ export async function list(actor: Actor, opts: TxOptions = {}): Promise<{ items:
           ackWindowSeconds: t.ackWindowSeconds,
           routingRetrySeconds: t.routingRetrySeconds,
           idleSeconds: t.idleSeconds,
+          idleRetriggerEnabled: t.idleRetriggerEnabled,
+          escalationPolicyId: t.escalationPolicyId,
+          version: t.version,
           members: members
             .filter((m) => m.teamId === t.id)
             .map((m) => ({
@@ -140,6 +145,186 @@ export async function setAvailability(
 
 export const teamsService = {
   list,
+  create: createTeam,
+  update: updateTeam,
   setAvailability,
   canManage: (a: Actor) => can(a, 'team.availability.manage'),
 };
+
+// ── Team admin (T-202, F3.2/F3.3/F3.5): create / edit teams, members, backup + manager, capacity ──
+
+type TeamPatch = {
+  name?: string;
+  managerUserId?: string | null;
+  backupUserId?: string | null;
+  memberIds?: string[];
+  defaultCapacity?: number;
+  routingMode?: 'round_robin' | 'first_to_claim';
+  routingRetrySeconds?: number;
+  idleSeconds?: number;
+  idleRetriggerEnabled?: boolean;
+  escalationPolicyId?: string;
+};
+
+async function assertActiveUsers(tx: Tx, ids: readonly string[]): Promise<void> {
+  const uniq = [...new Set(ids)];
+  if (!uniq.length) return;
+  const res = await tx.execute<{ n: number }>(
+    sql`select count(*)::int as n from users where is_active and id = any(${`{${uniq.join(',')}}`}::uuid[])`,
+  );
+  if (Number(res.rows[0]?.n) !== uniq.length)
+    throw new AppError('VALIDATION_FAILED', { details: { field: 'users', reason: 'unknown_user' } });
+}
+
+async function replaceMembers(tx: Tx, workspaceId: string, teamId: string, ids: readonly string[]) {
+  await tx.execute(sql`delete from team_members where team_id = ${teamId}`);
+  let pos = 0;
+  for (const userId of [...new Set(ids)]) {
+    pos += 1;
+    await tx.execute(
+      sql`insert into team_members (workspace_id, team_id, user_id, position) values (${workspaceId}, ${teamId}, ${userId}, ${pos})`,
+    );
+  }
+}
+
+async function oneTeamDto(tx: Tx, teamId: string): Promise<TeamDto> {
+  const rows = (await teamsRepo.listTeams(tx)).filter((t) => t.id === teamId);
+  const members = await teamsRepo.membersOf(tx, [teamId]);
+  const t = rows[0];
+  if (!t) throw notFound();
+  return {
+    id: t.id,
+    name: t.name,
+    isDefault: t.isDefault,
+    managerUserId: t.managerUserId,
+    backupUserId: t.backupUserId,
+    routingMode: t.routingMode,
+    defaultCapacity: t.defaultCapacity,
+    ackWindowSeconds: t.ackWindowSeconds,
+    routingRetrySeconds: t.routingRetrySeconds,
+    idleSeconds: t.idleSeconds,
+    idleRetriggerEnabled: t.idleRetriggerEnabled,
+    escalationPolicyId: t.escalationPolicyId,
+    version: t.version,
+    members: members.map((m) => ({
+      userId: m.userId,
+      name: m.name,
+      availability: m.availability,
+      isActive: m.isActive,
+      position: m.position,
+      openLeads: Number(m.open),
+      capacity: m.capacity ?? t.defaultCapacity,
+      version: m.version,
+    })),
+  };
+}
+
+export async function createTeam(
+  actor: Actor,
+  input: {
+    name: string;
+    managerUserId?: string | null;
+    backupUserId?: string | null;
+    memberIds?: string[];
+    defaultCapacity?: number;
+  },
+  opts: TxOptions = {},
+): Promise<TeamDto> {
+  assertPermission(actor, 'routing.manage');
+  return withWorkspaceTx(
+    actor.workspaceId,
+    async (tx) => {
+      const base = await teamsRepo.defaultTeam(tx);
+      if (!base) throw new AppError('BUSINESS_RULE_VIOLATION', { details: { reason: 'no_default_team' } });
+      await assertActiveUsers(tx, [
+        ...(input.memberIds ?? []),
+        ...(input.managerUserId ? [input.managerUserId] : []),
+        ...(input.backupUserId ? [input.backupUserId] : []),
+      ]);
+      const id = uuidv7();
+      await teamsRepo.insertTeam(tx, {
+        id,
+        workspaceId: actor.workspaceId,
+        name: input.name,
+        managerUserId: input.managerUserId ?? null,
+        backupUserId: input.backupUserId ?? null,
+        defaultCapacity: input.defaultCapacity ?? base.defaultCapacity,
+        ackWindowSeconds: base.ackWindowSeconds,
+        urgentAckWindowSeconds: base.urgentAckWindowSeconds,
+        routingRetrySeconds: base.routingRetrySeconds,
+        idleSeconds: base.idleSeconds,
+        escalationPolicyId: base.escalationPolicyId,
+      });
+      await replaceMembers(tx, actor.workspaceId, id, input.memberIds ?? []);
+      await auditAppend(tx, actor, {
+        action: 'team.created',
+        targetType: 'team',
+        targetId: id,
+        before: null,
+        after: { name: input.name, memberIds: input.memberIds ?? [] },
+      });
+      await emit(tx, { workspaceId: actor.workspaceId, topic: 'team', ids: [id] });
+      return oneTeamDto(tx, id);
+    },
+    opts,
+  );
+}
+
+export async function updateTeam(
+  actor: Actor,
+  teamId: string,
+  input: TeamPatch & { version: number },
+  opts: TxOptions = {},
+): Promise<TeamDto> {
+  assertPermission(actor, 'routing.manage');
+  return withWorkspaceTx(
+    actor.workspaceId,
+    async (tx) => {
+      const cur = await teamsRepo.getTeam(tx, teamId, true);
+      if (!cur) throw notFound();
+      if (cur.version !== input.version) throw staleVersion(cur.version);
+      await assertActiveUsers(tx, [
+        ...(input.memberIds ?? []),
+        ...(input.managerUserId ? [input.managerUserId] : []),
+        ...(input.backupUserId ? [input.backupUserId] : []),
+      ]);
+      const patch: Record<string, unknown> = {};
+      const keys = [
+        'name',
+        'managerUserId',
+        'backupUserId',
+        'defaultCapacity',
+        'routingMode',
+        'routingRetrySeconds',
+        'idleSeconds',
+        'idleRetriggerEnabled',
+      ] as const;
+      for (const k of keys) if (input[k] !== undefined) patch[k] = input[k];
+      if (input.escalationPolicyId && input.escalationPolicyId !== cur.escalationPolicyId) {
+        const first = (
+          await tx.execute<{ t: number }>(
+            sql`select timeout_seconds as t from escalation_levels where policy_id = ${input.escalationPolicyId} order by position limit 1`,
+          )
+        ).rows[0];
+        if (!first) throw notFound();
+        patch.escalationPolicyId = input.escalationPolicyId;
+        patch.ackWindowSeconds = Number(first.t);
+      }
+      await tx
+        .update(teamsTable)
+        .set({ ...patch, version: cur.version + 1 })
+        .where(eq(teamsTable.id, teamId));
+      if (input.memberIds) await replaceMembers(tx, actor.workspaceId, teamId, input.memberIds);
+      await auditAppend(tx, actor, {
+        action: 'routing.rules_changed',
+        targetType: 'team',
+        targetId: teamId,
+        before: Object.fromEntries(Object.keys(patch).map((k) => [k, (cur as Record<string, unknown>)[k]])),
+        after: { ...patch, ...(input.memberIds ? { memberIds: input.memberIds } : {}) },
+      });
+      await emit(tx, { workspaceId: actor.workspaceId, topic: 'team', ids: [teamId] });
+      return oneTeamDto(tx, teamId);
+    },
+    opts,
+  );
+}

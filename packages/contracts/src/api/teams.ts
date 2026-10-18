@@ -28,6 +28,9 @@ export const teamDto = z.object({
   ackWindowSeconds: z.number().int(),
   routingRetrySeconds: z.number().int(),
   idleSeconds: z.number().int(),
+  idleRetriggerEnabled: z.boolean(),
+  escalationPolicyId: z.uuid(),
+  version: z.number().int(),
   members: z.array(teamMemberDto),
 });
 export type TeamDto = z.infer<typeof teamDto>;

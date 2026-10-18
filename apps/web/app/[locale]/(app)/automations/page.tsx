@@ -1,8 +1,8 @@
-// STUB (W0/T-013). Owner: Lane A (T-124) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Automations (T-124 form, T-202 builder, T-210 time-warp). Owner: Lane A. Gate: routing.manage (nav.ts).
+import { AutomationsView } from '@/components/automations/automations-view';
 import { requirePage } from '@/lib/http/page-auth';
 
 export default async function Page() {
-  await requirePage('automations'); // T-102: server-side gate (permission from nav.ts)
-  return <ComingSoon screen="nav.automations" />;
+  await requirePage('automations');
+  return <AutomationsView />;
 }

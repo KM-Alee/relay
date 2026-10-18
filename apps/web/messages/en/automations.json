@@ -1,1 +1,222 @@
-{ "title": "Automations", "recovery": { "title": "Recovery queue" } }
+{
+  "title": "Automations",
+  "subtitle": "Decide who gets a new lead, how long they have to respond and what happens when they don't.",
+  "recovery": { "title": "Recovery queue" },
+  "tabs": {
+    "label": "Automation settings",
+    "escalation": "Escalation rule",
+    "assignment": "Assignment",
+    "teams": "Teams",
+    "intake": "Lead sources"
+  },
+  "common": {
+    "loadFailed": "Could not load this. Check your connection and try again.",
+    "retry": "Try again",
+    "discard": "Discard changes",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "team": "Team",
+    "on": "On",
+    "off": "Off",
+    "publishFailed": "The rule was not published. Your edits are still here."
+  },
+  "duration": {
+    "amount": "amount",
+    "unit": "unit",
+    "second": "seconds",
+    "minute": "minutes",
+    "hour": "hours"
+  },
+  "timeWarp": {
+    "label": "Time-warp",
+    "hint": "Demo only. Speeds up every wait, so a 2 minute window takes 12 seconds at 10×.",
+    "noPermission": "Only people who can change workspace settings can change this.",
+    "applied": "Time-warp is now {factor}×. {count, plural, =0 {No open leads needed rescheduling.} one {# open lead was rescheduled.} other {# open leads were rescheduled.}}"
+  },
+  "policy": {
+    "title": "Escalation rule",
+    "description": "Who gets the lead first, and who gets it next if nobody acknowledges in time.",
+    "version": "Version {version}",
+    "team": "Team",
+    "forTeam": "Applies to {team}.",
+    "view": { "label": "Editor view", "guided": "Guided", "flow": "Flow canvas" },
+    "flow": {
+      "hint": "Select a step to edit it below. The list is the keyboard-friendly editor.",
+      "aria": "Escalation flow with {count, plural, one {# level} other {# levels}}",
+      "assign": "Assign",
+      "escalate": "Escalate",
+      "wait": "Wait to be acknowledged",
+      "afterRepeat": "After {count} rounds"
+    },
+    "published": "Rule published as version {version}.",
+    "unpublished": "Unpublished changes",
+    "upToDate": "Published {time}",
+    "totalTime": "{time} until the lead is flagged critical",
+    "publish": "Publish rule",
+    "chain": {
+      "label": "Rule summary",
+      "title": "In plain words",
+      "arrives": "A new lead arrives",
+      "assign": "Assign to {who}",
+      "then": "Then escalate to {who}",
+      "wait": "Wait {time} for acknowledgement",
+      "repeat": "Repeat {count} rounds",
+      "critical": "Flag as critical"
+    },
+    "level": {
+      "first": "First assignment",
+      "firstHint": "Round-robin picks the next available person.",
+      "n": "Level {n}",
+      "moveUp": "Move level {n} up",
+      "moveDown": "Move level {n} down",
+      "remove": "Remove level {n}",
+      "assignTo": "Assign to",
+      "escalateTo": "Escalate to",
+      "userRequired": "Choose a person.",
+      "pickUser": "Choose a person",
+      "firstWindow": "Time to acknowledge",
+      "waitFor": "Wait before escalating again",
+      "waitAria": "Wait time for level {n}",
+      "timeoutInvalid": "Enter a time of at least one second.",
+      "add": "Add a level",
+      "max": "Up to {max} levels."
+    },
+    "target": {
+      "next_eligible": "Next available person",
+      "team_backup": "Designated backup",
+      "team_backup_named": "Backup ({name})",
+      "team_manager": "Team manager",
+      "team_manager_named": "Manager ({name})",
+      "user": "A specific person"
+    },
+    "repeat": {
+      "label": "Rounds",
+      "helper": "How many times the whole chain runs before the lead is flagged critical."
+    },
+    "end": {
+      "label": "At the end of the chain",
+      "body": "The lead is flagged critical, the fallback owner is alerted even if offline, and routing keeps retrying."
+    },
+    "hours": { "note": "Rules run around the clock. Business-hours rules are planned." }
+  },
+  "test": {
+    "title": "Test this rule",
+    "description": "Runs a pretend lead through the draft using today's team availability. Nothing is saved or sent.",
+    "run": "Run test",
+    "rerun": "Run again",
+    "fixFirst": "Fix the highlighted fields first.",
+    "running": "Running the rule…",
+    "nobody": "nobody",
+    "step": {
+      "assigned": "Assigned to {who}",
+      "heldBy": "Held by {who} until someone is available",
+      "escalated": "Escalated to {who}",
+      "overdue": "Nobody could take it, back to {who}",
+      "critical": "Flagged critical, {who} alerted"
+    },
+    "at": { "start": "Right away", "after": "After", "real": "really" },
+    "skipped": "Skipped: {list}",
+    "skippedItem": "{name} ({reason})",
+    "skip": {
+      "inactive": "deactivated",
+      "not_member": "not on this team",
+      "on_leave": "on leave",
+      "offline": "offline",
+      "busy": "busy",
+      "at_capacity": "at capacity",
+      "no_skill": "missing skill",
+      "already_tried": "already had it",
+      "current_owner": "already owns it",
+      "no_target": "no one set",
+      "unknown_user": "unknown person"
+    },
+    "waits": "Has {time} to acknowledge",
+    "summary": "Total time until a critical flag: {time}.",
+    "empty": "Run the test to see who would get a lead, and when."
+  },
+  "assignment": {
+    "title": "Assignment settings",
+    "description": "How new leads are shared out inside a team.",
+    "saved": "Assignment settings saved.",
+    "mode": {
+      "label": "How leads are shared",
+      "round_robin": "Round-robin",
+      "round_robinHint": "Leads go to the next available person in turn, skipping anyone at capacity.",
+      "first_to_claim": "First to claim",
+      "first_to_claimHint": "Every available person is offered the lead; the first to claim it owns it.",
+      "p1": "Later",
+      "flagOff": "Turn on the feature flag to use this."
+    },
+    "capacity": {
+      "label": "Open leads per person",
+      "helper": "A person at this number is skipped until they free up capacity."
+    },
+    "retry": {
+      "label": "Retry interval",
+      "helper": "When nobody is available, how often routing tries again."
+    },
+    "idle": {
+      "label": "Re-trigger idle leads",
+      "helper": "If an acknowledged lead sees no action, send it back into routing.",
+      "flagOff": "This behaviour is behind a feature flag that is currently off.",
+      "after": "Treat as idle after"
+    },
+    "ackNote": "The first acknowledgement window is {time}. Change it as the first level of the escalation rule."
+  },
+  "teams": {
+    "title": "Teams",
+    "description": "Who is on each team, in round-robin order, plus the backup and manager the escalation rule can use.",
+    "new": "New team",
+    "created": "Team created.",
+    "updated": "Team updated.",
+    "editTitle": "Edit team",
+    "newTitle": "New team",
+    "dialogHint": "People are offered leads in the order listed.",
+    "name": "Team name",
+    "nameRequired": "Give the team a name.",
+    "manager": "Manager",
+    "backup": "Designated backup",
+    "none": "Not set",
+    "capacity": "Open leads per person",
+    "capacityHint": "The default for everyone on this team.",
+    "members": "Members",
+    "membersHint": "Order matters for round-robin.",
+    "noMembers": "No members yet. Add the first person below.",
+    "moveUp": "Move {name} up",
+    "moveDown": "Move {name} down",
+    "removeMember": "Remove {name} from the team",
+    "addMember": "Add a person",
+    "emptyTitle": "No teams yet",
+    "emptyBody": "Create a team so new leads have someone to go to.",
+    "default": "Default",
+    "summary": "{members, plural, one {# member} other {# members}}, up to {capacity} open leads each"
+  },
+  "intake": {
+    "copied": "Copied to the clipboard.",
+    "copyFailed": "Could not copy. Select the text and copy it yourself.",
+    "copiedShort": "Copied",
+    "copy": "Copy",
+    "saved": "Form settings saved.",
+    "publicUrl": "Public link",
+    "active": "Form accepting leads",
+    "live": "Live",
+    "paused": "Paused",
+    "formTitle": "Business name on the form",
+    "slug": "Link name",
+    "slugHint": "Lowercase letters, numbers and dashes, at least 3 characters.",
+    "slugInvalid": "Use at least 3 lowercase letters, numbers or dashes.",
+    "team": "Leads go to",
+    "teamHint": "The team whose rule handles leads from this form.",
+    "fields": "Fields on the form",
+    "field": { "name": "Name", "phone": "Phone", "email": "Email", "message": "Message" },
+    "fieldsHint": "Name and a phone or email are required. A hidden spam trap blocks bots.",
+    "linkLabel": "Share this link",
+    "embedLabel": "Embed on your website",
+    "sources": "Lead sources",
+    "sourcesHint": "Where leads can come from. Each lead keeps its source for reports.",
+    "kind": { "web_form": "Web form", "whatsapp": "WhatsApp", "manual": "Manual entry" },
+    "forms": "Public web forms",
+    "noForms": "No web forms yet."
+  }
+}
