@@ -96,7 +96,7 @@
 | GET / PATCH | `/ai/settings`, CRUD `/knowledge`, `/templates` | `ai.manage` |
 | POST | `/conversations/:id/suggestions` (P2) | `ai.use` + `messaging.send` |
 | POST | `/ai/onboarding-proposals` · `/:id/apply` | Owner |
-| GET | `/audit` · POST `/audit/verify` | `audit.view` |
+| GET | `/audit` (T-151) · POST `/audit/verify` | `audit.view`. **`/audit/verify` built (T-007)**: `{ ok, checked, firstBrokenSeq, expectedHash, storedHash }` (hex), rate-limited 6/min per user |
 | GET | `/dashboard/metrics?figures=` · `/dashboard/drilldown/:figure` | session; company-wide needs `dashboard.company` (F5.4) |
 | POST | `/judge/:scenario` | `demo.judge_console` + `demo_mode` |
 | PATCH | `/workspace/time-warp` | `workspace.settings` + `demo_mode` |
