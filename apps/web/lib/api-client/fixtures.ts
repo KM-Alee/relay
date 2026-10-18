@@ -31,7 +31,7 @@ export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   calendar: false, // C (T-144: real routes merged)
   integrations: false, // C (T-140: real routes merged)
   judge: false, // B (T-209)
-  ai: true, // C
+  ai: false, // C (T-208: real routes)
   dashboard: true, // D
   realtime: true, // C
 };

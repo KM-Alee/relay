@@ -10,6 +10,7 @@ import {
   calendarCreateEventJob,
   calendarUpdateEventJob,
 } from './handlers/calendar-event';
+import { aiTranscribeJob } from './handlers/ai-transcribe';
 import { integrationProcessJob } from './handlers/integration-process';
 import { leadRetryRoutingJob } from './handlers/lead-retry-routing';
 import { noopJob } from './handlers/noop';
@@ -35,6 +36,7 @@ const handlers = [
   calendarUpdateEventJob, // C: T-144
   calendarCancelEventJob, // C: T-144
   leadRetryRoutingJob, // A · T-125: lead.retry_routing {teamId}
+  aiTranscribeJob, // C2b: T-217
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];

@@ -1,4 +1,5 @@
 // Composed seed (13 §3): ONE import + ONE list entry per domain module, in dependency order.
+import { aiSeed } from './ai';
 import { crmSeed } from './crm';
 import { identitySeed } from './identity';
 import { leadsSeed } from './leads';
@@ -12,6 +13,7 @@ export const seedModules: readonly SeedModule[] = [
   crmSeed, // B: pipelines, contacts, companies, opportunities
   leadsSeed, // A: leads in every state
   messagingSeed, // C: conversations, messages, templates
+  aiSeed, // C2b: KB, localized templates, AI settings
 ];
 
 export async function runSeeds(ctx: SeedContext, modules = seedModules): Promise<void> {

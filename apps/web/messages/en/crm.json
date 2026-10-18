@@ -164,7 +164,10 @@
       "pipelines": "Pipelines and stages",
       "fields": "Custom fields",
       "tags": "Tags",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "ai": "AI assistant",
+      "knowledge": "Knowledge base",
+      "templates": "Message templates"
     },
     "pipelines": {
       "title": "Pipelines and stages",

@@ -3,6 +3,7 @@
 // Conversations inbox + thread (T-146; I1.3-I1.11). Plain semantic markup until Lane D's components land:
 // no raw colours, logical properties only (ms-/me-/ps-/pe-/start-/end-), every string from next-intl (`inbox`).
 // Data refreshes by polling while visible (4 s) and immediately after local actions.
+import { Transcript } from './transcript';
 import type { ConversationDto, MessageDto, TemplateDto } from '@relay/contracts/api/messaging';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
@@ -142,6 +143,7 @@ function Bubble({ m, onRetry }: { m: MessageDto; onRetry: (id: string) => void }
     <li className={`flex flex-col gap-1 ${out ? 'items-end' : 'items-start'}`}>
       <div className={`max-w-[85%] rounded-lg border px-3 py-2 ${out ? 'ms-auto' : 'me-auto'}`}>
         {m.media ? <MediaView m={m} /> : null}
+        <Transcript m={m} />
         {m.body ? <p className="whitespace-pre-wrap break-words">{m.body}</p> : null}
         {!m.body && !m.media ? <p className="opacity-70">{t('thread.unsupported')}</p> : null}
         {m.kind === 'template' ? (

@@ -77,7 +77,12 @@ export class OpenAIProvider implements AIProvider {
             : 'mp3';
       const file = new File([Buffer.from(i.audio)], `audio.${ext}`, { type: i.mime });
       const res = await this.client.audio.transcriptions.create(
-        { model: i.model, file, ...(i.languageHint ? { language: i.languageHint } : {}) },
+        {
+          model: i.model,
+          file,
+          ...(i.languageHint ? { language: i.languageHint } : {}),
+          ...(i.prompt ? { prompt: i.prompt } : {}),
+        },
         { timeout: i.timeoutMs },
       );
       return {

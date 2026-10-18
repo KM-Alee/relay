@@ -59,6 +59,10 @@ export const messageDto = z.object({
   statusReason: z.string().nullable(),
   statusDetail: z.string().nullable(),
   media: messageMediaDto.nullable(),
+  /** F8.1/F8.3: voice-note transcript (AI) and its state. */
+  transcript: z.string().nullable().optional(),
+  transcriptStatus: z.enum(['none', 'pending', 'done', 'failed']).optional(),
+  summary: z.string().nullable().optional(),
   createdAt: z.iso.datetime({ offset: true }),
 });
 export type MessageDto = z.infer<typeof messageDto>;

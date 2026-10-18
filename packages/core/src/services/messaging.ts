@@ -94,7 +94,7 @@ async function loadTemplates(tx: Tx): Promise<TemplateDto[]> {
 
 // ── visibility ──────────────────────────────────────────────────────────
 /** Conversation record scope (F1.5): everything with leads.view_all, else assigned to me or my contacts. */
-async function scopeSql(tx: Tx, actor: Actor, alias: string): Promise<SQL> {
+export async function scopeSql(tx: Tx, actor: Actor, alias: string): Promise<SQL> {
   if (can(actor, 'leads.view_all')) return sql`true`;
   const t = (
     await tx.execute<{ c: string | null; l: string | null }>(
@@ -148,6 +148,9 @@ function toMessageDto(r: Loose): MessageDto {
           url: `/api/v1/media/${r.media_id}`,
         }
       : null,
+    transcript: r.transcript ?? null,
+    transcriptStatus: r.transcript_status ?? 'none',
+    summary: r.summary ?? null,
     createdAt: iso(r.created_at)!,
   };
 }
@@ -671,7 +674,9 @@ export async function downloadInboundMedia(
   const sha = createHash('sha256').update(dl.bytes).digest('hex');
   await withWorkspaceTx(workspaceId, async (tx) => {
     const again = (
-      await tx.execute<Loose>(sql`select media_id from messages where id = ${p.messageId} for update`)
+      await tx.execute<Loose>(
+        sql`select media_id, kind, transcript_status from messages where id = ${p.messageId} for update`,
+      )
     ).rows[0];
     if (!again || again.media_id) return;
     const ins = await tx.execute<{ id: string }>(sql`insert into media
@@ -679,6 +684,15 @@ export async function downloadInboundMedia(
       values (${workspaceId}, ${'blobKey' in stored ? stored.blobKey : null}, ${'data' in stored ? stored.data : null},
               ${p.mime ?? dl.mime}, ${p.filename}, ${dl.bytes.byteLength}, ${sha}, ${p.providerMediaId}) returning id`);
     await tx.execute(sql`update messages set media_id = ${ins.rows[0]!.id} where id = ${p.messageId}`);
+    // F8.1 (T-217): a voice note goes to the AI transcription job via the outbox (never awaited by the lead flow).
+    if (again.kind === 'audio' && again.transcript_status === 'pending') {
+      await enqueueJob(tx, {
+        type: 'ai.transcribe',
+        payload: { messageId: p.messageId },
+        dedupeKey: `ai:transcribe:${p.messageId}:auto`,
+        maxAttempts: 3,
+      });
+    }
     await emit(tx, { workspaceId, topic: 'messages', ids: [p.messageId] });
   });
 }
