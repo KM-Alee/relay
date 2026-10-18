@@ -55,6 +55,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Judge Console `/judge`: 14 live rubric scenarios (cross-workspace, masking, unauthorized, audit tamper, forged/duplicate Meta/Stripe/Slack webhooks, provider down, data survives restart; lead scenarios pending) [T-209] [F10.1]
 - Per-workspace AI settings, knowledge base and localized message templates editor with seeds [T-208] [F6.5] [F7.6]
 - Voice-note transcription via outbox `ai.transcribe` (Urdu script), AI transcript label + Retry [T-217] [F8.1] [F8.3]
+- Escalation policy builder (guided rule, flow canvas, test panel, versioned publish), assignment settings, teams management, web-form settings [T-202] [T-124] [F3.5]
+- Workspace time-warp 1×/10×/60× rescheduling pending lead deadlines in one transaction; TopNav badge shows the real value [T-210] [F10.2]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
