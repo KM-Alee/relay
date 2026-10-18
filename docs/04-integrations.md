@@ -94,7 +94,7 @@ Routes:
 
 | Route | Provider | Method(s) |
 |---|---|---|
-| `/api/webhooks/meta_whatsapp/[connectionKey]` | Meta | GET (handshake), POST |
+| `/api/webhooks/meta/[connectionKey]` | Meta WhatsApp | GET (handshake), POST. `default` = platform META_* env credentials; the workspace is found via `messaging_resolve_workspace(phone_number_id, WHATSAPP_DEFAULT_WORKSPACE_SLUG)` |
 | `/api/webhooks/stripe/[connectionKey]` | Stripe | POST |
 | `/api/webhooks/slack/[connectionKey]/commands` | Slack (slash command) | POST |
 | `/api/webhooks/slack/[connectionKey]/interactions` | Slack (Block Kit buttons) | POST |
@@ -141,6 +141,10 @@ export async function POST(req, { params }) {
 | 24 h window (I1.10) | Open ⇔ `now() < last_inbound_at + 24h`. Outside the window, free text is rejected (`WINDOW_CLOSED`) in the service, and the composer switches to template picker mode using `message_templates.wa_template_name`. Templates must be pre-approved in Meta **(verify: test number ships with `hello_world`)** |
 | Media (I1.11, F8.1) | Outbox `media.download`: GET the media URL with the bearer token (URLs expire quickly, **verify TTL**), stream to Blob `ws/<wsId>/<uuid>`, insert `media`, link the message. Audio → outbox `ai.transcribe` |
 | Limits copy (I5.6) | "Test number reaches only registered test recipients (max ~5, **verify**)"; "Free text only within 24 h of the customer's last message"; "Access token may expire (temporary tokens last 24 h)" |
+
+**Verified 2026-10-18 (developers.facebook.com):** Graph API latest v26.0 (2026-07-29); default in code/config `v25.0` (valid to 2028-07, `META_GRAPH_VERSION`). Send = `POST /{phone-number-id}/messages` (`messaging_product:'whatsapp'`, `type: text|template|image|audio|document`), response `messages[0].id`; webhook value = `metadata.phone_number_id`, `contacts[].profile.name`, `messages[]`, `statuses[]` (failed: `errors[0].{code,title}`); media = `GET /{media-id}` -> `{url, mime_type}` then GET url with the bearer token. Error classes (`classifyMetaError`): 190/102/401 auth; 131030 recipient not on allow-list; 131047/131049 window/engagement; 131026 undeliverable; 132xxx template; 4/17/32/613/130429/131048/131056 + 5xx temporary.
+
+**As built (T-141/T-142/T-146):** adapter `core/integrations/meta/adapter.ts` (+ `fake.ts`: signed requests, payload builders); registry `getMessaging()`/`setMessaging()`. Pipeline `core/services/messaging-ingest.ts` (no `META_APP_SECRET` -> 503 + log, never accepts unverified); processing `core/services/messaging.ts` (`processWhatsAppEvent`, `deliverMessage`, `downloadInboundMedia`); jobs `whatsapp.send`, `media.download`, and the Meta branch of `integration.process`. A status webhook that outruns the send job's recording of the wamid throws and is retried by the outbox. `integration_events.normalized.text` is dropped once processed (no bodies in sync history). Intake hook for Lane A: `registerInboundCustomerMessageHandler(async (tx, {workspaceId, contactId|null, phone, name, text, conversationId, messageId, at}) => ({contactId?}))` in `core/services/messaging-hooks.ts`. Opt-out: an inbound STOP / band karo only sets `opt_out_suggested_at`; a human applies it (`POST /conversations/:id/opt-out`, audited `contact.opted_out`). Templates: built-in `hello_world` (en_US) plus `message_templates` rows with `wa_template_name`. Media: Vercel Blob in private mode when `BLOB_READ_WRITE_TOKEN` is set, else `media.data bytea` (<= 8 MB) so the demo works without Blob; served only through `/api/v1/media/:id` (permission + conversation visibility, `nosniff`, sandbox CSP). Known limit: Meta has no send idempotency key, so a crash between the provider accepting and us recording the wamid can duplicate a message on retry.
 
 Twilio (optional adapter): signature `X-Twilio-Signature` (HMAC-SHA1 of URL + sorted params). Idempotency on `MessageSid`. Sandbox join phrase + ~3-day expiry in the limits copy. Build only if time allows (P2).
 

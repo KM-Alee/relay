@@ -189,6 +189,7 @@ function webhookUrls(
         { label: 'interactions', url: `${base}/api/webhooks/slack/${k}/interactions` },
       ];
     case 'meta_whatsapp':
+      return [{ label: 'webhook', url: `${base}/api/webhooks/meta/${k}` }];
     case 'stripe':
       return key ? [{ label: 'webhook', url: `${base}/api/webhooks/${provider}/${key}` }] : [];
     default:
@@ -197,7 +198,8 @@ function webhookUrls(
 }
 
 const platformDefaultFor = (p: IntegrationProvider): boolean =>
-  p === 'slack' && !!(config.notifications.SLACK_BOT_TOKEN && config.notifications.SLACK_SIGNING_SECRET);
+  (p === 'slack' && !!(config.notifications.SLACK_BOT_TOKEN && config.notifications.SLACK_SIGNING_SECRET)) ||
+  (p === 'meta_whatsapp' && !!(config.whatsapp.META_ACCESS_TOKEN && config.whatsapp.META_APP_SECRET));
 
 function mapEventRow(r: Loose): IntegrationEventDto {
   return {

@@ -109,6 +109,8 @@ export const sections = {
     META_PHONE_NUMBER_ID: optStr(),
     META_ACCESS_TOKEN: optStr(),
     META_GRAPH_VERSION: optStr(),
+    /** Workspace slug that receives webhooks on the platform-default number (falls back to the oldest demo workspace). */
+    WHATSAPP_DEFAULT_WORKSPACE_SLUG: optStr(),
   }),
 
   // Lane C / T-143: Stripe, TEST MODE ONLY
