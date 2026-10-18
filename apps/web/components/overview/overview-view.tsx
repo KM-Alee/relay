@@ -116,7 +116,7 @@ export function OverviewView({
         tone="danger"
         label={t('chips.escalated')}
         count={f.number(data.attention.escalatedToday)}
-        href="/recovery?reason=escalated"
+        href="/leads?escalated=today"
       />
     </>
   ) : undefined;

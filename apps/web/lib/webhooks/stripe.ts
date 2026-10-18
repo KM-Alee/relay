@@ -1,6 +1,7 @@
 // Stripe webhook handler (04 §2): raw body -> verify -> record (+outbox) -> 200 -> after() process.
 // Never parses or acts before the signature is verified (that is inside ingestStripe).
 import { log } from '@relay/core/log';
+import '@relay/core/services/register-hooks';
 import { processStripeEvent } from '@relay/core/services/payments';
 import { ingestStripe } from '@relay/core/services/stripe-ingest';
 import { after } from 'next/server';

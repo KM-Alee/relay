@@ -13,6 +13,7 @@ import {
 import { aiTranscribeJob } from './handlers/ai-transcribe';
 import { integrationProcessJob } from './handlers/integration-process';
 import { leadRetryRoutingJob } from './handlers/lead-retry-routing';
+import { aiHandoffJob, aiStandinReplyJob } from './handlers/ai-standin';
 import { noopJob } from './handlers/noop';
 import { paymentCreateCheckoutJob, paymentExpireCheckoutJob } from './handlers/payment-checkout';
 import { wakeScheduleJob } from './handlers/wake-schedule';
@@ -36,6 +37,8 @@ const handlers = [
   calendarUpdateEventJob, // C: T-144
   calendarCancelEventJob, // C: T-144
   leadRetryRoutingJob, // A · T-125: lead.retry_routing {teamId}
+  aiStandinReplyJob, // A · T-206 glue: ai.standin_reply {leadId, conversationId, messageId}
+  aiHandoffJob, // A · T-207 glue: ai.handoff {leadId, reason}
   aiTranscribeJob, // C2b: T-217
 ] as const satisfies readonly JobHandler[];
 

@@ -5,4 +5,5 @@ export async function register(): Promise<void> {
   if (process.env.NEXT_PHASE === 'phase-production-build') return;
   const { validateConfig } = await import('@relay/core/config');
   validateConfig(['core', 'db']);
+  await import('@relay/core/services/register-hooks'); // lead-engine hooks (each route bundle also imports it)
 }

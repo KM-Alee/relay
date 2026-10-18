@@ -1,8 +1,16 @@
-// STUB (W0/T-013). Owner: Lane A (T-129) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Recovery queue (T-129; F3.7, 03 §7). Gate: nav.ts (leads.recovery.view); the API re-checks. Owner: Lane A.
+// ?reason=overdue|escalated2|idle|awaiting|critical filters (each criterion independently testable).
+import { recoveryReasonSchema } from '@relay/contracts/api/leads';
+import { RecoveryView } from '@/components/leads/recovery-view';
 import { requirePage } from '@/lib/http/page-auth';
 
-export default async function Page() {
-  await requirePage('recovery'); // T-102: server-side gate (permission from nav.ts)
-  return <ComingSoon screen="nav.recovery" />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  await requirePage('recovery');
+  const sp = await searchParams;
+  const reason = recoveryReasonSchema.safeParse(sp.reason);
+  return <RecoveryView initialReason={reason.success ? reason.data : null} initialMine={sp.mine === '1'} />;
 }

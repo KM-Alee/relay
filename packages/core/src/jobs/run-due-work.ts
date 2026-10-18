@@ -20,6 +20,8 @@ import { errorText, DEFAULT_LEASE_SECONDS } from './policy';
 import { dueWorkProcessors } from './processors';
 import { jobRegistry, type JobRegistry } from './registry';
 import { MIN_WAKE_LEAD_MS, scheduleWake, type WakeOutcome } from './scheduler';
+// Lead-engine hooks must be live in every job path (ticker, QStash, after() kicks).
+import '../services/register-hooks';
 
 export const DEFAULT_BATCH_SIZE = 10;
 /** After a processor error, don't wake again sooner than this (avoids a hot wake loop). */

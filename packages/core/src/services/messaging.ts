@@ -32,7 +32,7 @@ import { DeferJobError, PermanentJobError } from '../jobs/policy';
 import { log } from '../log';
 import { emit } from '../realtime';
 import { decryptCreds, ensurePlatformConnection, recordOutcome } from './integrations';
-import { runInboundHandlers } from './messaging-hooks';
+import { runInboundHandlers, runOutboundHumanMessageHandlers } from './messaging-hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Loose = Record<string, any>;
@@ -278,6 +278,18 @@ async function send(
       returning id`);
     const id = ins.rows[0]!.id as string;
     await touchConversation(tx, conversationId, body, now);
+    // Lane A: an owner's message acknowledges the lead; any human message ends the AI stand-in (F2.13, F6.10).
+    await runOutboundHumanMessageHandlers(
+      tx,
+      {
+        workspaceId: actor.workspaceId,
+        conversationId,
+        contactId: conv.contact_id ?? null,
+        messageId: id,
+        userId: actor.userId,
+      },
+      actor,
+    );
     await enqueueJob(tx, {
       type: 'whatsapp.send',
       payload: { messageId: id },

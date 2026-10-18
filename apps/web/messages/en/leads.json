@@ -11,7 +11,14 @@
     "colOwner": "Accountable owner",
     "colCountdown": "Acknowledge within",
     "colSource": "Source",
-    "open": "Open"
+    "open": "Open",
+    "drill": {
+      "pending": "Waiting for acknowledgement: {count}",
+      "createdToday": "New today: {count}",
+      "escalatedToday": "Escalated today: {count}",
+      "escalated24h": "Escalated in the last 24 h: {count}",
+      "clear": "Show all leads"
+    }
   },
   "detail": {
     "ackButton": "Acknowledge",
@@ -22,7 +29,8 @@
     "message": "Message",
     "counters": "Escalations: {escalations} · Overdue attempts: {overdue} · Idle re-triggers: {idle}",
     "level": "Escalation level {level}",
-    "loadFailed": "Couldn't load this lead."
+    "loadFailed": "Couldn't load this lead.",
+    "contact": "Open contact (full history)"
   },
   "new": {
     "title": "New lead",
@@ -127,5 +135,74 @@
     "rateLimited": "Too many submissions. Please try again later.",
     "needContact": "Please give a phone number or an email.",
     "notFound": "This form is not available."
+  },
+  "reassign": {
+    "open": "Reassign",
+    "title": "Reassign {name}",
+    "description": "The new owner gets a fresh acknowledgement window.",
+    "target": "New owner",
+    "pick": "Choose a person",
+    "eligibleOption": "{name} · {open}/{capacity} open",
+    "ineligibleOption": "{name} · not eligible ({reason})",
+    "overrideReason": "Override reason (required)",
+    "overrideHint": "This person is not eligible. The override and reason are recorded in the audit log.",
+    "cancel": "Cancel",
+    "submit": "Reassign",
+    "submitOverride": "Override and reassign",
+    "done": "Reassigned to {name}.",
+    "takeOver": "Take over",
+    "tookOver": "You now handle this lead. Acknowledge it within the window."
+  },
+  "banner": {
+    "ownerAbsentTitle": "{name} is {status}",
+    "ownerAbsentRule": "The lead stays with them because it was acknowledged. It enters the recovery queue after the idle period; a manager can reassign it now.",
+    "availability": {
+      "on_leave": "on leave",
+      "offline": "offline",
+      "busy": "busy",
+      "available": "available"
+    }
+  },
+  "ai": {
+    "activeTitle": "AI stand-in is keeping the customer warm",
+    "activeHint": "The AI never acknowledges or owns this lead. The countdown keeps running until a human acts.",
+    "briefTitle": "Handoff brief",
+    "goal": "Goal",
+    "mood": "Mood",
+    "summary": "Summary",
+    "suggested": "Suggested reply"
+  },
+  "recovery": {
+    "title": "Recovery queue",
+    "intro": "Leads that need a human now.",
+    "summary": "{count, plural, =0 {Nothing needs recovery} one {# lead needs recovery} other {# leads need recovery}}",
+    "filters": "Filter by reason",
+    "all": "All",
+    "mine": "Only mine",
+    "loading": "Loading the queue…",
+    "loadFailed": "Couldn't load the recovery queue.",
+    "emptyTitle": "All caught up",
+    "emptyBody": "No lead is overdue, escalated twice, idle, awaiting a handler or critical.",
+    "reason": {
+      "critical": "Critical",
+      "overdue": "Overdue",
+      "escalated2": "Escalated ×2",
+      "idle": "Idle",
+      "awaiting": "Awaiting handler"
+    },
+    "badge": {
+      "critical": "Critical",
+      "overdue": "Overdue",
+      "escalated2": "Escalated ×{count}",
+      "idle": "Idle",
+      "awaiting": "Awaiting handler"
+    },
+    "windowEnded": "Window ended {time} ago",
+    "lastAction": "Last action {time} ago",
+    "escalations": "{count, plural, =0 {no escalations} one {# escalation} other {# escalations}}",
+    "action": {
+      "reassign": "Reassign",
+      "open": "Open"
+    }
   }
 }

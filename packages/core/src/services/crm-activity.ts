@@ -20,6 +20,10 @@ export interface HumanActionInput {
   contactId: string;
   /** The human who acted. The hook implementation must check they own the lead before acknowledging. */
   actor: Actor;
+  /** Which action (Lane A maps it to the lead's human-action type; won/lost stage → close the lead). */
+  type?: ActivityType;
+  opportunityId?: string | null;
+  payload?: Record<string, unknown>;
 }
 export type HumanActionHandler = (tx: Tx, input: HumanActionInput) => Promise<void>;
 
@@ -77,7 +81,15 @@ export async function recordActivity(tx: Tx, actor: AuditActor, input: RecordAct
           )
         )?.contact_id ?? null;
     }
-    if (contactId) await onHumanAction(tx, { leadId: input.leadId, contactId, actor });
+    if (contactId)
+      await onHumanAction(tx, {
+        leadId: input.leadId,
+        contactId,
+        actor,
+        type: input.type,
+        opportunityId: input.opportunityId ?? null,
+        payload: input.payload,
+      });
   }
   return id;
 }

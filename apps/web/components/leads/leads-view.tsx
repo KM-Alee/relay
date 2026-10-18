@@ -12,12 +12,36 @@ import { qk } from '@/lib/query/keys';
 import { useRealtimeLive } from '@/lib/realtime/useRealtime';
 import { AcknowledgeButton, LeadCountdown, LeadOwner, LeadStateBadge } from './lead-parts';
 
-export function LeadsView({ canViewAll, canCreate }: { canViewAll: boolean; canCreate: boolean }) {
+export interface LeadsDrill {
+  state?: 'pending';
+  created?: 'today';
+  escalated?: 'today' | '24h';
+}
+
+export function LeadsView({
+  canViewAll,
+  canCreate,
+  drill = {},
+}: {
+  canViewAll: boolean;
+  canCreate: boolean;
+  /** Overview drill-down (F5.3): the list equals the figure that linked here. */
+  drill?: LeadsDrill;
+}) {
   const t = useTranslations('leads');
   const [view, setView] = useState<'mine' | 'all'>(canViewAll ? 'all' : 'mine');
+  const drillKey = drill.state
+    ? 'pending'
+    : drill.created
+      ? 'createdToday'
+      : drill.escalated === 'today'
+        ? 'escalatedToday'
+        : drill.escalated
+          ? 'escalated24h'
+          : null;
   const q = useQuery({
-    queryKey: qk.leads.list({ view }),
-    queryFn: ({ signal }) => api.leads.list({ view }, { signal }),
+    queryKey: qk.leads.list({ view, ...drill }),
+    queryFn: ({ signal }) => api.leads.list({ view, ...drill }, { signal }),
   });
   useRealtimeLive(); // visible countdowns: 1 s hints while this page is open
 
@@ -41,7 +65,15 @@ export function LeadsView({ canViewAll, canCreate }: { canViewAll: boolean; canC
           </div>
         ) : null}
       </div>
-      {canCreate ? <NewLeadForm /> : null}
+      {drillKey ? (
+        <p className="flex flex-wrap items-center gap-3 text-body text-fg-2" data-testid="leads-drill">
+          <span>{t(`list.drill.${drillKey}`, { count: q.data?.items.length ?? 0 })}</span>
+          <Link href="/leads" className="text-brand-text hover:underline">
+            {t('list.drill.clear')}
+          </Link>
+        </p>
+      ) : null}
+      {canCreate && !drillKey ? <NewLeadForm /> : null}
       {q.isError ? (
         <p role="alert" className="text-danger">
           {t('list.loadFailed')}

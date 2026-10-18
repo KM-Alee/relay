@@ -1,6 +1,7 @@
 // Shared Meta WhatsApp webhook handler (04 §2-§3): raw body -> verify -> record (+outbox) -> 200 -> after() process.
 // Nothing is parsed or acted on before the signature is verified (that is inside ingestWhatsApp).
 import { log } from '@relay/core/log';
+import '@relay/core/services/register-hooks';
 import { handleMetaHandshake, ingestWhatsApp } from '@relay/core/services/messaging-ingest';
 import { processWhatsAppEvent } from '@relay/core/services/messaging';
 import { after } from 'next/server';

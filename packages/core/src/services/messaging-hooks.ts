@@ -5,6 +5,7 @@
 // The handler runs INSIDE the transaction that stored the message (workspace-scoped `tx`), so intake
 // (contact create + lead + assignment) and the message commit atomically. It must not call providers.
 import type { Tx } from '@relay/db';
+import type { Actor } from '../auth/actor';
 
 export interface InboundCustomerMessage {
   workspaceId: string;
@@ -86,4 +87,28 @@ export async function runInboundHandlers(
     if (r && r.contactId) contactId = r.contactId;
   }
   return { contactId };
+}
+
+// ── outbound human message (T10 / F2.13: a human message by the owner acknowledges; F6.10 handoff) ──
+// Lane C calls `runOutboundHumanMessageHandlers` INSIDE the send transaction; Lane A registers the
+// lead hook (auto-ack + AI handoff). Never called for AI or system messages.
+export interface OutboundHumanMessage {
+  workspaceId: string;
+  conversationId: string;
+  contactId: string | null;
+  messageId: string;
+  userId: string;
+}
+export type OutboundHumanMessageHandler = (tx: Tx, msg: OutboundHumanMessage, actor: Actor) => Promise<void>;
+const outboundHandlers = new Set<OutboundHumanMessageHandler>();
+export function registerOutboundHumanMessageHandler(h: OutboundHumanMessageHandler): () => void {
+  outboundHandlers.add(h);
+  return () => outboundHandlers.delete(h);
+}
+export async function runOutboundHumanMessageHandlers(
+  tx: Tx,
+  msg: OutboundHumanMessage,
+  actor: Actor,
+): Promise<void> {
+  for (const h of outboundHandlers) await h(tx, msg, actor);
 }

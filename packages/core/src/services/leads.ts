@@ -23,6 +23,7 @@ import {
   acknowledge as decideAck,
   escalateOnAckTimeout,
   idleRetrigger,
+  ineligibilityReason,
   intake as decideIntake,
   leadStateLabel,
   recordHumanAction as decideHumanAction,
@@ -118,15 +119,46 @@ async function viewCtx(tx: Tx, workspaceId: string): Promise<ViewCtx> {
   };
 }
 
-async function detailOf(tx: Tx, row: leadsRepo.LeadRow, actorUserId: string): Promise<LeadDetail> {
+async function detailOf(tx: Tx, row: leadsRepo.LeadRow, actor: Actor | string): Promise<LeadDetail> {
+  const actorUserId = typeof actor === 'string' ? actor : actor.userId;
   const events = await leadsRepo.listEvents(tx, row.id);
   const names = await nameMap(tx, [row.ownerUserId, ...events.flatMap((e) => [e.fromUserId, e.toUserId])]);
   const v = await viewCtx(tx, row.workspaceId);
   const ref = (id: string | null) => (id ? { id, name: names.get(id) ?? '' } : null);
+  const owner = (
+    await tx.execute<{ availability: LeadDetail['ownerAvailability'] }>(
+      sql`select availability from users where id = ${row.ownerUserId}::uuid`,
+    )
+  ).rows[0];
+  let canTakeOver = false;
+  if (row.status === 'open' && row.custody === 'fallback' && row.ownerUserId === actorUserId) {
+    const eng = await loadEngine(tx, row.workspaceId, row.teamId, v.now, [actorUserId]);
+    const me = eng.ctx.people.find((p) => p.userId === actorUserId);
+    canTakeOver =
+      !!me &&
+      !ineligibilityReason(me, { team: eng.ctx.team, flags: eng.ctx.flags, requireMembership: false });
+  }
+  const brief = row.aiBrief as Record<string, unknown> | null;
   return {
     ...toSummary(row, names, actorUserId, v.idleSeconds.get(row.teamId) ?? 600, v.deadline, v.now),
     message: row.message,
     baseWindowEndsAt: iso(row.baseWindowEndsAt),
+    contactId: row.contactId,
+    ownerAvailability: owner?.availability,
+    aiActive: row.aiActive,
+    aiBrief: brief
+      ? {
+          source: brief.source === 'ai' ? 'ai' : 'baseline',
+          goal: String(brief.goal ?? ''),
+          mood: String(brief.mood ?? ''),
+          summary: String(brief.summary ?? ''),
+          suggestedReply: String(brief.suggestedReply ?? ''),
+          twoLine: String(brief.twoLine ?? ''),
+          at: isoN(row.aiBriefAt),
+        }
+      : null,
+    canReassign: typeof actor !== 'string' && row.status === 'open' && can(actor, 'leads.reassign'),
+    canTakeOver,
     events: events.map((e): LeadEventDto => ({
       id: e.id,
       type: e.type,
@@ -293,7 +325,7 @@ export async function createManual(
         actor,
       });
       const row = await leadsRepo.getLead(tx, out.leadId);
-      return detailOf(tx, foundOr404(row), actor.userId);
+      return detailOf(tx, foundOr404(row), actor);
     },
     opts,
   );
@@ -398,7 +430,7 @@ export async function acknowledge(
       if (!out) throw notFound();
       if (!out.result.ok) throw rejection(out.result);
       const row = foundOr404(await leadsRepo.getLead(tx, leadId));
-      return detailOf(tx, row, actor.userId);
+      return detailOf(tx, row, actor);
     },
     opts,
   );
@@ -521,20 +553,43 @@ export async function retryTeam(workspaceId: string, teamId: string, opts: TxOpt
 
 export async function list(
   actor: Actor,
-  q: { view?: 'mine' | 'all'; status?: 'open' | 'closed' | 'all'; cursor?: string; limit?: number },
+  q: {
+    view?: 'mine' | 'all';
+    status?: 'open' | 'closed' | 'all';
+    cursor?: string;
+    limit?: number;
+    state?: 'pending';
+    created?: 'today';
+    escalated?: 'today' | '24h';
+  },
   opts: TxOptions = {},
 ): Promise<{ items: LeadSummary[]; nextCursor: string | null }> {
   const limit = q.limit ?? 50;
   return withWorkspaceTx(
     actor.workspaceId,
     async (tx) => {
-      const mine = q.view !== 'all' || !can(actor, 'leads.view_all');
+      // Drill-downs (F5.3) use the visible scope, exactly like the Overview figures (repos/metrics.ts).
+      const drill = !!(q.state || q.created || q.escalated);
+      const mine = !drill && (q.view !== 'all' || !can(actor, 'leads.view_all'));
+      const tz = sql`(select timezone from workspaces where id = ${actor.workspaceId}::uuid)`;
+      const extra = [];
+      if (q.state === 'pending') extra.push(sql`${leads.ackStatus} = 'pending'`);
+      if (q.created === 'today')
+        extra.push(sql`(${leads.createdAt} at time zone ${tz})::date = (now() at time zone ${tz})::date`);
+      if (q.escalated === '24h')
+        extra.push(sql`exists (select 1 from lead_events e where e.lead_id = ${leads.id} and e.type = 'escalation'
+          and e.occurred_at > now() - interval '24 hours')`);
+      if (q.escalated === 'today')
+        extra.push(sql`exists (select 1 from lead_events e where e.lead_id = ${leads.id} and e.type = 'escalation'
+          and (e.occurred_at at time zone ${tz})::date = (now() at time zone ${tz})::date)`);
+      const status = q.created || q.escalated ? (q.status ?? 'all') : (q.status ?? 'open');
       const rows = await leadsRepo.listLeads(tx, {
         scope: leadScopeSql(actor, leads.ownerUserId),
         ownerUserId: mine ? actor.userId : undefined,
-        status: q.status === 'all' ? undefined : (q.status ?? 'open'),
+        status: status === 'all' ? undefined : status,
         before: q.cursor,
         limit: limit + 1,
+        extra,
       });
       const page = rows.slice(0, limit);
       const names = await nameMap(
@@ -558,7 +613,7 @@ export async function get(actor: Actor, id: string, opts: TxOptions = {}): Promi
     actor.workspaceId,
     async (tx) => {
       const row = foundOr404(await leadsRepo.getLead(tx, id, leadScopeSql(actor, leads.ownerUserId)));
-      return detailOf(tx, row, actor.userId);
+      return detailOf(tx, row, actor);
     },
     opts,
   );

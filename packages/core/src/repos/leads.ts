@@ -186,9 +186,16 @@ export async function findOpenForContact(
 
 export async function listLeads(
   tx: Tx,
-  o: { scope: SQL; status?: 'open' | 'closed'; ownerUserId?: string; limit: number; before?: string },
+  o: {
+    scope: SQL;
+    status?: 'open' | 'closed';
+    ownerUserId?: string;
+    limit: number;
+    before?: string;
+    extra?: SQL[];
+  },
 ): Promise<LeadRow[]> {
-  const where: SQL[] = [o.scope];
+  const where: SQL[] = [o.scope, ...(o.extra ?? [])];
   if (o.status) where.push(eq(leads.status, o.status));
   if (o.ownerUserId) where.push(eq(leads.ownerUserId, o.ownerUserId));
   if (o.before) where.push(lt(leads.id, o.before));
@@ -216,11 +223,21 @@ export async function pendingHandlerLeadIds(tx: Tx, userId: string): Promise<str
   return rows.map((r) => r.id);
 }
 
+/** Leads a routing retry may move: awaiting a handler, or kept critical with their owner (OQ-11). */
 export async function awaitingLeadIds(tx: Tx, teamId: string): Promise<string[]> {
   const rows = await tx
     .select({ id: leads.id })
     .from(leads)
-    .where(and(eq(leads.teamId, teamId), eq(leads.status, 'open'), eq(leads.awaitingHandler, true)))
+    .where(
+      and(
+        eq(leads.teamId, teamId),
+        eq(leads.status, 'open'),
+        or(
+          eq(leads.awaitingHandler, true),
+          and(eq(leads.custody, 'handler'), eq(leads.isCritical, true), eq(leads.ackStatus, 'pending')),
+        ),
+      ),
+    )
     .orderBy(asc(leads.firstAssignedAt));
   return rows.map((r) => r.id);
 }
