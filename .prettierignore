@@ -13,3 +13,4 @@ docs/
 *.zip
 *.sql
 .claude
+packages/core/src/ai/prompts/generated.ts

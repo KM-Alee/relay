@@ -1,6 +1,6 @@
 // Prompt registry (docs/05-ai.md §9, Q15). Prompts live in versioned files `<task>/v<N>.md`; never edit
 // a released version, add v<N+1> and bump CURRENT. `promptVersion` ("triage@v1") is stored on every call.
-import { readFileSync } from 'node:fs';
+import { RAW_PROMPTS } from './generated';
 import type { AiTask } from '../types';
 
 export const CURRENT: Record<Exclude<AiTask, 'transcription'>, number> = {
@@ -23,7 +23,8 @@ export function getPrompt(task: keyof typeof CURRENT, version: number = CURRENT[
   const key = `${task}@v${version}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const raw = readFileSync(new URL(`./${task}/v${version}.md`, import.meta.url), 'utf8');
+  const raw = RAW_PROMPTS[key];
+  if (raw === undefined) throw new Error(`unknown prompt ${key} (run pnpm ai:prompts)`);
   const m = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(raw);
   const meta: Record<string, string> = {};
   for (const line of (m?.[1] ?? '').split('\n')) {

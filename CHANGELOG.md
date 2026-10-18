@@ -28,6 +28,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - next-intl en/ur with `lang`/`dir`, Inter + Noto Nastaliq Urdu, locale switcher, `lib/format` Intl helpers (PKR, workspace TZ, relative time) [T-005] [F7.1] [F7.2]
 - Warm Orange design tokens (light/dark, no-flash theme), shadcn/Radix `components/ui`, `components/relay` product components, responsive TopNav shell, Overview shell, `/dev/kitchen-sink` with axe e2e, Relay brand mark + favicon [T-012] [Q7] [Q8] [Q17]
 - ESLint rules `relay/no-literal-jsx-strings`, `relay/no-physical-direction`, `relay/no-raw-colors` [T-005] [T-012]
+- AI foundation: OpenAI provider with strict structured outputs, fake provider, per-workspace daily cost cap + `ai_usage`, versioned prompts bundled at build (`pnpm ai:prompts`), `pnpm ai:eval` against the real API [T-204] [I6.1] [Q15]
+- AI triage + customer language detection (en / ur / ur-Latn) with heuristic fallback [T-205] [T-214] [F6.6] [F7.5]
+- AI stand-in reply core with code-level guards (prices, discounts, bookings, payment links, ETAs), localized static fallbacks and hard handoff [T-206] [F6.1] [F6.11]
+- Handoff brief generation with baseline fallback [T-207] [F9.2]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
