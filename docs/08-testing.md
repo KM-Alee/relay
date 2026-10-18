@@ -31,12 +31,13 @@ test('[F7.2][Q7] lead detail has no horizontal scroll in RTL at 360px', …)
 - `describe` blocks may carry the tag instead. The reporter inherits tags from ancestors.
 
 ### Traceability pipeline
-1. Vitest: `--reporter=json --outputFile=reports/vitest.json`. Playwright: `reporter: [['json', { outputFile: 'reports/playwright.json' }]]`.
+1. Vitest: `pnpm test:ci` (= `vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json`). Playwright: `reporter: [['json', { outputFile: 'reports/playwright.json' }]]`.
 2. `pnpm traceability` runs `scripts/traceability.ts`, which:
    - parses both JSON reports, extracts tags, and builds rows `{req_id, test_name, status (passed|failed|skipped), duration_ms}`;
    - loads the full ID list from `requirements.md` (regex over the tables: `F1.1`…`I6.7`, `Q1`…`Q18`), so untested IDs appear;
    - writes `docs/traceability.md` (generated; header "do not edit by hand"; table: ID, priority, title, tests, status, last run);
-   - if `TEST_RESULTS_URL` + `TEST_RESULTS_SECRET` are set, POSTs `{run_id, git_sha, results[]}` to `/api/internal/test-results`. That endpoint inserts into `test_results` (`source='ci'`).
+   - also writes `packages/contracts/src/requirements.generated.json` (the parsed requirement list); `--strict` exits 1 on a failing or untested P0;
+   - if `TEST_RESULTS_URL` + `TEST_RESULTS_SECRET` are set, POSTs `{run_id, git_sha, source:'ci', ran_at, results[]}` to `/api/internal/test-results`, signed with `x-relay-timestamp` + `x-relay-signature: sha256=HMAC(secret, "<timestamp>.<rawBody>")` (the receiver verifies in constant time and rejects timestamps older than 5 min). That endpoint inserts into `test_results` (`source='ci'`).
 3. `/traceability` (F10.3) reads `test_results` (latest `run_id` per `req_id`) joined with the parsed requirement list (shipped as a generated JSON `packages/contracts/src/requirements.generated.json`).
 
 ### "Re-run from the page" (F10.3, Vercel-compatible)
@@ -115,7 +116,7 @@ The UI shows each step with timestamps. "Evidence" links open the affected lead,
 
 | Workflow | Trigger | Jobs |
 |---|---|---|
-| `ci.yml` | push / PR | `pnpm install --frozen-lockfile` → lint (incl. i18n literal rule, RTL classname ban, boundaries) → typecheck → unit → integration (service `postgres:16`; migrate as owner; tests as `app_user`) → `check-rls` → i18n key parity → build → `traceability` (artifact `docs/traceability.md`) |
+| `ci.yml` (as built, T-011: jobs `static` = lint + format + typecheck, `test` = unit + integration on a `postgres:16` service + traceability + artifact `test-reports`, `build` = `pnpm build` with no DB env) | push / PR | `pnpm install --frozen-lockfile` → lint (incl. i18n literal rule, RTL classname ban, boundaries) → typecheck → unit → integration (service `postgres:16`; migrate as owner; tests as `app_user`) → `check-rls` → i18n key parity → build → `traceability` (artifact `docs/traceability.md`) |
 | `e2e.yml` | `deployment_status` success on Vercel preview | Playwright against `${{ github.event.deployment_status.target_url }}` (Neon preview branch, seeded via `pnpm db:seed` in the Vercel build for previews); axe; en/ur × 360/1280 screenshots |
 | `traceability.yml` | `workflow_dispatch` (from `/traceability`) + nightly | Full unit + integration (+ e2e if `PREVIEW_URL` given) → POST results to `TEST_RESULTS_URL` |
 | `neon-pooled.yml` | nightly | Integration suite against a fresh Neon branch via the **pooled** URL |

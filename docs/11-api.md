@@ -103,7 +103,7 @@
 | GET | `/traceability` · POST `/traceability/rerun` | `demo.judge_console` + `demo_mode` |
 | POST | `/workspace/transfer-ownership` | Owner only (`06-security.md` §2) |
 | GET | `/api/dev/login-as` (outside `/v1`; T-101 adds POST) | dev only: 404 unless `NODE_ENV=development` + `DEMO_MODE` (13 §5) |
-| GET | `/changes?since=<ISO>` | session (realtime change feed, own workspace; `07-frontend-i18n.md` §2) |
+| GET | `/changes?since=<ISO>` | session (realtime change feed, own workspace; `07-frontend-i18n.md` §2). Response `{now, reset, changes:[{id, topic, ids, at}]}`; no `since` returns just a cursor; `reset:true` = refetch everything (cursor older than 10 min or more than 500 hints). Contract: `contracts/api/realtime.ts` |
 | POST | `/ai/transcribe` (P2 push-to-talk) | session, rate-limited |
 
 ### Webhooks & internal (no session; signature-authenticated)

@@ -36,9 +36,9 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-010 | Seed framework | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
 | T-101 | Signup/login/sessions | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
 | T-102 | Permissions, visibility, masking | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-004 | Vercel + Neon pipeline, `/api/health` | C | in-progress | agent:lane-C | `t-c-w1-infra` | needs accounts |
-| T-009 | Realtime change feed (polling) | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
-| T-011 | CI + traceability reporter | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
+| T-004 | Vercel + Neon pipeline, `/api/health` | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | vercel.json + vercel-build (migrate as owner, then next build); runtime URL rewrite to app_user via APP_DB_PASSWORD; health asserts role |
+| T-009 | Realtime change feed (polling) | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | emit(), /changes, useRealtime(); Lane A wires pruneRealtimeEvents into the tick; Lane D mounts the hook |
+| T-011 | CI + traceability reporter | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | ci.yml (static/test/build), `pnpm test:ci`, `pnpm traceability` |
 | T-005 | i18n + RTL scaffold | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
 | T-012 | Design system + app shell + kitchen sink | D | in-progress | agent:lane-D | `t-d-w1-design` |  |
 
