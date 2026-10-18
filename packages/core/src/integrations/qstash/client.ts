@@ -30,7 +30,8 @@ export function createQStashWakeScheduler(cfg: QStashClientConfig & { tickUrl: s
         method: 'POST',
         body,
         notBefore: Math.floor(at.getTime() / 1000),
-        deduplicationId: dedupeId,
+        // QStash rejects ':' in deduplication ids ("DeduplicationId cannot contain ':'").
+        deduplicationId: dedupeId.replace(/[^A-Za-z0-9_.-]/g, '-'),
         // One retry covers a cold-start blip; more would only burn the daily cap (backstop exists).
         retries: 1,
         label: 'relay-wake',
