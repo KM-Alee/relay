@@ -71,9 +71,9 @@ export function KpiTile({
         ) : null}
       </div>
     ) : state === 'empty' ? (
-      <p className="mt-5 text-body text-fg-2">{emptyText ?? t('states.empty')}</p>
+      <p className="mt-auto pt-5 text-body text-fg-2">{emptyText ?? t('states.empty')}</p>
     ) : (
-      <div className="mt-4 flex items-end justify-between gap-3">
+      <div className="mt-auto flex items-end justify-between gap-3 pt-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="text-kpi text-fg">{value}</span>
@@ -91,7 +91,8 @@ export function KpiTile({
           </div>
           {compareLabel ? <p className="mt-1 text-meta text-fg-muted">{compareLabel}</p> : null}
         </div>
-        {spark ? <Sparkline data={spark} /> : null}
+        {/* reserve the sparkline slot so tiles in a row share one internal layout */}
+        {spark ? <Sparkline data={spark} /> : <span aria-hidden className="h-10 w-28 shrink-0" />}
       </div>
     );
 
@@ -115,7 +116,7 @@ export function KpiTile({
       <Link
         href={href}
         className={cn(
-          'block rounded-card border border-line bg-surface p-(--card-pad) shadow-card transition-colors duration-(--dur-fast) hover:bg-surface-muted',
+          'flex flex-col rounded-card border border-line bg-surface p-(--card-pad) shadow-card transition-colors duration-(--dur-fast) hover:bg-surface-muted',
           className,
         )}
       >
@@ -123,5 +124,5 @@ export function KpiTile({
       </Link>
     );
   }
-  return <Card className={className}>{inner}</Card>;
+  return <Card className={cn('flex flex-col', className)}>{inner}</Card>;
 }

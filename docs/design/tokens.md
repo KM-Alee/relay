@@ -103,10 +103,10 @@ Rules come from guide §06: a zero baseline for bars, units on axes, no unlabele
 | Token | Value |
 |---|---|
 | `--font-sans` | `Inter` (next/font, variable, `latin`), fallback `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` |
-| `--font-urdu` | `Noto Nastaliq Urdu` (next/font, weights 400–700), fallback `"Jameel Noori Nastaleeq", serif` |
+| `--font-urdu` | `Noto Naskh Arabic` (next/font, weights 400/500/600/700; chosen over Nastaliq for UI legibility, T-162), fallback `"Segoe UI", Tahoma, sans-serif` |
 | Numerals | `font-variant-numeric: tabular-nums` on KPI values, countdowns, tables, money |
 
-| Style (token) | EN desktop | EN mobile | UR (Nastaliq) | Weight | Notes |
+| Style (token) | EN desktop | EN mobile | UR (Naskh) | Weight | Notes |
 |---|---|---|---|---|---|
 | `text-hero` | 52/1.1 | 32/1.15 | 40/1.9 | 650 | Overview title only |
 | `text-page` | 32/1.2 | 26/1.25 | 28/2.0 | 600 | Record/form page titles |
@@ -117,7 +117,7 @@ Rules come from guide §06: a zero baseline for bars, units on axes, no unlabele
 | `text-button` | 14.5/1.25 | 14.5/1.25 | 15/1.8 | 550 | Sentence case |
 | `text-eyebrow` | 12/1.4, `letter-spacing: .14em`, uppercase | same | 13/1.9, **no tracking, no uppercase** | 500 | |
 
-Urdu rules: Nastaliq needs ~1.9–2.1 line-height and must never be clipped. That means no fixed heights on text containers and no `overflow:hidden` on single-line labels. Apply `:lang(ur)` overrides. Numbers inside Urdu text render in Latin digits by default (configurable via `Intl` numbering system later).
+Urdu rules: Naskh needs ~1.7–1.8 line-height and must never be clipped. That means no fixed heights on text containers and no `overflow:hidden` on single-line labels. Apply `:lang(ur)` overrides. Numbers inside Urdu text render in Latin digits by default (configurable via `Intl` numbering system later).
 
 ## 4. Space, shape, elevation, motion
 
@@ -159,7 +159,7 @@ Z-index scale: `nav 40`, `drawer 50`, `modal 60`, `popover 70`, `toast 80`.
   --color-danger: var(--danger);  --color-danger-surface: var(--danger-surface);
   /* … warning, success, info, ai, neutral likewise … */
   --radius-card: 18px; --radius-control: 11px;
-  --font-sans: var(--font-inter), system-ui, sans-serif; --font-urdu: var(--font-nastaliq), serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif; --font-urdu: var(--font-naskh), sans-serif;
 }
 ```
 Lint rule: no arbitrary colour values (`bg-[#…]`, `text-[#…]`) and no Tailwind default palette colours (`bg-orange-500` etc.) in `apps/web`. Use tokens only.

@@ -1,12 +1,12 @@
 'use client';
 // TopNav (components.md §1, screens.md §1): floating white strip, orange active capsule, NO sidebar.
 // Built from `visibleNav()` (nav.ts), so entries the user can't access are not rendered (no fake disabled items).
-// Responsive (CSS only, no JS measuring, so SSR never flashes the wrong layout):
-//   >= 1280  every primary item + More          960-1279  Automations moves to More
-//   600-959  Overview, Leads (+Inbox >= 760) + More          < 600  wordmark + search + bell + labelled Menu sheet
+// Responsive: SSR uses CSS width tiers (no flash); after mount a ResizeObserver measures the strip and moves
+// every primary item that doesn't fit into More (priority+), so the nav never clips at any width/zoom/locale.
+// If the active item overflows, More carries the capsule. < 600: wordmark + search + bell + labelled Menu sheet.
 import { ChevronDown, LogIn, LogOut, Menu, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/components/ui/cn';
 import {
   DropdownMenu,
@@ -60,6 +60,47 @@ function isActive(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Measures the strip and returns the ids of primary items that must move to More (null until measured). */
+function useOverflow(primary: readonly NavItem[], hasMore: boolean) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState<ReadonlySet<string> | null>(null);
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const measure = measureRef.current;
+    if (!list || !measure) return;
+    const compute = () => {
+      const avail = list.clientWidth;
+      if (avail === 0) return; // strip not displayed (< 600): the Menu sheet takes over
+      const kids = Array.from(measure.children) as HTMLElement[];
+      const moreW = kids.at(-1)?.offsetWidth ?? 0;
+      const widths = kids.slice(0, -1).map((k) => k.offsetWidth);
+      const gap = 4;
+      const total = widths.reduce((a, w) => a + w + gap, 0);
+      const next = new Set<string>();
+      if (hasMore || total - gap > avail) {
+        let used = moreW;
+        widths.forEach((w, i) => {
+          if (next.size === 0 && used + w + gap <= avail) used += w + gap;
+          else next.add(primary[i]!.id);
+        });
+      }
+      setHidden((prev) =>
+        prev && prev.size === next.size && [...next].every((id) => prev.has(id)) ? prev : next,
+      );
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(list);
+    ro.observe(measure);
+    return () => ro.disconnect();
+  }, [primary, hasMore]);
+  return { listRef, measureRef, hidden };
+}
+
+const ITEM_CLASS =
+  'relative isolate min-h-11 items-center gap-2 whitespace-nowrap rounded-control px-2.5 text-button transition-colors duration-(--dur-fast) lg:px-3';
+
 function NavLink({ item, className }: { item: NavItem; className?: string }) {
   const t = useTranslations('common');
   const pathname = usePathname();
@@ -69,7 +110,7 @@ function NavLink({ item, className }: { item: NavItem; className?: string }) {
       href={item.href}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'relative isolate min-h-11 items-center gap-2 whitespace-nowrap rounded-control px-2.5 text-button transition-colors duration-(--dur-fast) lg:px-3',
+        ITEM_CLASS,
         active ? 'text-fg' : 'text-fg-2 hover:bg-surface-muted hover:text-fg',
         className,
       )}
@@ -117,6 +158,7 @@ export function TopNav({
   const [menuOpen, setMenuOpen] = useState(false);
   const primary = useMemo(() => items.filter((i) => i.group === 'primary'), [items]);
   const more = useMemo(() => items.filter((i) => i.group === 'more'), [items]);
+  const { listRef, measureRef, hidden } = useOverflow(primary, more.length > 0);
 
   return (
     <header className="sticky top-0 z-nav px-(--page-pad) pt-(--nav-margin-top)">
@@ -129,27 +171,57 @@ export function TopNav({
 
           {/* destinations (>= 600) */}
           <LayoutGroup id="topnav">
-            <ul className="ms-2 hidden min-w-0 items-center gap-1 overflow-clip [overflow-clip-margin:8px] sm:flex lg:ms-4">
-              {loading ? (
-                <li aria-hidden className="flex gap-2">
-                  {[0, 1, 2].map((i) => (
-                    <span key={i} className="skeleton h-9 w-20 rounded-control" />
-                  ))}
-                </li>
-              ) : (
-                primary.map((item) => (
-                  <li key={item.id} className="contents">
-                    <NavLink
-                      item={item}
-                      className={SHOW_FROM[item.id] ?? 'hidden min-[1440px]:inline-flex'}
-                    />
+            <div className="relative ms-2 hidden min-w-0 flex-1 sm:block lg:ms-4">
+              {/* invisible measuring row: natural widths of every primary item + the More trigger */}
+              <div
+                ref={measureRef}
+                aria-hidden
+                className="pointer-events-none invisible absolute start-0 top-0 flex gap-1"
+              >
+                {primary.map((item) => (
+                  <MeasureItem key={item.id} item={item} />
+                ))}
+                <span className="inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap px-2.5 text-button lg:px-3">
+                  {t('nav.more')}
+                  <Icon icon={ChevronDown} />
+                </span>
+              </div>
+              <ul ref={listRef} className="flex min-w-0 items-center gap-1">
+                {loading ? (
+                  <li aria-hidden className="flex gap-2">
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className="skeleton h-9 w-20 rounded-control" />
+                    ))}
                   </li>
-                ))
-              )}
-              <li className={cn('hidden sm:block', more.length === 0 && 'min-[1440px]:hidden')}>
-                <MoreMenu primary={primary} more={more} />
-              </li>
-            </ul>
+                ) : (
+                  primary.map((item) => (
+                    <li key={item.id} className="contents">
+                      <NavLink
+                        item={item}
+                        className={
+                          hidden
+                            ? hidden.has(item.id)
+                              ? 'hidden'
+                              : 'inline-flex'
+                            : (SHOW_FROM[item.id] ?? 'hidden min-[1440px]:inline-flex')
+                        }
+                      />
+                    </li>
+                  ))
+                )}
+                <li
+                  className={cn(
+                    hidden
+                      ? more.length === 0 && hidden.size === 0
+                        ? 'hidden'
+                        : 'block'
+                      : cn('hidden sm:block', more.length === 0 && 'min-[1440px]:hidden'),
+                  )}
+                >
+                  <MoreMenu primary={primary} more={more} hidden={hidden} />
+                </li>
+              </ul>
+            </div>
           </LayoutGroup>
 
           <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
@@ -212,10 +284,30 @@ export function TopNav({
   );
 }
 
-function MoreMenu({ primary, more }: { primary: readonly NavItem[]; more: readonly NavItem[] }) {
+function MeasureItem({ item }: { item: NavItem }) {
+  const t = useTranslations('common');
+  return (
+    <span className={cn(ITEM_CLASS, 'inline-flex')}>
+      <Icon icon={navIcon(item.icon)} strokeWidth={1.85} className="size-[18px]" />
+      <span>{t(item.labelKey)}</span>
+    </span>
+  );
+}
+
+function MoreMenu({
+  primary,
+  more,
+  hidden,
+}: {
+  primary: readonly NavItem[];
+  more: readonly NavItem[];
+  hidden: ReadonlySet<string> | null;
+}) {
   const t = useTranslations('common');
   const pathname = usePathname();
-  const anyActive = more.some((i) => isActive(pathname, i.href));
+  const overflowed = hidden ? primary.filter((i) => hidden.has(i.id)) : [];
+  const anyActive =
+    more.some((i) => isActive(pathname, i.href)) || overflowed.some((i) => isActive(pathname, i.href));
   const row = (item: NavItem, extra?: string) => (
     <DropdownMenuItem key={item.id} asChild className={extra}>
       <Link href={item.href} aria-current={isActive(pathname, item.href) ? 'page' : undefined}>
@@ -238,10 +330,18 @@ function MoreMenu({ primary, more }: { primary: readonly NavItem[]; more: readon
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {/* primary items that don't fit the strip at the current width */}
-        {primary.map((i) => row(i, HIDE_IN_MORE[i.id] ?? 'lg:hidden'))}
-        <div className={cn(more.length === 0 ? 'hidden' : 'block', 'min-[1440px]:hidden')}>
-          <DropdownMenuSeparator />
-        </div>
+        {hidden
+          ? overflowed.map((i) => row(i))
+          : primary.map((i) => row(i, HIDE_IN_MORE[i.id] ?? 'lg:hidden'))}
+        {hidden ? (
+          overflowed.length > 0 && more.length > 0 ? (
+            <DropdownMenuSeparator />
+          ) : null
+        ) : (
+          <div className={cn(more.length === 0 ? 'hidden' : 'block', 'min-[1440px]:hidden')}>
+            <DropdownMenuSeparator />
+          </div>
+        )}
         {more.map((i) => row(i))}
       </DropdownMenuContent>
     </DropdownMenu>

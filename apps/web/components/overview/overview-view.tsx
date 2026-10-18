@@ -145,7 +145,7 @@ export function OverviewView({
         {show('risk') && !mine ? (
           <RevenueHero
             data={data}
-            className="relative z-10 mb-2 md:absolute md:end-2 md:top-8 md:mb-0 md:w-[min(460px,44%)]"
+            className="relative z-10 mb-2 md:absolute md:end-2 md:top-1/2 md:mb-0 md:-translate-y-1/2 md:w-[min(460px,44%)]"
           />
         ) : null}
       </div>
@@ -166,7 +166,7 @@ export function OverviewView({
           ) : null}
         </div>
 
-        <TabsContent value="summary" className="space-y-4">
+        <TabsContent value="summary" className="space-y-6">
           <PanelFade>
             {demo && show('about') ? (
               <Reveal lift={false}>
@@ -175,10 +175,11 @@ export function OverviewView({
             ) : null}
 
             {!kpiHidden ? (
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid items-stretch gap-6 md:grid-cols-3">
                 {show('newLeads') ? (
-                  <Reveal i={1}>
+                  <Reveal i={1} className="h-full">
                     <KpiTile
+                      className="h-full"
                       icon={<UserPlus />}
                       label={mine ? t('kpi.newLeadsMine') : t('kpi.newLeads')}
                       state={tileState}
@@ -196,8 +197,9 @@ export function OverviewView({
                   </Reveal>
                 ) : null}
                 {show('response') ? (
-                  <Reveal i={2}>
+                  <Reveal i={2} className="h-full">
                     <KpiTile
+                      className="h-full"
                       icon={<TimerReset />}
                       label={mine ? t('kpi.responseMine') : t('kpi.response')}
                       state={
@@ -223,8 +225,9 @@ export function OverviewView({
                   </Reveal>
                 ) : null}
                 {show('recovery') ? (
-                  <Reveal i={3}>
+                  <Reveal i={3} className="h-full">
                     <KpiTile
+                      className="h-full"
                       icon={<LifeBuoy />}
                       label={mine ? t('kpi.recoveryMine') : t('kpi.recovery')}
                       state={tileState}
@@ -246,9 +249,9 @@ export function OverviewView({
               </div>
             ) : null}
 
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid items-stretch gap-6 lg:grid-cols-12 [&>*]:min-w-0 [&>*>*]:h-full">
               {show('payments') ? (
-                <Reveal i={4} lift={false} className="lg:col-span-2">
+                <Reveal i={4} lift={false} className="lg:col-span-8">
                   <PaymentsChart
                     data={data}
                     days={days}
@@ -259,22 +262,22 @@ export function OverviewView({
                 </Reveal>
               ) : null}
               {show('team') ? (
-                <Reveal i={5}>
+                <Reveal i={5} className="lg:col-span-4">
                   <TeamAvailabilityCard data={data} state={state} onRetry={retry} />
                 </Reveal>
               ) : null}
               {show('pipeline') ? (
-                <Reveal i={6}>
+                <Reveal i={6} className="lg:col-span-4">
                   <PipelineCard data={data} state={state} onRetry={retry} />
                 </Reveal>
               ) : null}
               {show('appointments') ? (
-                <Reveal i={7}>
+                <Reveal i={7} className="lg:col-span-4">
                   <AppointmentsCard data={data} state={state} onRetry={retry} />
                 </Reveal>
               ) : null}
               {show('escalations') ? (
-                <Reveal i={8}>
+                <Reveal i={8} className="lg:col-span-4">
                   <EscalationsCard data={data} state={state} onRetry={retry} />
                 </Reveal>
               ) : null}

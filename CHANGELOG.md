@@ -7,6 +7,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+- Fixed: TopNav priority+ overflow (ResizeObserver moves items that don't fit into More; More highlights when it holds the active page); Urdu UI font switched to Noto Naskh Arabic; Overview KPI tiles equal height, 12-col secondary grid with 24px gaps, hero overlay centred [T-162] [Q7] [Q16]
+
 ### Added
 - pnpm monorepo (`apps/web` Next.js 16, `@relay/{core,db,contracts}`), ESLint 10 with layering rules, Prettier, Vitest unit/integration projects, Playwright skeleton, root scripts incl. `pnpm check` [T-001] [Q14]
 - Docker Postgres 16, timestamped SQL migration runner with checksums, `app_user` role migration, `workspaces` with forced RLS, `relay_enable_tenant_rls()` + template, `withWorkspaceTx`/`withSystemTx`, RLS test harness, per-worktree test DBs [T-002] [Q6] [F1.6]
