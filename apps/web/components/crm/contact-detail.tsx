@@ -321,6 +321,7 @@ export function ContactDetail({ id }: { id: string }) {
                           opportunityId={o.id}
                           contactId={id}
                           hasPhone={!!contact.phoneE164}
+                          onChange={view.reload}
                           defaultValue={o.value && !o.value.masked ? o.value : null}
                         />
                       </td>

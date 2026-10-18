@@ -265,6 +265,7 @@
       "window_closed": "The 24-hour WhatsApp window is closed. Copy the link or send an approved template.",
       "opted_out": "This customer has opted out of messages.",
       "payment_link_unavailable": "This link is not ready or is no longer payable."
-    }
+    },
+    "openCheckout": "Open checkout page"
   }
 }

@@ -30,12 +30,15 @@ export function OpportunityPayments({
   contactId,
   hasPhone,
   defaultValue,
+  onChange,
 }: {
   opportunityId: string;
   contactId: string;
   hasPhone: boolean;
   /** Visible opportunity value in minor units (null when masked or unset). */
   defaultValue: { amountMinor: number; currency: string } | null;
+  /** Called after a link is created so the host page can refresh its related lists. */
+  onChange?: () => void;
 }) {
   const t = useTranslations('crm.payments');
   const tr = useTranslations();
@@ -71,6 +74,7 @@ export function OpportunityPayments({
       toast.success(t('created'));
       setOpen(false);
       await qc.invalidateQueries({ queryKey: ['payments'] });
+      onChange?.();
     } catch (err) {
       toast.error(reasonText(err));
     } finally {
@@ -167,7 +171,7 @@ export function OpportunityPayments({
                       dir="ltr"
                       className="max-w-full truncate text-meta text-brand-text underline"
                     >
-                      {r.url}
+                      {t('openCheckout')}
                     </a>
                     <Button size="sm" variant="secondary" onClick={() => copy(r.url!)}>
                       <Copy aria-hidden className="size-4" />
