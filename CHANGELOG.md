@@ -37,6 +37,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Conversations inbox + thread UI (status ticks, retry, window indicator, template composer, opt-out) [T-146]
 - Stripe test-mode Checkout payment links, signed idempotent webhook, collected vs projected totals, Payments page; real session + webhook endpoint verified [T-143] [I2.1] [I2.8]
 - Google Calendar OAuth connect, free/busy conflict check, outbox create/reschedule/cancel, Appointments page [T-144] [I3.1] [I3.7]
+- CRM: contacts/companies/opportunities CRUD with owners, soft delete, optimistic locking (409), record scope + value masking [T-110] [F2.1] [Q4]
+- Pipelines + stages with board/table, forced-move stage delete, server-enforced stage-required fields [T-111] [T-113] [F2.4] [F2.5]
+- Custom fields (shared or per pipeline) and tags [T-112] [T-114] [F2.2] [F2.3]
+- Activity timeline with notes, call logs and the `onHumanAction` hook; live saved lists with server-validated filters [T-116] [T-115] [F2.6] [F2.7]
+- Contact 360 page; CSV export with masking, formula guard and audit [T-117] [T-118] [F2.8] [F2.11]
+- Invites (single-use links, expiry, revoke), roles + permissions matrix, per-user overrides, Owner protection, user deactivation + session revocation [T-103] [T-104] [T-105] [F1.2] [F1.3] [F1.8]
+- Read-only audit log viewer with filters + Verify integrity [T-151] [T-220] [F4.2] [F4.4]
+- Overview dashboard (all F5.1 figures, role-aware, show/hide, drill-downs) + metrics service; Lead Radar live mission control [T-150] [T-201] [F5.1] [F5.6]
+- Login/signup brand panel with motion, `/me` profile page, user menu with sign-out
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
