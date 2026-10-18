@@ -25,6 +25,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Idempotent seed (Sunrise Solar + Crescent Realty, Owner/Admin/Manager/User), factories, one-click `/dev/login-as` [T-010] [F10.4] [Q13]
 - Integrations connections with encrypted secrets, circuit breaker, sync history, integrations page [T-140] [I5.1]
 - Slack app: manifest, signed `/relay` commands + interactions, account linking, Block Kit alerts via `slack.send`/`slack.update`, `enqueueSlackAlert` hook; verified with a real DM + update [T-145] [I4.1] [I4.3] [F3.9]
+- next-intl en/ur with `lang`/`dir`, Inter + Noto Nastaliq Urdu, locale switcher, `lib/format` Intl helpers (PKR, workspace TZ, relative time) [T-005] [F7.1] [F7.2]
+- Warm Orange design tokens (light/dark, no-flash theme), shadcn/Radix `components/ui`, `components/relay` product components, responsive TopNav shell, Overview shell, `/dev/kitchen-sink` with axe e2e, Relay brand mark + favicon [T-012] [Q7] [Q8] [Q17]
+- ESLint rules `relay/no-literal-jsx-strings`, `relay/no-physical-direction`, `relay/no-raw-colors` [T-005] [T-012]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
