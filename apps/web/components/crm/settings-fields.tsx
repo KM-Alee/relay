@@ -14,6 +14,7 @@ export function SettingsFields() {
   const [error, setError] = useState<unknown>(null);
   const [entity, setEntity] = useState<CrmEntity>('contact');
   const [type, setType] = useState<CustomFieldDto['type']>('text');
+  const [aiOut, setAiOut] = useState<'text' | 'dropdown' | 'number'>('text');
   const fields = useLoad(() => api.crm.fields.list(), 'fields:all');
   const pipelines = useLoad(() => api.crm.pipelines.list(), 'pipelines');
 
@@ -37,7 +38,7 @@ export function SettingsFields() {
         label: { en: String(f.get('labelEn')), ur: String(f.get('labelUr') || f.get('labelEn')) },
         type,
         options:
-          type === 'dropdown'
+          type === 'dropdown' || (type === 'ai' && aiOut === 'dropdown')
             ? en.map((label, i) => ({
                 value:
                   label
@@ -47,6 +48,9 @@ export function SettingsFields() {
                 label: { en: label, ur: ur[i] || label },
               }))
             : [],
+        ...(type === 'ai'
+          ? { aiConfig: { prompt: String(f.get('aiPrompt') ?? ''), outputType: aiOut } }
+          : {}),
       });
       form.reset();
       setError(null);
@@ -84,7 +88,7 @@ export function SettingsFields() {
               .map((f) => (
                 <li key={f.id} className={ui.row}>
                   <span>{label(f)}</span>
-                  <span className={ui.chip}>{t(`types.${f.type}`)}</span>
+                  <span className={f.type === 'ai' ? ui.aiChip : ui.chip}>{t(`types.${f.type}`)}</span>
                   <span className={ui.chip}>{pipelineName(f.pipelineId) ?? t('shared')}</span>
                   <button type="button" className={ui.btnDanger} onClick={() => remove(f)}>
                     {t('delete')}
@@ -145,13 +149,38 @@ export function SettingsFields() {
           value={type}
           onChange={(e) => setType(e.target.value as CustomFieldDto['type'])}
         >
-          {(['text', 'number', 'date', 'dropdown', 'checkbox'] as const).map((x) => (
+          {(['text', 'number', 'date', 'dropdown', 'checkbox', 'ai'] as const).map((x) => (
             <option key={x} value={x}>
               {t(`types.${x}`)}
             </option>
           ))}
         </select>
-        {type === 'dropdown' && (
+        {type === 'ai' && (
+          <>
+            <input
+              name="aiPrompt"
+              required
+              minLength={5}
+              maxLength={500}
+              className={`${ui.input} min-w-72`}
+              placeholder={t('aiPrompt')}
+              aria-label={t('aiPrompt')}
+            />
+            <select
+              className={ui.input}
+              aria-label={t('aiOutput')}
+              value={aiOut}
+              onChange={(e) => setAiOut(e.target.value as typeof aiOut)}
+            >
+              {(['text', 'dropdown', 'number'] as const).map((x) => (
+                <option key={x} value={x}>
+                  {t(`aiOutputs.${x}`)}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+        {(type === 'dropdown' || (type === 'ai' && aiOut === 'dropdown')) && (
           <>
             <input
               name="optionsEn"

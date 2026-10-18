@@ -1,5 +1,6 @@
 // api.crm.*: owner Lane B. One method per endpoint in contracts/api/crm.ts; pattern: ./users.ts.
 import { crmEndpoints as e } from '@relay/contracts/api/crm';
+import { crmExtrasEndpoints as x } from '@relay/contracts/api/crm-extras';
 import { crmFixtures as f } from '@relay/contracts/fixtures/crm';
 import { buildPath } from '../http';
 import { call, type CallOptions } from '../http';
@@ -9,7 +10,37 @@ type In<K extends keyof typeof e> = Parameters<typeof call<(typeof e)[K]>>[2];
 const run = <K extends keyof typeof e>(k: K, input: In<K>, opts?: CallOptions) =>
   call('crm', e[k], input, f[k] as never, opts) as ReturnType<typeof call<(typeof e)[K]>>;
 
+type InX<K extends keyof typeof x> = Parameters<typeof call<(typeof x)[K]>>[2];
+/** Extras (rot, import, AI fields, onboarding) have no fixtures: the `crm` domain is live (FIXTURE_DOMAINS.crm = false). */
+const runX = <K extends keyof typeof x>(k: K, input: InX<K>, opts?: CallOptions) =>
+  call(
+    'crm',
+    x[k],
+    input,
+    (() => {
+      throw new Error(`no fixture for ${k}`);
+    }) as never,
+    opts,
+  ) as ReturnType<typeof call<(typeof x)[K]>>;
+
 export const crm = {
+  rotting: (query: InX<'rotting'>['query'] = {}, o?: CallOptions) =>
+    runX('rotting', { query } as InX<'rotting'>, o),
+  importChunk: (body: InX<'importChunk'>['body'], o?: CallOptions) =>
+    runX('importChunk', { body } as InX<'importChunk'>, o),
+  aiFields: {
+    list: (query: InX<'aiFieldsList'>['query'], o?: CallOptions) =>
+      runX('aiFieldsList', { query } as InX<'aiFieldsList'>, o),
+    fill: (body: InX<'aiFieldsFill'>['body'], o?: CallOptions) =>
+      runX('aiFieldsFill', { body } as InX<'aiFieldsFill'>, o),
+  },
+  onboarding: {
+    templates: (o?: CallOptions) => runX('onboardingTemplates', {} as InX<'onboardingTemplates'>, o),
+    propose: (body: InX<'onboardingPropose'>['body'], o?: CallOptions) =>
+      runX('onboardingPropose', { body } as InX<'onboardingPropose'>, o),
+    apply: (body: InX<'onboardingApply'>['body'], o?: CallOptions) =>
+      runX('onboardingApply', { body } as InX<'onboardingApply'>, o),
+  },
   contacts: {
     list: (query: In<'contactsList'>['query'] = {}, o?: CallOptions) =>
       run('contactsList', { query } as In<'contactsList'>, o),

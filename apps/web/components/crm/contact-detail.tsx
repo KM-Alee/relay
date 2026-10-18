@@ -7,6 +7,7 @@ import { Fragment, useState, type FormEvent } from 'react';
 import { api, ApiError } from '@/lib/api-client';
 import { Link } from '@/lib/i18n/navigation';
 import { AIBadge } from '@/components/relay/ai-badge';
+import { AiFieldsPanel } from './ai-fields-panel';
 import { OpportunityPayments, PaymentStatusBadge } from './opportunity-payments';
 import { ErrorNote, FieldInput, Money, has, ui, useFieldLabel, useFieldText, useLoad, useMe } from './ui';
 
@@ -49,7 +50,8 @@ export function ContactDetail({ id }: { id: string }) {
   if (!view.data || !contact || !form) return <p aria-busy="true">{t('loading')}</p>;
   const d = view.data;
   const canEdit = has(me, 'crm.contact.edit');
-  const fieldDefs = fields.data?.items ?? [];
+  const aiIds = new Set((fields.data?.items ?? []).filter((f) => f.type === 'ai').map((f) => f.id));
+  const fieldDefs = (fields.data?.items ?? []).filter((f) => f.type !== 'ai');
   const owners = [
     ...(users.data?.items.map((u) => ({ id: u.id, name: u.name })) ?? []),
     ...(me ? [{ id: me.user.id, name: me.user.name }] : []),
@@ -66,7 +68,8 @@ export function ContactDetail({ id }: { id: string }) {
         phone: form.phone || null,
         email: form.email || null,
         ownerUserId: form.ownerUserId || null,
-        fields: form.fields,
+        // AI fields are edited in their own panel: re-saving them here would lock them as human-set.
+        fields: Object.fromEntries(Object.entries(form.fields).filter(([k]) => !aiIds.has(k))),
       });
       setError(null);
       setConflict(false);
@@ -244,6 +247,13 @@ export function ContactDetail({ id }: { id: string }) {
           )}
         </form>
       </section>
+
+      <AiFieldsPanel
+        contactId={id}
+        contactVersion={contact.version}
+        canEdit={canEdit}
+        onChanged={view.reload}
+      />
 
       <section className={ui.card} aria-labelledby="sec-tags">
         <h2 id="sec-tags" className={ui.h2}>

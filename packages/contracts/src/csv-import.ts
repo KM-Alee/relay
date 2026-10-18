@@ -32,7 +32,7 @@ function detectDelimiter(firstLine: string): ',' | ';' | '\t' {
 
 /** Parse CSV text: quoted cells, escaped quotes, CRLF/LF, BOM, `,` `;` or TAB. Blank lines are skipped. */
 export function parseCsv(input: string): ParsedCsv {
-  const text = input.replace(/^﻿/, '');
+  const text = input.charCodeAt(0) === 0xfeff ? input.slice(1) : input;
   const delimiter = detectDelimiter(text.split(/\r?\n/, 1)[0] ?? '');
   const all: string[][] = [];
   let row: string[] = [];

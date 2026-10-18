@@ -19,7 +19,8 @@
     "tags": "Tags",
     "lastActivity": "Last activity",
     "unassigned": "Unassigned",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "import": "Import CSV"
   },
   "common": {
     "noValue": "No value",
@@ -156,7 +157,8 @@
     "masked": "Hidden",
     "moveTo": "Move to stage",
     "stage": "Stage",
-    "owner": "Owner"
+    "owner": "Owner",
+    "rotsAfter": "Rots after {duration}"
   },
   "settings": {
     "title": "Settings",
@@ -164,7 +166,8 @@
       "pipelines": "Pipelines and stages",
       "fields": "Custom fields",
       "tags": "Tags",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "onboarding": "Set up with AI"
     },
     "pipelines": {
       "title": "Pipelines and stages",
@@ -194,7 +197,16 @@
       "moveTargetPrompt": "This stage has opportunities. Choose where they move:",
       "moveTarget": "Target stage",
       "moveAndDelete": "Move and delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "rotAfter": "Rot after",
+      "rotOff": "Off",
+      "rotUnit": "Rot unit",
+      "rotHint": "Deals with no activity for this long turn red.",
+      "rotUnits": {
+        "day": "days",
+        "hour": "hours",
+        "minute": "minutes"
+      }
     },
     "fields": {
       "title": "Custom fields",
@@ -224,7 +236,14 @@
       "type": "Type",
       "optionsEn": "Options, comma-separated (English)",
       "optionsUr": "Options, comma-separated (Urdu)",
-      "create": "Create field"
+      "create": "Create field",
+      "aiPrompt": "What should AI find? e.g. Summarize budget",
+      "aiOutput": "AI answer type",
+      "aiOutputs": {
+        "text": "Text",
+        "dropdown": "Dropdown",
+        "number": "Number"
+      }
     },
     "tags": {
       "title": "Tags",
@@ -267,5 +286,203 @@
       "payment_link_unavailable": "This link is not ready or is no longer payable."
     },
     "openCheckout": "Open checkout page"
+  },
+  "rot": {
+    "badge": "Rotting {duration}",
+    "panelTitle": "{count, plural, one {# rotting deal} other {# rotting deals}}",
+    "panelHint": "No recorded action for longer than the stage allows. These feed the recovery queue.",
+    "rotsAfter": "Rots after {duration}",
+    "duration": {
+      "day": "{count, plural, one {# day} other {# days}}",
+      "hour": "{count, plural, one {# hour} other {# hours}}",
+      "minute": "{count, plural, one {# minute} other {# minutes}}"
+    }
+  },
+  "import": {
+    "title": "Import contacts",
+    "subtitle": "Upload a CSV, match the columns, check every row, then import.",
+    "stepsLabel": "Import steps",
+    "back": "Back",
+    "steps": {
+      "upload": "Upload",
+      "map": "Match columns",
+      "review": "Check rows",
+      "import": "Import"
+    },
+    "upload": {
+      "dropTitle": "Drop a CSV file here",
+      "dropHint": "or choose a file (up to {mb} MB, {rows} rows)",
+      "choose": "Choose file",
+      "sample": "Download a sample CSV",
+      "formats": "Comma, semicolon or tab separated. First row = column names.",
+      "truncated": "Only the first {max} rows are used.",
+      "errors": {
+        "tooBig": "That file is larger than {mb} MB.",
+        "notCsv": "Please choose a .csv file.",
+        "empty": "The file has no header row.",
+        "noRows": "The file has no data rows."
+      }
+    },
+    "map": {
+      "heading": "Match your columns",
+      "intro": "{file}: {count} rows. We guessed where each column goes. Change anything that looks wrong.",
+      "column": "Column in your file",
+      "examples": "Examples",
+      "goesTo": "Goes to",
+      "goesToFor": "Where column {column} goes",
+      "unnamed": "Column {n}",
+      "suggested": "Suggested",
+      "nameRequired": "Map one column to Name to continue.",
+      "dupTarget": "Each field can be used by one column only.",
+      "next": "Check rows",
+      "targets": {
+        "skip": "Skip this column",
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "company": "Company",
+        "language": "Language",
+        "custom": "Custom fields"
+      }
+    },
+    "review": {
+      "heading": "Check your rows",
+      "intro": "Every row is checked on the server before anything is saved.",
+      "dupLegend": "When a phone or email already exists",
+      "check": "Check rows",
+      "checking": "Checking {done} of {total} rows",
+      "okNote": "Rows with problems are skipped. All other rows import.",
+      "dup": {
+        "update": "Update the existing contact",
+        "updateHint": "Refresh name, company and fields; fill empty phone or email.",
+        "skip": "Skip the row",
+        "skipHint": "Leave the existing contact untouched."
+      },
+      "stats": {
+        "create": "New contacts",
+        "dup": "Already in Relay",
+        "error": "Rows with problems"
+      },
+      "tabs": "Row lists",
+      "tab": {
+        "issues": "Problems ({count})",
+        "dups": "Duplicates ({count})"
+      },
+      "col": {
+        "line": "Line",
+        "name": "Name",
+        "problem": "Problem",
+        "result": "Result"
+      },
+      "noIssues": "Every row looks good.",
+      "noDups": "No duplicates found.",
+      "showingFirst": "Showing the first {count}.",
+      "downloadReport": "Download problem report",
+      "import": "Import {count} rows",
+      "inFile": "repeated in this file",
+      "by": {
+        "phone": "phone",
+        "email": "email"
+      },
+      "result": {
+        "update": "Updates the contact with the same {by}",
+        "skip": "Skipped: same {by} exists"
+      }
+    },
+    "run": {
+      "importing": "Importing",
+      "progress": "{done} of {total} rows",
+      "stop": "Stop",
+      "doneTitle": "Import finished",
+      "doneBody": "{created} created, {updated} updated, {skipped} skipped, {failed} failed.",
+      "view": "View contacts",
+      "another": "Import another file"
+    },
+    "errors": {
+      "name_required": "Name is missing",
+      "name_too_long": "Name is too long",
+      "phone_invalid": "Phone number is not valid",
+      "email_invalid": "Email is not valid",
+      "company_too_long": "Company name is too long",
+      "language_invalid": "Language not recognised",
+      "unknown_field": "Unknown field",
+      "invalid_value": "Value does not fit the field",
+      "duplicate_conflict": "Phone and email match different contacts",
+      "duplicate_out_of_scope": "Matches a contact you cannot edit",
+      "row_failed": "Row could not be saved"
+    }
+  },
+  "aiFields": {
+    "title": "AI fields",
+    "hint": "Filled from the conversation and notes. Your edit always wins.",
+    "disabled": "AI disabled",
+    "disabledShort": "AI disabled",
+    "refresh": "Refresh",
+    "refreshAll": "Refresh all",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "locked": "Edited by a person",
+    "empty": "Not filled yet",
+    "filledAt": "AI, {when}",
+    "editedAt": "Edited {when}",
+    "filled": "AI filled the field.",
+    "lockedNote": "These values were edited by a person, so they were kept.",
+    "nothingFound": "Nothing clear enough to fill yet.",
+    "confirmOverwrite": "Replace the value you edited with a new AI answer?"
+  },
+  "onboarding": {
+    "title": "Set up with AI",
+    "subtitle": "Describe your business and review a proposed setup. Nothing changes until you confirm.",
+    "stepsLabel": "Setup steps",
+    "steps": {
+      "describe": "Describe",
+      "review": "Review",
+      "done": "Done"
+    },
+    "describe": {
+      "heading": "Describe your business",
+      "placeholder": "e.g. We are a dental clinic in Karachi with 3 dentists",
+      "go": "Propose a setup",
+      "working": "Working",
+      "orTemplate": "Or start from a template",
+      "useTemplate": "Use this template",
+      "aiOff": "AI is off: templates are available",
+      "unavailable": "AI could not help with that description. Pick a template instead."
+    },
+    "review": {
+      "heading": "Review the proposal",
+      "intro": "Rename stages, remove what you do not need, then confirm.",
+      "fromAi": "AI proposal",
+      "fromTemplate": "Template",
+      "aiOff": "AI is off, so the closest template was used.",
+      "aiFailed": "AI was unavailable, so the closest template was used.",
+      "pipelineName": "Pipeline name",
+      "stageName": "Stage name",
+      "remove": "Remove",
+      "rot": "Rots after {days} d",
+      "requires": "Needs: {fields}",
+      "fields": "Custom fields",
+      "tags": "Tags",
+      "makeDefault": "Make the first pipeline the default",
+      "back": "Back",
+      "confirm": "Confirm and apply",
+      "kind": {
+        "open": "Open",
+        "won": "Won",
+        "lost": "Lost"
+      },
+      "entity": {
+        "contact": "Contact",
+        "opportunity": "Opportunity"
+      }
+    },
+    "done": {
+      "title": "Your workspace is set up",
+      "body": "{pipelines} pipelines, {stages} stages, {fields} fields and {tags} tags created.",
+      "skipped": "{count} items already existed and were left as they are.",
+      "pipeline": "Open the pipeline",
+      "fields": "View custom fields"
+    }
   }
 }

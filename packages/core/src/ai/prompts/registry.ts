@@ -7,6 +7,8 @@ export const CURRENT: Record<Exclude<AiTask, 'transcription'>, number> = {
   triage: 1,
   standin_reply: 1,
   handoff_brief: 1,
+  field_fill: 1,
+  onboarding_proposal: 1,
 };
 
 export interface Prompt {

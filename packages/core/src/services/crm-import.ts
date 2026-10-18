@@ -5,7 +5,7 @@
 // display, and exports neutralise spreadsheet formulas (exports.ts csvCell).
 import { normalizePhone, type CrmEntity } from '@relay/contracts/api/crm';
 import type { ImportChunkResponse, ImportRowResult } from '@relay/contracts/api/crm-extras';
-import { importChunkInput } from '@relay/contracts/api/crm-extras';
+import type { importChunkInput } from '@relay/contracts/api/crm-extras';
 import { withWorkspaceTx, type Tx, type TxOptions } from '@relay/db';
 import { sql } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -23,10 +23,13 @@ type Lang = 'en' | 'ur' | 'ur-Latn';
 
 /** Strip control chars + bidi overrides (spoofing), collapse whitespace. */
 export function cleanText(s: string): string {
-  return s
-    .replace(/[\u0000-\u001f\u007f‪-‮⁦-⁩‎‏]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    s
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\u0000-\u001f\u007f‪-‮⁦-⁩‎‏]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 const EMAIL_RE = /^[^\s@<>"',;:()[\]\\]{1,64}@[^\s@<>"',;:()[\]\\]+\.[^\s@<>"',;:()[\]\\.]{2,}$/;

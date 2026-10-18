@@ -10,6 +10,7 @@ export default async function Page() {
     ['/settings/pipelines', 'pipelines'],
     ['/settings/fields', 'fields'],
     ['/settings/tags', 'tags'],
+    ['/settings/onboarding', 'onboarding'],
     ['/settings/integrations', 'integrations'],
   ] as const;
   return (

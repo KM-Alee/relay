@@ -1,7 +1,8 @@
 // AI layer types (docs/05-ai.md §3). Owner: Lane C2.
 import type { ZodType } from 'zod';
 
-export type AiTask = 'triage' | 'standin_reply' | 'handoff_brief' | 'transcription';
+export type AiTask =
+  'triage' | 'standin_reply' | 'handoff_brief' | 'field_fill' | 'onboarding_proposal' | 'transcription';
 /** Customer language / script: Urdu script, Roman Urdu, English (F7.5). */
 export type Lang = 'en' | 'ur' | 'ur-Latn';
 

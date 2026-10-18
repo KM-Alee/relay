@@ -1,5 +1,5 @@
 // Custom fields (T-112, F2.2/F2.3) and tags (T-114, F2.1): config CRUD with safe deletes. Owner: Lane B.
-import type { CrmEntity, CustomFieldDto, TagDto } from '@relay/contracts/api/crm';
+import type { AiConfig, CrmEntity, CustomFieldDto, TagDto } from '@relay/contracts/api/crm';
 import { criteriaSchema } from '@relay/contracts/api/crm';
 import { withWorkspaceTx, type Tx, type TxOptions } from '@relay/db';
 import { sql } from 'drizzle-orm';
@@ -28,6 +28,7 @@ const toDto = (r: FieldRow & { position: number; version: number }): CustomField
   label: r.label,
   type: r.type,
   options: r.options,
+  aiConfig: r.type === 'ai' ? (r.ai_config ?? null) : null,
   position: r.position,
   version: r.version,
 });
@@ -50,9 +51,11 @@ async function rewriteLists(tx: Tx, gone: { fieldId?: string; tagId?: string }) 
   }
 }
 
-function checkOptions(type: string, options: unknown[]) {
-  if (type === 'dropdown' && options.length === 0) throw validationFailed('options', 'options_required');
-  if (type !== 'dropdown' && options.length) throw validationFailed('options', 'options_not_allowed');
+function checkOptions(type: string, options: unknown[], aiOutput?: string | null) {
+  // An AI field with a dropdown output picks from options, like a dropdown (F9.1).
+  const needs = type === 'dropdown' || (type === 'ai' && aiOutput === 'dropdown');
+  if (needs && options.length === 0) throw validationFailed('options', 'options_required');
+  if (!needs && options.length) throw validationFailed('options', 'options_not_allowed');
 }
 
 export const customFieldsService = {
@@ -89,11 +92,17 @@ export const customFieldsService = {
       label: { en: string; ur: string };
       type: CustomFieldDto['type'];
       options: CustomFieldDto['options'];
+      aiConfig?: AiConfig | null;
     },
     opts: TxOptions = {},
   ): Promise<CustomFieldDto> {
     assertPermission(actor, 'crm.config.manage');
-    checkOptions(input.type, input.options);
+    if (input.type === 'ai') {
+      if (!input.aiConfig) throw validationFailed('aiConfig', 'ai_config_required');
+      // AI answers come from the conversation, so only records tied to a contact can have one.
+      if (input.entity === 'company') throw validationFailed('entity', 'ai_entity_unsupported');
+    } else if (input.aiConfig) throw validationFailed('aiConfig', 'ai_only');
+    checkOptions(input.type, input.options, input.aiConfig?.outputType);
     if (input.pipelineId && input.entity !== 'opportunity')
       throw validationFailed('pipelineId', 'opportunity_only');
     return withWorkspaceTx(
@@ -111,9 +120,10 @@ export const customFieldsService = {
         );
         try {
           await tx.execute(
-            sql`insert into custom_fields (id, workspace_id, entity, pipeline_id, key, label, type, options, position)
+            sql`insert into custom_fields (id, workspace_id, entity, pipeline_id, key, label, type, options, ai_config, position)
                 values (${id}::uuid, ${actor.workspaceId}::uuid, ${input.entity}, ${input.pipelineId}::uuid, ${input.key},
-                        ${JSON.stringify(input.label)}::jsonb, ${input.type}, ${JSON.stringify(input.options)}::jsonb, ${pos?.n ?? 0})`,
+                        ${JSON.stringify(input.label)}::jsonb, ${input.type}, ${JSON.stringify(input.options)}::jsonb,
+                        ${input.aiConfig ? JSON.stringify(input.aiConfig) : null}::jsonb, ${pos?.n ?? 0})`,
           );
         } catch (e) {
           if (isUniqueViolation(e, 'custom_fields_ws_entity_key'))
@@ -143,6 +153,7 @@ export const customFieldsService = {
     input: {
       label?: { en: string; ur: string };
       options?: CustomFieldDto['options'];
+      aiConfig?: AiConfig;
       position?: number;
       version: number;
     },
@@ -158,10 +169,14 @@ export const customFieldsService = {
         );
         if (!cur) throw notFound();
         if (cur.version !== input.version) throw staleVersion(toDto(cur));
-        if (input.options) checkOptions(cur.type, input.options);
+        if (input.aiConfig && cur.type !== 'ai') throw validationFailed('aiConfig', 'ai_only');
+        const aiConfig = input.aiConfig ?? cur.ai_config ?? null;
+        if (input.options || input.aiConfig)
+          checkOptions(cur.type, input.options ?? cur.options, aiConfig?.outputType);
         await tx.execute(
           sql`update custom_fields set label = ${JSON.stringify(input.label ?? cur.label)}::jsonb,
                 options = ${JSON.stringify(input.options ?? cur.options)}::jsonb, position = ${input.position ?? cur.position},
+                ai_config = ${aiConfig ? JSON.stringify(aiConfig) : null}::jsonb,
                 version = version + 1 where id = ${id}::uuid and version = ${input.version}`,
         );
         await auditAppend(tx, actor, {
