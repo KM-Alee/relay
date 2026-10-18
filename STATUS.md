@@ -112,7 +112,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
 | T-217 | Voice-note transcription | C | todo |  |  |  |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
-| T-228 | PWA + demo polish | D | todo |  |  |  |
+| T-228 | PWA + demo polish | D | in-progress | agent:lane-D3 | `worktree-agent-ab80676380e5b5c16` | motion kit + C pages done (motion/Lottie kits, TopNav fixes, inbox/payments/appointments/integrations polish); PWA pending |
 
 ### W6: only if time remains
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
@@ -161,6 +161,7 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 | A-1 | Amendment: notification channel is Slack, not Telegram (Telegram unreliable in Pakistan; the PDF accepted Slack for I4). Wherever `requirements.md` says Telegram (C4, F1.4, F3.4, F3.5, F3.9, F9.2, I4.x, §8–§10), read Slack. `requirements.md` is unchanged. | ADR-0011, `AGENTS.md` §1 |
 
 ## Session log (append-only, newest last)
+- **2026-10-18 · Claude (Lane D3, T-228):** Motion kit (`components/relay/motion`) + Lottie kit (`components/relay/lottie`, 5 hand-made token-recoloured files) shipped; TopNav bugs fixed (brand focus ring, glass art clipping, end controls inside strip, Pipeline icon, 44 px controls); Lane C screens restyled. `pnpm check`, `pnpm build`, kitchen-sink axe e2e (16/16) and axe on the 4 pages (en light / ur dark) green. PWA part of T-228 still open.
 
 - **2026-10-18 · Claude (pre-dev):** Created `docs/00–12`, ADR-0001..0008, AGENTS.md/CLAUDE.md, `.claude` agents and commands, STATUS/CHANGELOG, `.env.example`. Deploy target switched to Vercel + Neon at the user's request, and the architecture was adapted (serverless timers, Ably realtime, transaction-local RLS). Waiting for the design guidelines.
 - **2026-10-18 · Claude (pre-dev):** At the user's request: all open questions resolved with defaults, organizer caveat dropped, Ably → polled `realtime_events` change feed, cron-job.org → QStash schedule, fast-track wave plan added (`09-build-plan.md` §0). Next: W0.
