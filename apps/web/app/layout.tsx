@@ -1,16 +1,7 @@
-import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Relay',
-};
-
-// Placeholder root layout. T-005 replaces this with the localized `[locale]` layout (lang/dir).
+// Pass-through root layout: <html>/<body> are rendered by app/[locale]/layout.tsx (lang/dir per
+// locale) and app/f/layout.tsx (public form, no locale prefix). app/not-found.tsx covers the rest.
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }

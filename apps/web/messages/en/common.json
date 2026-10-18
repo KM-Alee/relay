@@ -1,0 +1,40 @@
+{
+  "appName": "Relay",
+  "nav": {
+    "overview": "Overview",
+    "leads": "Leads",
+    "inbox": "Inbox",
+    "pipeline": "Pipeline",
+    "recovery": "Recovery",
+    "automations": "Automations",
+    "more": "More",
+    "appointments": "Appointments",
+    "payments": "Payments",
+    "team": "Team",
+    "integrations": "Integrations",
+    "audit": "Audit log",
+    "settings": "Settings",
+    "judge": "Judge Console",
+    "contacts": "Contacts",
+    "contact": "Contact",
+    "me": "My profile",
+    "traceability": "Traceability",
+    "login": "Sign in",
+    "signup": "Create account",
+    "publicForm": "Contact form",
+    "devLoginAs": "Dev login",
+    "devKitchenSink": "Kitchen sink"
+  },
+  "comingSoon": {
+    "title": "{screen} is coming soon",
+    "body": "This screen is being built. Check back shortly."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist, or you don't have access to it."
+  },
+  "dev": {
+    "loginAsIntro": "Development only. Pick a seed user to sign in as.",
+    "noSeedUsers": "No seed users yet. Run pnpm db:seed once the seed data exists."
+  }
+}

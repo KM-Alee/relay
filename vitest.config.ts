@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 // Local env: apps/web/.env.local (written by you or by scripts/wt.sh per worktree). CI sets env directly.
@@ -10,6 +11,8 @@ for (const file of ['apps/web/.env.local', '.env.test.local']) {
 const reporters = process.env.CI ? ['default', ['json', { outputFile: 'reports/vitest.json' }]] : ['default'];
 
 export default defineConfig({
+  // apps/web's `@/…` path alias (tsconfig paths) for web unit tests.
+  resolve: { alias: [{ find: /^@\//, replacement: `${path.resolve(import.meta.dirname, 'apps/web')}/` }] },
   test: {
     // Feeds the traceability reporter (docs/08-testing.md §2) when CI=1.
     reporters: reporters as never,
@@ -33,8 +36,6 @@ export default defineConfig({
           globalSetup: ['packages/db/test/global-setup.ts'],
           // Runtime code under test connects as app_user to the test DB.
           setupFiles: ['packages/db/test/setup-env.ts'],
-          // Creates the test DB named in TEST_DATABASE_URL if missing and runs migrations.
-          // Runtime code under test connects as app_user to the test DB.
           testTimeout: 20_000,
           hookTimeout: 60_000,
         },
