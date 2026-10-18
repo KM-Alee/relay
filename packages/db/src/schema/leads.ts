@@ -49,6 +49,9 @@ export const leads = pgTable('leads', {
   aiActive: boolean('ai_active').notNull().default(false),
   aiStartedAt: ts('ai_started_at'),
   aiHandoffAt: ts('ai_handoff_at'),
+  /** Latest AI handoff brief (display data, migration 202610181500). Never an engine column. */
+  aiBrief: jsonb('ai_brief').$type<Record<string, unknown>>(),
+  aiBriefAt: ts('ai_brief_at'),
   version: integer('version').notNull().default(0),
   createdAt: ts('created_at').notNull().defaultNow(),
   updatedAt: ts('updated_at').notNull().defaultNow(),

@@ -177,7 +177,7 @@ describe('T3 escalation', () => {
     const c = ctx({
       now: at(120),
       policy: policy({ repeatCount: 2, levels: policy().levels.slice(0, 2) }),
-      people: allOff({ 'u-a': {} }),
+      people: allOff({ 'u-a': { availability: 'busy' } }),
     });
     const r = ok(escalateOnAckTimeout(c, lead()));
     expect(r.next).toMatchObject({
@@ -217,6 +217,109 @@ describe('T3 escalation', () => {
     const back = ok(escalateOnAckTimeout({ ...c, now: at(180), people: people() }, again.next));
     expect(back.next).toMatchObject({ custody: 'handler', escalationCount: 0, isCritical: false });
     expect(types(back)).toEqual(['routing_retry_assigned', 'critical_cleared']);
+  });
+});
+
+describe('OQ-11 kept owner (no bounce between handler and custodian)', () => {
+  // Only the current owner u-a is eligible; everyone else is off / at capacity.
+  const off = { availability: 'offline' } as const;
+  const onlyA = allOff({ 'u-a': { openHandlerCount: 1 }, 'u-backup': off, [MANAGER]: off });
+
+  it('[F3.5] [OQ-11] expiry with nobody ELSE eligible keeps the eligible owner: overdue attempt, not an escalation', () => {
+    const c = ctx({ now: at(120), policy: policy({ repeatCount: 2 }), people: onlyA });
+    const r = ok(escalateOnAckTimeout(c, lead()));
+    expect(r.next).toMatchObject({
+      ownerUserId: 'u-a',
+      custody: 'handler',
+      awaitingHandler: false,
+      ackStatus: 'pending',
+      escalationCount: 0,
+      overdueAttemptCount: 1,
+      escalationCycle: 1,
+      escalationLevel: 0,
+      isCritical: false,
+      assignedAt: T0,
+      baseWindowEndsAt: at(120),
+    });
+    expect(r.next.escalateAt).toEqual(at(240)); // level 1 timeout: the chain restarts
+    expect(types(r)).toEqual(['overdue_attempt']);
+    expect(r.events[0]!.meta).toEqual({ kept: true });
+    // Still recovery-visible (R1 overdue): base window has passed.
+    expect(classifyRecovery(r.next, { now: at(121), deadline: c.deadline, idleSeconds: 600 })).toContain(
+      'overdue',
+    );
+  });
+
+  it('[F3.5] [OQ-11] end of chain while kept → critical, owner + custodian alerted, retries run on escalate_at', () => {
+    const c = ctx({ now: at(120), people: onlyA });
+    const r = ok(escalateOnAckTimeout(c, lead()));
+    expect(r.next).toMatchObject({
+      ownerUserId: 'u-a',
+      custody: 'handler',
+      isCritical: true,
+      escalationCount: 0,
+    });
+    expect(types(r)).toEqual(['overdue_attempt', 'critical_flagged']);
+    expect(r.notifications.map((n) => n.userId).sort()).toEqual(['u-a', MANAGER].sort());
+    expect(r.next.escalateAt).toEqual(at(150));
+
+    // Next hit, still nobody else: silent reschedule (no event spam, no counter change).
+    const again = ok(escalateOnAckTimeout({ ...c, now: at(150) }, r.next));
+    expect(again.events).toEqual([]);
+    expect(again.next).toMatchObject({ ownerUserId: 'u-a', overdueAttemptCount: 1, isCritical: true });
+    expect(again.next.escalateAt).toEqual(at(180));
+
+    // Someone else becomes available → routing_retry_assigned with a fresh window, never an escalation.
+    const back = ok(escalateOnAckTimeout({ ...c, now: at(180), people: people() }, again.next));
+    expect(back.next).toMatchObject({
+      ownerUserId: 'u-b',
+      custody: 'handler',
+      escalationCount: 0,
+      isCritical: false,
+    });
+    expect(types(back)).toEqual(['routing_retry_assigned', 'critical_cleared']);
+    expect(back.next.escalateAt).toEqual(at(300));
+  });
+
+  it('[F3.5] [OQ-11] kept owner turns Busy and nobody else → fallback custody, overdue attempt with from/to', () => {
+    const c = ctx({ now: at(120), people: onlyA });
+    const kept = ok(escalateOnAckTimeout(c, lead())).next;
+    const busy = {
+      ...c,
+      now: at(150),
+      people: allOff({ 'u-a': { availability: 'busy' }, 'u-backup': off, [MANAGER]: off }),
+    };
+    const r = ok(escalateOnAckTimeout(busy, kept));
+    expect(r.next).toMatchObject({
+      ownerUserId: MANAGER,
+      custody: 'fallback',
+      awaitingReason: 'chain_exhausted',
+      isCritical: true,
+      escalationCount: 0,
+      overdueAttemptCount: 2,
+    });
+    expect(r.events[0]).toMatchObject({ type: 'overdue_attempt', fromUserId: 'u-a', toUserId: MANAGER });
+  });
+
+  it('[F3.3] [OQ-11] a retry-assigned handler whose window expires is not bounced back to the custodian', () => {
+    // Exhausted chain in fallback → retry assigns u-a → u-a's window expires with nobody else.
+    const c = ctx({ now: at(30), people: onlyA });
+    const waiting = lead({
+      ownerUserId: MANAGER,
+      custody: 'fallback',
+      awaitingHandler: true,
+      awaitingReason: 'chain_exhausted',
+      isCritical: true,
+      escalationCycle: 1,
+      escalationLevel: 0,
+      routingRetryAt: at(30),
+      escalateAt: at(30),
+    });
+    const assigned = ok(retryRouting(c, waiting)).next;
+    expect(assigned).toMatchObject({ ownerUserId: 'u-a', custody: 'handler', isCritical: false });
+    const expired = ok(escalateOnAckTimeout({ ...c, now: at(150) }, assigned));
+    expect(expired.next).toMatchObject({ ownerUserId: 'u-a', custody: 'handler', isCritical: true });
+    expect(expired.next.escalationCount).toBe(0);
   });
 });
 
@@ -328,6 +431,40 @@ describe('T7 manual reassign', () => {
       meta: { override: true, overrideReason: 'VIP' },
     });
     expect(r.audit[0]).toMatchObject({ action: 'lead.reassigned' });
+    expect(r.outbox.map((o) => o.type)).toContain('lead.retry_routing'); // capacity freed
+  });
+
+  it('[F3.7] [OQ-3] Take over: only the fallback custodian, only if eligible (membership not required)', () => {
+    const held = lead({
+      ownerUserId: MANAGER,
+      custody: 'fallback',
+      awaitingHandler: true,
+      awaitingReason: 'no_available',
+    });
+    const r = ok(
+      manualReassign(ctx({ now: at(10) }), held, { actorUserId: MANAGER, toUserId: MANAGER, takeOver: true }),
+    );
+    expect(r.next).toMatchObject({
+      ownerUserId: MANAGER,
+      custody: 'handler',
+      awaitingHandler: false,
+      ackStatus: 'pending',
+    });
+    expect(r.next.escalateAt).toEqual(at(130));
+    expect(r.events[0]).toMatchObject({ type: 'manual_reassign', meta: { takeOver: true } });
+    expect(r.notifications).toEqual([]);
+    const offline = ctx({ people: people({ [MANAGER]: { availability: 'offline' } }) });
+    expect(
+      manualReassign(offline, held, { actorUserId: MANAGER, toUserId: MANAGER, takeOver: true }),
+    ).toMatchObject({
+      code: 'TARGET_INELIGIBLE',
+      detail: { skipReason: 'offline' },
+    });
+    expect(
+      manualReassign(ctx(), lead(), { actorUserId: 'u-a', toUserId: 'u-a', takeOver: true }),
+    ).toMatchObject({
+      code: 'NOT_OWNER',
+    });
   });
 });
 

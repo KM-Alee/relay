@@ -16,6 +16,7 @@ import {
   type TraceEntry,
 } from '../domain/leads';
 import { AppError } from '../errors';
+import { uuidv7 } from '../ids';
 import { ensureWakeBy } from '../jobs/scheduler';
 import { enqueueWith } from '../jobs/outbox';
 import { jobRegistry } from '../jobs/registry';
@@ -111,7 +112,28 @@ export function traceSentence(trace: RoutingTrace | null, nameOf: (id: string) =
 export interface LeadLabels {
   contactName: string;
   sourceLabel: string;
+  /** Contact 360 timeline + conversation assignment follow the lead (F2.8, I1.5). */
+  contactId?: string | null;
+  /** 2-line AI brief already stored on the lead (F9.2): attached to alerts, never awaited. */
+  aiBriefTwoLine?: string | null;
 }
+
+/** Lead events mirrored onto the contact timeline as `activities` (full history, F2.8). */
+const TIMELINE_EVENTS = new Set([
+  'intake_assigned',
+  'routing_retry_assigned',
+  'escalation',
+  'overdue_attempt',
+  'absence_reassign',
+  'deactivation_reassign',
+  'manual_reassign',
+  'claim',
+  'pond_claim',
+  'idle_retrigger',
+  'acknowledged',
+  'critical_flagged',
+  'closed',
+]);
 
 const iso = (v: unknown) => (v instanceof Date ? v.toISOString() : v);
 const jsonish = (o: Partial<LeadSnapshot>) =>
@@ -165,7 +187,9 @@ export async function persist(
         purpose,
         leadName: o.labels.contactName,
         source: o.labels.sourceLabel,
-        reason: traceSentence(reasonTrace, nameOf) || purpose,
+        reason:
+          (traceSentence(reasonTrace, nameOf) || purpose) +
+          (o.labels.aiBriefTwoLine ? `\nAI brief: ${o.labels.aiBriefTwoLine}` : ''),
         level: lead.escalationLevel,
         deadlineAt: lead.ackWindowEndsAt,
       });
@@ -188,9 +212,35 @@ export async function persist(
       meta: a.meta,
     });
   }
+  // Contact 360 timeline (activities) + the WhatsApp conversation follows the accountable owner.
+  const contactId = o.labels.contactId ?? null;
+  if (contactId) {
+    for (const e of r.events) {
+      if (!TIMELINE_EVENTS.has(e.type)) continue;
+      const isUser = e.actorType === 'user' && !!e.actorUserId;
+      await tx.execute(sql`insert into activities
+          (id, workspace_id, contact_id, lead_id, type, actor_type, actor_user_id, payload, occurred_at)
+        values (${uuidv7()}::uuid, ${ws}::uuid, ${contactId}::uuid, ${lead.id}::uuid, 'assignment',
+                ${isUser ? 'user' : 'system'}, ${isUser ? e.actorUserId : null}::uuid,
+                ${JSON.stringify({
+                  leadEvent: e.type,
+                  fromName: e.fromUserId ? nameOf(e.fromUserId) : null,
+                  toName: e.toUserId ? nameOf(e.toUserId) : null,
+                  trace: e.trace ? traceSentence(e.trace, nameOf) : null,
+                })}::jsonb, ${e.occurredAt.toISOString()}::timestamptz)`);
+    }
+    if (!prev || prev.ownerUserId !== lead.ownerUserId) {
+      await tx.execute(sql`update conversations set assigned_user_id = ${lead.ownerUserId}::uuid
+        where contact_id = ${contactId}::uuid and assigned_user_id is distinct from ${lead.ownerUserId}::uuid`);
+    }
+  }
+
   if (r.wakeAt) await ensureWakeBy(tx, r.wakeAt);
   await emit(tx, { workspaceId: ws, topic: 'leads', ids: [lead.id] });
   await emit(tx, { workspaceId: ws, topic: 'recovery', ids: [lead.id] });
+  await emit(tx, { workspaceId: ws, topic: 'radar', ids: [lead.id] });
+  await emit(tx, { workspaceId: ws, topic: 'dashboard', ids: [] });
+  if (contactId) await emit(tx, { workspaceId: ws, topic: 'contacts', ids: [contactId] });
   for (const uid of new Set(r.notifications.map((n) => n.userId))) {
     await emit(tx, { workspaceId: ws, topic: 'notifications', ids: [lead.id], userId: uid });
   }
@@ -200,4 +250,7 @@ export async function persist(
 export const labelsOf = (row: leadsRepo.LeadRow): LeadLabels => ({
   contactName: row.contactName,
   sourceLabel: row.sourceLabel,
+  contactId: row.contactId,
+  aiBriefTwoLine:
+    row.aiBrief && typeof row.aiBrief.twoLine === 'string' ? (row.aiBrief.twoLine as string) : null,
 });
