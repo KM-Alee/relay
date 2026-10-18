@@ -368,6 +368,7 @@ export const activityTypeSchema = z.enum([
   'import',
   'system',
 ]);
+export type ActivityType = z.infer<typeof activityTypeSchema>;
 export const activityDto = z.object({
   id: z.uuid(),
   type: activityTypeSchema,
