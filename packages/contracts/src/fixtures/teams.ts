@@ -14,6 +14,9 @@ export function buildTeam(overrides: Partial<TeamDto> = {}): TeamDto {
     ackWindowSeconds: 120,
     routingRetrySeconds: 30,
     idleSeconds: 600,
+    idleRetriggerEnabled: false,
+    escalationPolicyId: '0192f3a0-0000-7000-8003-000000000000',
+    version: 0,
     members: [
       {
         userId: FIXTURE_USER_ID,

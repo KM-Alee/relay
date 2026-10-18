@@ -15,7 +15,8 @@ export type ApiDomain =
   | 'integrations'
   | 'ai'
   | 'dashboard'
-  | 'realtime';
+  | 'realtime'
+  | 'automations';
 
 export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   auth: true, // B
@@ -32,6 +33,7 @@ export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   ai: true, // C
   dashboard: true, // D
   realtime: true, // C
+  automations: false, // A (T-202/T-210: real routes)
 };
 
 export function fixturesEnabled(domain: ApiDomain): boolean {

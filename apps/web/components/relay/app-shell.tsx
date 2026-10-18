@@ -12,6 +12,7 @@ import { useSignOut } from '@/lib/query/use-sign-out';
 import { useRealtime } from '@/lib/realtime';
 import { useNotificationItems } from '@/lib/query/use-notifications';
 import { visibleNav } from '@/nav';
+import { useTimeWarp } from '@/components/automations/use-automations';
 import { TopNav } from './top-nav';
 
 export function AppShell({ children, demoMode = false }: { children: ReactNode; demoMode?: boolean }) {
@@ -23,6 +24,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
   // ONE change-feed poller for the whole signed-in app (ADR-0003); screens add useRealtimeLive() for 1 s.
   useRealtime({ queryClient, enabled: me.isSuccess });
   const notifications = useNotificationItems(me.isSuccess); // Lane A (T-123)
+  const warp = useTimeWarp(me.isSuccess); // Lane A (T-210): badge shows the real workspace multiplier
 
   const items = useMemo(
     () =>
@@ -56,6 +58,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
         availability={availability.value}
         onAvailabilityChange={availability.setValue}
         notifications={notifications}
+        timeWarp={warp.data?.multiplier}
       />
       <main
         id="main"

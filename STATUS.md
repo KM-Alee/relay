@@ -51,7 +51,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-121 | Routing domain (pure) | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `core/domain/leads`: route + T1–T11 transitions + R1–R5, 58 unit tests (incl. §10 a/c/d pure, random-sequence invariants) |
 | T-122 | Intake: manual + public form | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `intakeInTx` (owner decided before insert), `POST /leads`, `/f/[slug]` + `POST /api/public/forms/:slug` (honeypot, 10/10 min per IP). Verified live: everyone Offline → owned by fallback custodian, reason `no_available`. Form is en only |
 | T-123 | Acknowledge + notifications + countdown | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `POST /leads/:id/acknowledge` (409 LEAD_STATE_CHANGED), `recordHumanActionInTx` hook for T-116, notifications API + bell wired in AppShell, leads list/detail with CountdownRing. No sound cue toggle yet |
-| T-124 | Escalation timer + chain | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `lead_timers` processor (T3/T4/T9), overdue attempts, end-of-chain critical, Slack via `enqueueSlackAlert`, `lead.retry_routing` job, realtime prune. §9.1–3/5/6 Postgres tests green. No policy settings form yet. See OQ-11 |
+| T-124 | Escalation timer + chain | A | review | agent:lane-A | `worktree-agent-a20c3ee4679194024` | `lead_timers` processor (T3/T4/T9), overdue attempts, end-of-chain critical, Slack via `enqueueSlackAlert`, `lead.retry_routing` job, realtime prune. §9.1–3/5/6 Postgres tests green. Policy settings form now in T-202 (A3). See OQ-11 |
 | T-110 | Contacts/companies/opportunities CRUD | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-111 | Pipelines & stages + board | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-112 | Custom fields | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
@@ -89,9 +89,9 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W4: demo core (P1)
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-202 | Policy builder + routing trace UI | A | todo |  |  |  |
+| T-202 | Policy builder + routing trace UI | A | review | agent:lane-A3 | `worktree-agent-a70c583a9a52a39e5` | `/automations`: RuleSummary, FlowCanvas (@xyflow), TestPanel (simulate via pure domain), versioned publish, assignment, teams, web forms. Routing-trace UI on lead detail not done here |
 | T-203 | Slack Acknowledge button | A | todo |  |  |  |
-| T-210 | Time-warp | A | todo |  |  |  |
+| T-210 | Time-warp | A | review | agent:lane-A3 | `worktree-agent-a70c583a9a52a39e5` | `PUT /time-warp` (1/10/60, demo workspaces, workspace.settings) reschedules open-lead deadlines in one tx; badge wired in AppShell |
 | T-209 | Judge Console | B | todo |  |  |  |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
 | T-204 | AI foundation | C1 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | Provider (OpenAI/fake), runAiTask, cap, ai_usage, prompts registry. `pnpm ai:eval` ran for real. Not yet: integration_events row, breaker, DB-store integration test. |
