@@ -455,7 +455,32 @@ export function recordHumanAction(
 
 const SYSTEM: Actor = { type: 'system' };
 
-const chainExhausted = (lead: LeadSnapshot) => lead.isCritical && lead.awaitingReason === 'chain_exhausted';
+/**
+ * OQ-11 "kept owner": the window expired, nobody ELSE is eligible, and the current handler still is.
+ * The lead stays with them (handler custody, pending) instead of bouncing to the fallback custodian and
+ * back. Critical while kept = the chain is exhausted for this handler.
+ */
+const keptCritical = (lead: LeadSnapshot) =>
+  lead.custody === 'handler' && lead.ackStatus === 'pending' && lead.isCritical;
+
+const chainExhausted = (lead: LeadSnapshot) =>
+  lead.isCritical && (lead.awaitingReason === 'chain_exhausted' || keptCritical(lead));
+
+/** Is the current owner still an eligible handler for THIS lead (their count includes it)? */
+function ownerStillEligible(ctx: EngineContext, lead: LeadSnapshot): boolean {
+  if (lead.custody !== 'handler') return false;
+  const p = ctx.people.find((x) => x.userId === lead.ownerUserId);
+  if (!p) return false;
+  const self = { ...p, openHandlerCount: Math.max(0, p.openHandlerCount - 1) };
+  return (
+    ineligibilityReason(self, {
+      team: ctx.team,
+      flags: ctx.flags,
+      requiredSkills: ctx.requiredSkills,
+      requireMembership: false,
+    }) === null
+  );
+}
 
 export function escalateOnAckTimeout(
   ctx: EngineContext,
@@ -506,10 +531,44 @@ export function escalateOnAckTimeout(
     return applied(lead, next, fx);
   }
 
-  // No transfer on this pass → overdue routing attempt (not an escalation), fallback custody.
+  // No transfer on this pass → overdue routing attempt (not an escalation).
   const cycle = lead.escalationCycle + 1;
   const exhausted = cycle >= Math.max(1, ctx.policy.repeatCount);
   const custodian = fallbackCustodian(ctx.team, ctx.people, ctx.workspaceOwnerUserId);
+  const restartWindow = levels[0]?.timeoutSeconds ?? ctx.team.ackWindowSeconds;
+
+  // OQ-11: the current handler is still eligible and nobody else is → keep them (no bounce to the
+  // custodian and back). Overdue attempt, critical at end of chain, retries keep running via escalate_at.
+  if (ownerStillEligible(ctx, lead)) {
+    const next = bump(lead);
+    next.overdueAttemptCount = lead.overdueAttemptCount + 1;
+    next.escalationCycle = cycle;
+    next.escalationLevel = 0;
+    next.ackWindowEndsAt = next.escalateAt = ctx.deadline(
+      ctx.now,
+      exhausted ? ctx.team.routingRetrySeconds : restartWindow,
+    );
+    const fx = new Effects(next, ctx.now, SYSTEM);
+    fx.event('overdue_attempt', lead.ownerUserId, trace, { kept: true });
+    fx.auditLog('lead.overdue_attempt', {
+      fromUserId: lead.ownerUserId,
+      toUserId: lead.ownerUserId,
+      kept: true,
+    });
+    if (exhausted && !lead.isCritical) {
+      next.isCritical = true;
+      fx.event('critical_flagged', lead.ownerUserId, null, { kept: true });
+      fx.notify(lead.ownerUserId, 'lead.critical', 'critical');
+      if (custodian.userId !== lead.ownerUserId) fx.notify(custodian.userId, 'lead.critical', 'critical');
+      fx.auditLog('lead.critical_flagged', {
+        custodianUserId: custodian.userId,
+        ownerUserId: lead.ownerUserId,
+      });
+    }
+    return applied(lead, next, fx);
+  }
+
+  // Otherwise: fallback custody (custodian ignores availability).
   const pseudo: RoutingTrace = [...trace];
   const reason: AwaitingReason = exhausted ? 'chain_exhausted' : dominantAwaitingReason(pseudo);
   pseudo.push({
@@ -521,7 +580,6 @@ export function escalateOnAckTimeout(
   });
 
   const next = bump(lead);
-  const restartWindow = levels[0]?.timeoutSeconds ?? ctx.team.ackWindowSeconds;
   toFallback(next, ctx, custodian.userId, reason, exhausted ? ctx.team.routingRetrySeconds : restartWindow);
   next.overdueAttemptCount = lead.overdueAttemptCount + 1;
   next.escalationCycle = cycle;
@@ -549,6 +607,7 @@ export function retryRouting(
   input: { kicked?: boolean; syncEscalateAt?: boolean } = {},
 ): TransitionResult {
   if (lead.status !== 'open') return reject(lead, 'LEAD_CLOSED');
+  if (keptCritical(lead)) return retryKeptOwner(ctx, lead, input);
   if (!lead.awaitingHandler) return reject(lead, 'NOT_AWAITING');
   if (!input.kicked && (!lead.routingRetryAt || lead.routingRetryAt > ctx.now))
     return reject(lead, 'NOT_DUE');
@@ -575,6 +634,57 @@ export function retryRouting(
   if (decision.kind === 'broadcast_claim' && lead.awaitingReason !== 'first_to_claim_pending') {
     for (const u of decision.notifyUserIds) fx.notify(u, 'lead.claimable', 'claimable');
   }
+  return applied(lead, next, fx);
+}
+
+/**
+ * OQ-11 retry for a kept critical handler lead (exhausted chain, owner still pending). Another eligible
+ * handler → `routing_retry_assigned` (fresh window, NOT an escalation). Nobody else and the owner is
+ * still eligible → silent reschedule at the retry cadence. Owner no longer eligible (e.g. Busy) →
+ * fallback custody, recorded as an overdue attempt with from/to (03 T3 step 4).
+ */
+function retryKeptOwner(
+  ctx: EngineContext,
+  lead: LeadSnapshot,
+  input: { kicked?: boolean },
+): TransitionResult {
+  if (!input.kicked && (!lead.escalateAt || lead.escalateAt > ctx.now)) return reject(lead, 'NOT_DUE');
+  const decision = routeIn(ctx, 'retry', lead.ownerUserId);
+  const next = bump(lead);
+  const fx = new Effects(next, ctx.now, SYSTEM);
+  if (decision.kind === 'assign') {
+    toHandler(next, ctx, decision.toUserId, windowSeconds(ctx, lead.isUrgent));
+    fx.newRrCursor = decision.newRrCursor;
+    fx.event('routing_retry_assigned', lead.ownerUserId, decision.trace);
+    clearCritical(lead, next, fx);
+    fx.notify(decision.toUserId, 'lead.assigned', 'assigned');
+    fx.auditLog('lead.assigned', { cause: 'routing_retry', fromUserId: lead.ownerUserId });
+    return applied(lead, next, fx);
+  }
+  if (ownerStillEligible(ctx, lead)) {
+    next.ackWindowEndsAt = next.escalateAt = ctx.deadline(ctx.now, ctx.team.routingRetrySeconds);
+    return applied(lead, next, fx);
+  }
+  const custodian = fallbackCustodian(ctx.team, ctx.people, ctx.workspaceOwnerUserId);
+  toFallback(next, ctx, custodian.userId, 'chain_exhausted', ctx.team.routingRetrySeconds);
+  next.isCritical = true;
+  next.overdueAttemptCount = lead.overdueAttemptCount + 1;
+  fx.event('overdue_attempt', lead.ownerUserId, [
+    ...decision.trace.filter((e) => e.outcome !== 'fallback'),
+    {
+      outcome: 'fallback',
+      userId: custodian.userId,
+      name: custodian.name,
+      reason: custodian.basis,
+      awaitingReason: 'chain_exhausted',
+    },
+  ]);
+  if (custodian.userId !== lead.ownerUserId) fx.notify(custodian.userId, 'lead.critical', 'critical');
+  fx.auditLog('lead.overdue_attempt', {
+    fromUserId: lead.ownerUserId,
+    toUserId: custodian.userId,
+    reason: 'chain_exhausted',
+  });
   return applied(lead, next, fx);
 }
 
@@ -653,9 +763,20 @@ export function canDeactivateUser(input: {
 export function manualReassign(
   ctx: EngineContext,
   lead: LeadSnapshot,
-  input: { actorUserId: UserId; toUserId: UserId; override?: { reason: string } },
+  input: {
+    actorUserId: UserId;
+    toUserId: UserId;
+    override?: { reason: string };
+    /** 03 §11 Q3 "Take over": the fallback custodian takes the lead as handler (must be eligible; a
+     * designated custodian need not be a team member, OQ-8). No override. */
+    takeOver?: boolean;
+  },
 ): TransitionResult {
   if (lead.status !== 'open') return reject(lead, 'LEAD_CLOSED');
+  if (input.takeOver && (input.toUserId !== input.actorUserId || input.override))
+    return reject(lead, 'NOT_APPLICABLE');
+  if (input.takeOver && (lead.custody !== 'fallback' || lead.ownerUserId !== input.actorUserId))
+    return reject(lead, 'NOT_OWNER');
   const target = ctx.people.find((p) => p.userId === input.toUserId);
   if (!target) return reject(lead, 'TARGET_NOT_FOUND');
   if (!target.isActive) return reject(lead, 'TARGET_INACTIVE', { detail: { skipReason: 'inactive' } }); // never, even with override
@@ -664,8 +785,9 @@ export function manualReassign(
     team: ctx.team,
     flags: ctx.flags,
     requiredSkills: ctx.requiredSkills,
-    requireMembership: true,
+    requireMembership: !input.takeOver,
   });
+  if (why && input.takeOver) return reject(lead, 'TARGET_INELIGIBLE', { detail: { skipReason: why } });
   if (why && !input.override) return reject(lead, 'TARGET_INELIGIBLE', { detail: { skipReason: why } });
   if (why && !input.override?.reason.trim()) return reject(lead, 'OVERRIDE_REASON_REQUIRED');
 
@@ -682,10 +804,17 @@ export function manualReassign(
   });
   const meta = why
     ? { override: true, overrideReason: input.override?.reason.trim(), ineligibleReason: why }
-    : { override: false };
+    : { override: false, ...(input.takeOver ? { takeOver: true } : {}) };
   fx.event('manual_reassign', lead.ownerUserId, trace, meta);
   clearCritical(lead, next, fx);
-  fx.notify(target.userId, 'lead.reassigned', 'reassigned', { cause: 'manual' });
+  if (!input.takeOver) fx.notify(target.userId, 'lead.reassigned', 'reassigned', { cause: 'manual' });
+  // Capacity freed for the previous handler → kick team routing retry (03 T4).
+  if (lead.custody === 'handler' && lead.ownerUserId !== target.userId)
+    fx.outbox.push({
+      type: 'lead.retry_routing',
+      payload: { teamId: lead.teamId },
+      dedupeKey: `rr:${lead.teamId}:${Math.floor(ctx.now.getTime() / 1000)}`,
+    });
   fx.auditLog('lead.reassigned', {
     cause: 'manual',
     fromUserId: lead.ownerUserId,

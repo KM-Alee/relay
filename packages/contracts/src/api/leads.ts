@@ -91,10 +91,33 @@ export const leadEventDto = z.object({
 });
 export type LeadEventDto = z.infer<typeof leadEventDto>;
 
+export const availabilitySchema = z.enum(['available', 'busy', 'on_leave', 'offline']);
+
+/** AI handoff brief (F6.10, F9.2): display data stored on the lead; never an engine field. */
+export const leadAiBrief = z.object({
+  source: z.enum(['ai', 'baseline']),
+  goal: z.string(),
+  mood: z.string(),
+  summary: z.string(),
+  suggestedReply: z.string(),
+  twoLine: z.string(),
+  at: isoDate.nullable(),
+});
+export type LeadAiBrief = z.infer<typeof leadAiBrief>;
+
 export const leadDetail = leadSummary.extend({
   message: z.string().nullable(),
   baseWindowEndsAt: isoDate,
   events: z.array(leadEventDto),
+  contactId: z.uuid().nullable().optional(),
+  /** Owner's current availability: drives the absent-owner banner on acknowledged leads (F3.6). */
+  ownerAvailability: availabilitySchema.optional(),
+  /** AI stand-in currently talking to the customer (F6.2); a human takeover ends it. */
+  aiActive: z.boolean().optional(),
+  aiBrief: leadAiBrief.nullable().optional(),
+  canReassign: z.boolean().optional(),
+  /** Fallback custodian who is an eligible handler may Take over (03 §11 Q3). */
+  canTakeOver: z.boolean().optional(),
 });
 export type LeadDetail = z.infer<typeof leadDetail>;
 
@@ -104,6 +127,10 @@ export const leadsListQuery = z
     status: z.enum(['open', 'closed', 'all']).optional(),
     cursor: z.uuid().optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
+    /** Overview drill-downs (F5.3): the list count equals the figure. */
+    state: z.enum(['pending']).optional(),
+    created: z.enum(['today']).optional(),
+    escalated: z.enum(['today', '24h']).optional(),
   })
   .strict();
 export const leadsListResponse = z.object({ items: z.array(leadSummary), nextCursor: z.uuid().nullable() });
@@ -124,6 +151,75 @@ export type CreateLeadInput = z.infer<typeof createLeadInput>;
 
 export const acknowledgeInput = z.object({ version: z.number().int().optional() }).strict();
 export const leadIdParams = z.object({ id: z.uuid() });
+
+// ── T7 manual reassign / Take over (03 §5 T7, §11 Q2/Q3) ────────────────
+export const reassignInput = z
+  .object({
+    toUserId: z.uuid(),
+    /** Required to pick an ineligible (e.g. Busy, at capacity) target; never allows an inactive one. */
+    override: z.boolean().optional(),
+    overrideReason: z.string().trim().max(500).optional(),
+    version: z.number().int().optional(),
+  })
+  .strict()
+  .refine((v) => !v.override || !!v.overrideReason?.trim(), {
+    path: ['overrideReason'],
+    message: 'override_reason_required',
+  });
+export type ReassignInput = z.infer<typeof reassignInput>;
+
+export const reassignTarget = z.object({
+  userId: z.uuid(),
+  name: z.string(),
+  availability: availabilitySchema,
+  openLeads: z.number().int(),
+  capacity: z.number().int(),
+  eligible: z.boolean(),
+  ineligibleReason: z.string().nullable(),
+  isCurrentOwner: z.boolean(),
+});
+export const reassignTargetsResponse = z.object({ items: z.array(reassignTarget) });
+export type ReassignTargetsResponse = z.infer<typeof reassignTargetsResponse>;
+export const takeOverInput = z.object({}).strict();
+
+// ── recovery queue (F3.7, 03 §7) ────────────────────────────────────────
+export const recoveryReasonSchema = z.enum(['overdue', 'escalated2', 'idle', 'awaiting', 'critical']);
+export type RecoveryReason = z.infer<typeof recoveryReasonSchema>;
+export const recoveryQuery = z
+  .object({
+    reason: recoveryReasonSchema.optional(),
+    mine: z.enum(['1', '0']).optional(),
+  })
+  .strict();
+export const recoveryItem = z.object({
+  id: z.uuid(),
+  contactId: z.uuid().nullable(),
+  contactName: z.string(),
+  sourceLabel: z.string(),
+  /** Every matching reason R1..R5 (each criterion independent). */
+  reasons: z.array(recoveryReasonSchema),
+  owner: userRef,
+  custody: custodySchema,
+  awaitingReason: awaitingReasonSchema.nullable(),
+  ackStatus: z.enum(['pending', 'acknowledged']),
+  isUrgent: z.boolean(),
+  isCritical: z.boolean(),
+  escalationCount: z.number().int(),
+  overdueAttemptCount: z.number().int(),
+  /** Pending and past the original window: "time since window ended" counts from here. */
+  windowEndedAt: isoDate.nullable(),
+  lastActionAt: isoDate,
+  firstAssignedAt: isoDate,
+  version: z.number().int(),
+  /** ONE recommended intervention (docs/design/screens.md §5). */
+  action: z.enum(['reassign', 'take_over', 'open']),
+});
+export type RecoveryItem = z.infer<typeof recoveryItem>;
+export const recoveryResponse = z.object({
+  items: z.array(recoveryItem),
+  total: z.number().int(),
+  now: isoDate,
+});
 
 export const leadSourceDto = z.object({ key: z.string(), label: z.string(), kind: leadSourceKindSchema });
 export const leadSourcesResponse = z.object({ items: z.array(leadSourceDto) });
@@ -168,6 +264,36 @@ export const leadsEndpoints = {
     params: leadIdParams,
     body: acknowledgeInput,
     response: leadDetail,
+  }),
+  /** GET /api/v1/leads/:id/reassign-targets (leads.reassign): eligibility per person (T7). */
+  reassignTargets: endpoint({
+    method: 'GET',
+    path: '/api/v1/leads/:id/reassign-targets',
+    params: leadIdParams,
+    response: reassignTargetsResponse,
+  }),
+  /** POST /api/v1/leads/:id/reassign (leads.reassign): T7, fresh window. Ineligible → override + reason. */
+  reassign: endpoint({
+    method: 'POST',
+    path: '/api/v1/leads/:id/reassign',
+    params: leadIdParams,
+    body: reassignInput,
+    response: leadDetail,
+  }),
+  /** POST /api/v1/leads/:id/take-over: fallback custodian becomes the handler if eligible (Q3). */
+  takeOver: endpoint({
+    method: 'POST',
+    path: '/api/v1/leads/:id/take-over',
+    params: leadIdParams,
+    body: takeOverInput,
+    response: leadDetail,
+  }),
+  /** GET /api/v1/recovery (leads.recovery.view): F3.7 queue with reasons + recommended action. */
+  recovery: endpoint({
+    method: 'GET',
+    path: '/api/v1/recovery',
+    query: recoveryQuery,
+    response: recoveryResponse,
   }),
   /** GET /api/v1/lead-sources: manual-entry source list (F3.1). */
   sources: endpoint({ method: 'GET', path: '/api/v1/lead-sources', response: leadSourcesResponse }),

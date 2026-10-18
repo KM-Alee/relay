@@ -182,8 +182,10 @@ describe('lead engine on Postgres', () => {
     expect(r.reassignedLeadIds).toEqual([id]);
     expect(await leadRow(id)).toMatchObject({ owner_user_id: f.b, escalation_count: 0 });
 
-    // Window expires: L2 next_eligible has nobody (Ali away), L3 backup / L4 manager = offline Owner
-    // → overdue attempt, fallback custody, chain exhausted → critical. Owner never null.
+    // Window expires: L2 next_eligible has nobody (Ali away), L3 backup / L4 manager = offline Owner.
+    // Sara turns Busy first (an eligible Sara would be KEPT as owner, OQ-11), so → overdue attempt,
+    // fallback custody, chain exhausted → critical. Owner never null.
+    await setAvailability(actorFor(f.ws, f.b), f.b, 'busy');
     await makeDue(id);
     await processLeadTimer(f.ws, id);
     expect(await leadRow(id)).toMatchObject({

@@ -309,7 +309,7 @@ export function EscalationsCard({
       <CardHeader icon={<Siren />} title={t('title')} description={t('scope')} />
       <CardStates state={state} onRetry={onRetry}>
         <Link
-          href="/recovery?reason=escalated"
+          href="/leads?escalated=24h"
           className="group flex items-end justify-between gap-3 rounded-control hover:bg-surface-muted"
         >
           <div>

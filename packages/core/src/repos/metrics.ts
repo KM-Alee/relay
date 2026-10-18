@@ -11,6 +11,7 @@ import { sql, type SQL } from 'drizzle-orm';
 import type { Actor } from '../auth/actor';
 import { contactScopeSql, leadScopeSql } from '../auth/visibility';
 import { log } from '../log';
+import { countRecovery } from './recovery-queue';
 
 type Rows<T> = { rows: T[] };
 const num = (v: unknown): number => (v === null || v === undefined ? 0 : Number(v));
@@ -111,26 +112,14 @@ export async function firstResponsePerDay(
   });
 }
 
-/** Recovery queue (03 section 7): R1 overdue, R2 escalated twice, R3 idle, R4 awaiting handler, R5 critical. */
+/** Recovery queue (03 section 7): the SAME SQL as the Recovery page (repos/recovery-queue.ts), so they match. */
 export async function recoveryQueueCounts(
   tx: Tx,
   actor: Actor,
 ): Promise<{ count: number; critical: number }> {
-  return guarded(tx, ['leads'], { count: 0, critical: 0 }, async (q) => {
-    const r = await rows<{ n: string; c: string }>(
-      q,
-      sql`select count(*) as n, count(*) filter (where l.is_critical) as c
-          from leads l left join teams t on t.id = l.team_id
-          where l.workspace_id = ${actor.workspaceId} and l.status = 'open' and ${leadScope(actor)}
-            and ( (l.ack_status = 'pending' and now() > l.base_window_ends_at)
-               or l.escalation_count >= 2
-               or coalesce(l.last_human_action_at, l.acknowledged_at, l.first_assigned_at)
-                    < now() - make_interval(secs => coalesce(t.idle_seconds, 86400))
-               or l.awaiting_handler
-               or l.is_critical )`,
-    );
-    return { count: num(r[0]?.n), critical: num(r[0]?.c) };
-  });
+  return guarded(tx, ['leads', 'teams'], { count: 0, critical: 0 }, (q) =>
+    countRecovery(q, sql`l.workspace_id = ${actor.workspaceId} and ${leadScope(actor)}`),
+  );
 }
 
 /** Header chips: pending leads, escalations today (ack-timeout only), pending-past-window + critical. */
@@ -143,9 +132,10 @@ export async function attentionCounts(tx: Tx, actor: Actor, tz: string) {
                  count(*) filter (where (l.ack_status = 'pending' and now() > l.ack_window_ends_at) or l.is_critical) as n
           from leads l where l.workspace_id = ${actor.workspaceId} and l.status = 'open' and ${leadScope(actor)}`,
     );
+    // Distinct LEADS escalated today: equals the drill-down list /leads?escalated=today (F5.3).
     const e = await rows<{ n: string }>(
       q,
-      sql`select count(*) as n from lead_events e join leads l on l.id = e.lead_id
+      sql`select count(distinct e.lead_id) as n from lead_events e join leads l on l.id = e.lead_id
           where e.workspace_id = ${actor.workspaceId} and e.type = 'escalation' and ${leadScope(actor)}
             and ${dayOf('e.occurred_at', tz)} = ${todayLocal(tz)}`,
     );
@@ -277,7 +267,7 @@ export async function teamAvailability(tx: Tx, workspaceId: string): Promise<Tea
     const r = await rows<{ u: string; n: string }>(
       q,
       sql`select owner_user_id as u, count(*) as n from leads where workspace_id = ${workspaceId}
-          and status = 'open' group by 1`,
+          and status = 'open' and custody = 'handler' group by 1`, // capacity count (03 §1, OQ-1)
     );
     return new Map(r.map((x) => [x.u, num(x.n)]));
   });
@@ -334,7 +324,7 @@ export async function upcomingAppointments(
     const r = await rows<{ id: string; starts_at: Date | string; title: string; cn: string; un: string }>(
       q,
       sql`select a.id, a.starts_at, a.title, c.name as cn, u.name as un from appointments a
-          join contacts c on c.id = a.contact_id join users u on u.id = a.user_id
+          left join contacts c on c.id = a.contact_id join users u on u.id = a.user_id
           where ${where} order by a.starts_at limit ${limit}`,
     );
     return {
@@ -343,7 +333,7 @@ export async function upcomingAppointments(
         id: x.id,
         startsAt: new Date(x.starts_at),
         title: x.title,
-        contactName: x.cn,
+        contactName: x.cn ?? '',
         ownerName: x.un,
       })),
     };
@@ -370,7 +360,7 @@ export interface RadarLeadRow {
 
 /** Open leads still waiting for a human acknowledgement (or in fallback custody), in the actor's scope. */
 export async function radarLeads(tx: Tx, actor: Actor): Promise<RadarLeadRow[]> {
-  return guarded<RadarLeadRow[]>(tx, ['leads', 'contacts'], [], async (q) => {
+  return guarded<RadarLeadRow[]>(tx, ['leads'], [], async (q) => {
     const r = await rows<{
       id: string;
       cn: string;
@@ -387,11 +377,11 @@ export async function radarLeads(tx: Tx, actor: Actor): Promise<RadarLeadRow[]> 
       crit: boolean;
     }>(
       q,
-      sql`select l.id, c.name as cn, l.source_label as src, l.owner_user_id as ou, u.name as "on", l.custody,
+      sql`select l.id, l.contact_name as cn, l.source_label as src, l.owner_user_id as ou, u.name as "on", l.custody,
                  l.awaiting_handler as ah, l.awaiting_reason as ar, l.ack_window_ends_at as ends,
                  extract(epoch from (l.ack_window_ends_at - l.assigned_at)) * 1000 as win,
                  l.escalation_level as lvl, l.is_urgent as urg, l.is_critical as crit
-          from leads l join contacts c on c.id = l.contact_id join users u on u.id = l.owner_user_id
+          from leads l join users u on u.id = l.owner_user_id
           where l.workspace_id = ${actor.workspaceId} and l.status = 'open'
             and (l.ack_status = 'pending' or l.awaiting_handler) and ${leadScope(actor)}
           order by l.ack_window_ends_at nulls last limit 60`,

@@ -22,6 +22,8 @@ import type { z } from 'zod';
 import { ensureCsrfCookie } from './csrf-cookie';
 import { clientIp, readCookie, requestHost } from './request';
 import { applySessionCookies, resolveActor as defaultResolveActor, type ResolveActor } from './session';
+// Lead-engine hooks (WhatsApp intake, human-action ack, deactivation transfer) on every API path.
+import '@relay/core/services/register-hooks';
 
 type AuthMode = 'session' | 'public';
 type Schema = z.ZodType;

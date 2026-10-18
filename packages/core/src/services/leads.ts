@@ -9,6 +9,7 @@ import type {
   LeadSummary,
   PublicFormSubmit,
 } from '@relay/contracts/api/leads';
+import { normalizePhone } from '@relay/contracts/api/crm';
 import { leads } from '@relay/db/schema';
 import { withSystemTx, withWorkspaceTx, type Tx, type TxOptions } from '@relay/db';
 import { sql } from 'drizzle-orm';
@@ -22,6 +23,7 @@ import {
   acknowledge as decideAck,
   escalateOnAckTimeout,
   idleRetrigger,
+  ineligibilityReason,
   intake as decideIntake,
   leadStateLabel,
   recordHumanAction as decideHumanAction,
@@ -117,15 +119,46 @@ async function viewCtx(tx: Tx, workspaceId: string): Promise<ViewCtx> {
   };
 }
 
-async function detailOf(tx: Tx, row: leadsRepo.LeadRow, actorUserId: string): Promise<LeadDetail> {
+async function detailOf(tx: Tx, row: leadsRepo.LeadRow, actor: Actor | string): Promise<LeadDetail> {
+  const actorUserId = typeof actor === 'string' ? actor : actor.userId;
   const events = await leadsRepo.listEvents(tx, row.id);
   const names = await nameMap(tx, [row.ownerUserId, ...events.flatMap((e) => [e.fromUserId, e.toUserId])]);
   const v = await viewCtx(tx, row.workspaceId);
   const ref = (id: string | null) => (id ? { id, name: names.get(id) ?? '' } : null);
+  const owner = (
+    await tx.execute<{ availability: LeadDetail['ownerAvailability'] }>(
+      sql`select availability from users where id = ${row.ownerUserId}::uuid`,
+    )
+  ).rows[0];
+  let canTakeOver = false;
+  if (row.status === 'open' && row.custody === 'fallback' && row.ownerUserId === actorUserId) {
+    const eng = await loadEngine(tx, row.workspaceId, row.teamId, v.now, [actorUserId]);
+    const me = eng.ctx.people.find((p) => p.userId === actorUserId);
+    canTakeOver =
+      !!me &&
+      !ineligibilityReason(me, { team: eng.ctx.team, flags: eng.ctx.flags, requireMembership: false });
+  }
+  const brief = row.aiBrief as Record<string, unknown> | null;
   return {
     ...toSummary(row, names, actorUserId, v.idleSeconds.get(row.teamId) ?? 600, v.deadline, v.now),
     message: row.message,
     baseWindowEndsAt: iso(row.baseWindowEndsAt),
+    contactId: row.contactId,
+    ownerAvailability: owner?.availability,
+    aiActive: row.aiActive,
+    aiBrief: brief
+      ? {
+          source: brief.source === 'ai' ? 'ai' : 'baseline',
+          goal: String(brief.goal ?? ''),
+          mood: String(brief.mood ?? ''),
+          summary: String(brief.summary ?? ''),
+          suggestedReply: String(brief.suggestedReply ?? ''),
+          twoLine: String(brief.twoLine ?? ''),
+          at: isoN(row.aiBriefAt),
+        }
+      : null,
+    canReassign: typeof actor !== 'string' && row.status === 'open' && can(actor, 'leads.reassign'),
+    canTakeOver,
     events: events.map((e): LeadEventDto => ({
       id: e.id,
       type: e.type,
@@ -158,6 +191,48 @@ export interface IntakeOutcome {
   /** false → the contact already had an open lead; nothing new was created (03 T1 step 1). */
   created: boolean;
   custody: 'handler' | 'fallback';
+  contactId: string | null;
+  ownerUserId: string;
+}
+
+/**
+ * 03 T1 step 1: upsert the contact by id / phone (E.164) / email. Creates it when unknown, so every
+ * lead has a Contact 360 page (F2.8). Phones that can't be normalised stay on the lead only.
+ */
+export async function resolveContactInTx(
+  tx: Tx,
+  workspaceId: string,
+  c: { id?: string | null; name: string; phone: string | null; email: string | null },
+): Promise<string | null> {
+  if (c.id) return c.id;
+  const found = await tx.execute<{ id: string }>(
+    sql`select id from contacts where deleted_at is null
+          and ((${c.phone}::text is not null and phone_e164 = ${c.phone})
+            or (${c.email}::text is not null and email = ${c.email}::citext))
+        order by (phone_e164 = ${c.phone}) desc nulls last limit 1`,
+  );
+  if (found.rows[0]) return found.rows[0].id;
+  const id = uuidv7();
+  await tx.execute(
+    sql`insert into contacts (id, workspace_id, name, phone_e164, email)
+        values (${id}::uuid, ${workspaceId}::uuid, ${c.name || c.phone || c.email || '?'}, ${c.phone}, ${c.email})`,
+  );
+  return id;
+}
+
+/** Timeline entry for the intake message on the contact (new lead or attached to the open one). */
+async function recordIntakeMessage(
+  tx: Tx,
+  workspaceId: string,
+  contactId: string | null,
+  leadId: string,
+  req: IntakeRequest,
+): Promise<void> {
+  if (!contactId || !req.message?.trim() || req.source.kind === 'whatsapp') return; // WhatsApp: per message (lead-hooks)
+  await tx.execute(sql`insert into activities (id, workspace_id, contact_id, lead_id, type, actor_type, actor_user_id, payload)
+    values (${uuidv7()}::uuid, ${workspaceId}::uuid, ${contactId}::uuid, ${leadId}::uuid, 'message_in', 'system', null,
+            ${JSON.stringify({ body: req.message.trim().slice(0, 4000), source: req.source.label })}::jsonb)`);
+  await tx.execute(sql`update contacts set last_activity_at = now() where id = ${contactId}::uuid`);
 }
 
 /**
@@ -165,16 +240,30 @@ export interface IntakeOutcome {
  * The lead is INSERTED with its owner already decided; never insert-then-assign.
  */
 export async function intakeInTx(tx: Tx, req: IntakeRequest): Promise<IntakeOutcome> {
-  const phone = req.contact.phone?.trim() || null;
+  const rawPhone = req.contact.phone?.trim() || null;
+  const phone = rawPhone ? (normalizePhone(rawPhone) ?? rawPhone) : null;
   const email = req.contact.email?.trim().toLowerCase() || null;
   const team = req.teamId ? await teamsRepo.getTeam(tx, req.teamId) : await teamsRepo.defaultTeam(tx);
   if (!team) throw notFound({ what: 'team' });
-  const existing = await leadsRepo.findOpenForContact(tx, {
-    contactId: req.contact.id ?? null,
-    phone,
+  const contactId = await resolveContactInTx(tx, req.workspaceId, {
+    id: req.contact.id ?? null,
+    name: req.contact.name,
+    phone: phone && normalizePhone(phone) ? phone : null,
     email,
   });
-  if (existing) return { leadId: existing.id, created: false, custody: existing.custody };
+  const existing = await leadsRepo.findOpenForContact(tx, { contactId, phone, email });
+  if (existing) {
+    if (!existing.contactId && contactId)
+      await tx.execute(sql`update leads set contact_id = ${contactId}::uuid where id = ${existing.id}::uuid`);
+    await recordIntakeMessage(tx, req.workspaceId, contactId, existing.id, req);
+    return {
+      leadId: existing.id,
+      created: false,
+      custody: existing.custody,
+      contactId,
+      ownerUserId: existing.ownerUserId,
+    };
+  }
 
   const now = await dbNow(tx);
   const eng = await loadEngine(tx, req.workspaceId, team.id, now);
@@ -184,12 +273,12 @@ export async function intakeInTx(tx: Tx, req: IntakeRequest): Promise<IntakeOutc
     isUrgent: req.isUrgent ?? false,
     actor: 'type' in req.actor ? { type: 'system' } : { type: 'user', userId: req.actor.userId },
   });
-  const labels = { contactName: req.contact.name, sourceLabel: req.source.label };
+  const labels = { contactName: req.contact.name, sourceLabel: req.source.label, contactId };
   await persist(tx, eng, null, r, {
     actor: req.actor,
     labels,
     extras: {
-      contactId: req.contact.id ?? null,
+      contactId,
       contactName: req.contact.name,
       contactPhone: phone,
       contactEmail: email,
@@ -200,7 +289,14 @@ export async function intakeInTx(tx: Tx, req: IntakeRequest): Promise<IntakeOutc
       urgentSource: req.isUrgent ? 'manual' : null,
     },
   });
-  return { leadId: r.next.id, created: true, custody: r.next.custody };
+  await recordIntakeMessage(tx, req.workspaceId, contactId, r.next.id, req);
+  return {
+    leadId: r.next.id,
+    created: true,
+    custody: r.next.custody,
+    contactId,
+    ownerUserId: r.next.ownerUserId,
+  };
 }
 
 /** POST /api/v1/leads (leads.create): manual entry with a configured source (F3.1). */
@@ -229,7 +325,7 @@ export async function createManual(
         actor,
       });
       const row = await leadsRepo.getLead(tx, out.leadId);
-      return detailOf(tx, foundOr404(row), actor.userId);
+      return detailOf(tx, foundOr404(row), actor);
     },
     opts,
   );
@@ -334,7 +430,7 @@ export async function acknowledge(
       if (!out) throw notFound();
       if (!out.result.ok) throw rejection(out.result);
       const row = foundOr404(await leadsRepo.getLead(tx, leadId));
-      return detailOf(tx, row, actor.userId);
+      return detailOf(tx, row, actor);
     },
     opts,
   );
@@ -457,20 +553,43 @@ export async function retryTeam(workspaceId: string, teamId: string, opts: TxOpt
 
 export async function list(
   actor: Actor,
-  q: { view?: 'mine' | 'all'; status?: 'open' | 'closed' | 'all'; cursor?: string; limit?: number },
+  q: {
+    view?: 'mine' | 'all';
+    status?: 'open' | 'closed' | 'all';
+    cursor?: string;
+    limit?: number;
+    state?: 'pending';
+    created?: 'today';
+    escalated?: 'today' | '24h';
+  },
   opts: TxOptions = {},
 ): Promise<{ items: LeadSummary[]; nextCursor: string | null }> {
   const limit = q.limit ?? 50;
   return withWorkspaceTx(
     actor.workspaceId,
     async (tx) => {
-      const mine = q.view !== 'all' || !can(actor, 'leads.view_all');
+      // Drill-downs (F5.3) use the visible scope, exactly like the Overview figures (repos/metrics.ts).
+      const drill = !!(q.state || q.created || q.escalated);
+      const mine = !drill && (q.view !== 'all' || !can(actor, 'leads.view_all'));
+      const tz = sql`(select timezone from workspaces where id = ${actor.workspaceId}::uuid)`;
+      const extra = [];
+      if (q.state === 'pending') extra.push(sql`${leads.ackStatus} = 'pending'`);
+      if (q.created === 'today')
+        extra.push(sql`(${leads.createdAt} at time zone ${tz})::date = (now() at time zone ${tz})::date`);
+      if (q.escalated === '24h')
+        extra.push(sql`exists (select 1 from lead_events e where e.lead_id = ${leads.id} and e.type = 'escalation'
+          and e.occurred_at > now() - interval '24 hours')`);
+      if (q.escalated === 'today')
+        extra.push(sql`exists (select 1 from lead_events e where e.lead_id = ${leads.id} and e.type = 'escalation'
+          and (e.occurred_at at time zone ${tz})::date = (now() at time zone ${tz})::date)`);
+      const status = q.created || q.escalated ? (q.status ?? 'all') : (q.status ?? 'open');
       const rows = await leadsRepo.listLeads(tx, {
         scope: leadScopeSql(actor, leads.ownerUserId),
         ownerUserId: mine ? actor.userId : undefined,
-        status: q.status === 'all' ? undefined : (q.status ?? 'open'),
+        status: status === 'all' ? undefined : status,
         before: q.cursor,
         limit: limit + 1,
+        extra,
       });
       const page = rows.slice(0, limit);
       const names = await nameMap(
@@ -494,7 +613,7 @@ export async function get(actor: Actor, id: string, opts: TxOptions = {}): Promi
     actor.workspaceId,
     async (tx) => {
       const row = foundOr404(await leadsRepo.getLead(tx, id, leadScopeSql(actor, leads.ownerUserId)));
-      return detailOf(tx, row, actor.userId);
+      return detailOf(tx, row, actor);
     },
     opts,
   );

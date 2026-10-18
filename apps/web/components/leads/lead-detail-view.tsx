@@ -6,6 +6,7 @@ import { api } from '@/lib/api-client';
 import { Link } from '@/lib/i18n/navigation';
 import { qk } from '@/lib/query/keys';
 import { useRealtimeLive } from '@/lib/realtime/useRealtime';
+import { AbsentOwnerBanner, AiBriefCard, LeadInterventions } from './lead-actions';
 import { AcknowledgeButton, LeadCountdown, LeadOwner, LeadStateBadge, useTraceSentence } from './lead-parts';
 
 export function LeadDetailView({ id }: { id: string }) {
@@ -34,6 +35,11 @@ export function LeadDetailView({ id }: { id: string }) {
       <section className="flex flex-wrap items-center gap-4 rounded-card border border-line bg-surface p-4">
         <div className="min-w-0 flex-1 space-y-2">
           <h1 className="text-page font-semibold text-fg">{lead.contactName}</h1>
+          {lead.contactId ? (
+            <Link href={`/contacts/${lead.contactId}`} className="text-meta text-brand-text hover:underline">
+              {t('detail.contact')}
+            </Link>
+          ) : null}
           <div className="flex flex-wrap items-center gap-3">
             <LeadStateBadge state={lead.state} />
             {lead.awaitingReason ? (
@@ -50,8 +56,13 @@ export function LeadDetailView({ id }: { id: string }) {
           </p>
         </div>
         <LeadCountdown lead={lead} size={96} />
-        <AcknowledgeButton lead={lead} />
+        <div className="flex flex-col items-stretch gap-2">
+          <AcknowledgeButton lead={lead} />
+          <LeadInterventions lead={lead} />
+        </div>
       </section>
+      <AbsentOwnerBanner lead={lead} />
+      <AiBriefCard lead={lead} />
       {lead.message ? (
         <section className="rounded-card border border-line bg-surface p-4">
           <h2 className="mb-2 font-medium text-fg">{t('detail.message')}</h2>

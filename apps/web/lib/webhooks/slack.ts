@@ -1,6 +1,7 @@
 // Shared Slack webhook handler (04 §2): raw body -> verify -> record (+outbox) -> 200 -> after() process.
 // Never parses or acts before the signature is verified (that is inside ingestSlack).
 import { log } from '@relay/core/log';
+import '@relay/core/services/register-hooks';
 import { ingestSlack } from '@relay/core/services/integrations-ingest';
 import { processSlackEvent } from '@relay/core/services/slack';
 import { after } from 'next/server';

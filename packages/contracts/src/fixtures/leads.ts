@@ -86,6 +86,48 @@ export const leadsFixtures = {
     nextCursor: null,
   }),
   get: () => buildLeadDetail(),
+  reassignTargets: () => ({
+    items: [
+      {
+        userId: FIXTURE_USER_ID,
+        name: 'Bilal Ahmed',
+        availability: 'available' as const,
+        openLeads: 2,
+        capacity: 5,
+        eligible: true,
+        ineligibleReason: null,
+        isCurrentOwner: false,
+      },
+    ],
+  }),
+  reassign: () => buildLeadDetail(),
+  takeOver: () => buildLeadDetail({ custody: 'handler' }),
+  recovery: () => ({
+    items: [
+      {
+        id: FIXTURE_LEAD_ID,
+        contactId: null,
+        contactName: 'Nadia Hussain',
+        sourceLabel: 'Website form',
+        reasons: ['overdue' as const, 'awaiting' as const],
+        owner: { id: FIXTURE_OWNER_ID, name: 'Sana Malik' },
+        custody: 'fallback' as const,
+        awaitingReason: 'no_available' as const,
+        ackStatus: 'pending' as const,
+        isUrgent: false,
+        isCritical: false,
+        escalationCount: 0,
+        overdueAttemptCount: 1,
+        windowEndedAt: '2026-10-18T09:02:00.000Z',
+        lastActionAt: '2026-10-18T09:00:00.000Z',
+        firstAssignedAt: '2026-10-18T09:00:00.000Z',
+        version: 2,
+        action: 'reassign' as const,
+      },
+    ],
+    total: 1,
+    now: '2026-10-18T09:10:00.000Z',
+  }),
   create: () => buildLeadDetail(),
   acknowledge: () =>
     buildLeadDetail({

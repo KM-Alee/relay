@@ -63,11 +63,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W3: P0 complete
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-125 | Routing retry | A | todo |  |  |  |
-| T-126 | Absence reassignment | A | todo |  |  |  |
-| T-127 | Deactivation transfer | A | todo |  |  |  |
-| T-128 | Manual reassign | A | todo |  |  |  |
-| T-129 | Recovery queue | A | todo |  |  |  |
+| T-125 | Routing retry | A | review | agent:lane-A2 | worktree-agent-a52d3641ca4d7c466 | Retry kicks: availability→Available, lead close (won/lost stage via onHumanAction), manual reassign (capacity freed); kept-critical leads included (OQ-11). `kickRetry` exported from services/teams for A3 |
+| T-126 | Absence reassignment | A | review | agent:lane-A2 | worktree-agent-a52d3641ca4d7c466 | Pending leads move in the same tx as On leave/Offline (existing, re-verified); acknowledged leads stay + banner on lead page (`AbsentOwnerBanner`) |
+| T-127 | Deactivation transfer | A | review | agent:lane-A2 | worktree-agent-a52d3641ca4d7c466 | `register-hooks.ts`: guardUserDeactivation (Owner/team manager), onUserDeactivated → transferOnDeactivation for every open lead, onUserJoined → default team |
+| T-128 | Manual reassign | A | review | agent:lane-A2 | worktree-agent-a52d3641ca4d7c466 | `POST /leads/:id/reassign` (+override reason, audited), `GET /leads/:id/reassign-targets`, `POST /leads/:id/take-over`; ReassignDialog + Take over on lead detail |
+| T-129 | Recovery queue | A | review | agent:lane-A2 | worktree-agent-a52d3641ca4d7c466 | `(app)/recovery` + `GET /api/v1/recovery`: R1–R5 badges, time since window ended, escalation count, owner (fallback flagged), one action, reason + mine filters; ONE SQL (`repos/recovery-queue.ts`) shared with the Overview KPI |
 | T-103 | Invites | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-104 | Roles & permissions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-105 | User deactivation + sessions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
@@ -147,7 +147,6 @@ New ones go here as `| OQ-n | question | default we're building | source |`, and
 | OQ-8 | Must named escalation targets (team backup, team manager, `user` level) be team members to receive a lead? | No: membership is required only for round-robin rotation, manual reassign without override, and claims. Named targets are designated by an Admin | 03 §1 vs F3.5 (T-121) |
 | OQ-9 | After a full pass with no transfer and cycles remaining, when does the chain restart? | Overdue attempt now; `escalation_level=0`; next evaluation after level 1's timeout walks from level 1. Exhausted chain: `escalate_at` = retry cadence and a hit runs T4 (`routing_retry_assigned`) | 03 T3 steps 4–5 (T-121) |
 | OQ-10 | Does an idle re-trigger restart the escalation chain? | Yes: `escalation_level=1`, `escalation_cycle=0`; `escalation_count` untouched. The counter moves only if ownership actually changes | F3.10 (T-121) |
-| OQ-11 | A handler assigned by routing retry AFTER chain exhaustion: does it get a fresh chain? | No (cycle stays exhausted, level 0). If their window expires and only already-tried people are eligible → overdue attempt + critical again, then the retry may hand it back. Seen live with 15 s windows (handler → custodian → same handler). Alternative: reset `escalation_cycle` on a retry assignment | 03 T3/T4 (T-124 live run) |
 
 ## Discrepancies with requirements
 
@@ -157,6 +156,7 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 
 | # | Decision | Where |
 |---|---|---|
+| OQ-11 | No bounce: an eligible current handler is KEPT on window expiry when nobody else is eligible (overdue attempt, critical at end of chain, retries via escalate_at); OQ-8..10 defaults accepted | `03-lead-engine.md` §11 Q6/Q7 |
 | OQ-1 | Fallback custody does not count toward the custodian's capacity | `03-lead-engine.md` §11 |
 | OQ-2 | Manual assign to an ineligible user only with explicit override + reason (audited) | §11 |
 | OQ-3 | Custodian works the lead via "Take over" (if eligible) or an override | §11 |
@@ -180,3 +180,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · agent:lane-B2:** T-110…T-118 in `review` on `worktree-agent-a694b0e3941bc35ff`: crm schema/migration (`202610181303_b_crm.sql`), services `core/services/crm-*.ts` + `lists.ts` + `exports.ts`, ~40 `/api/v1` routes, screens (contacts, contact 360, companies, pipeline board/table, settings pipelines/fields/tags; en + ur), CRM seed (Sunrise 10 contacts/9 opps, Crescent 5/4). Lane A hook: `onHumanAction(tx, {leadId?, contactId, actor})` / `registerHumanActionHandler` in `core/services/crm-activity.ts` (the handler must check the actor owns the lead). Lane C hook: `registerContact360Provider(kind, fn)` in `core/services/crm-contact360.ts`. `contactScopeSql` now calls the late-bound `crm_contact_has_open_lead()` (works before Lane A's `leads` table exists). Real Playwright check against `pnpm dev:web` passed (see report).
 - **2026-10-18 · agent:lane-A:** T-121 (pure domain) then T-120/T-122/T-123/T-124 on `worktree-agent-a20c3ee4679194024` (merged main first). Migration `202610181410_a_teams_leads`, lead-engine service, timers processor, APIs, leads pages, public form. `pnpm check` green (417 tests) incl. Postgres invariants (two ticks escalate once, two acks one winner, ack vs timer, never ownerless). Live run: form with everyone Offline → fallback custodian `no_available`; 15 s window → escalation Bilal→Hina + `slack.send escalated` outbox row; owner ack 200, repeat 409. Follow-ups: policy settings form, sound cue, ur public form, OQ-11.
 - 2026-10-18 agent:lane-Q T-161: added `scripts/probe-security.ts` (`pnpm probe:security [baseUrl]`), a live HTTP probe (cookie jars + CSRF). Ran on `next start` (password login) and `next dev` (dev login): 0 FAIL, 3 WARN (no appointment/media fixture without Google; test-file fake secrets). Needs a built app for the bundle scan; Chromium optional.
+- **2026-10-18 · agent:lane-A2:** T-125..T-129 to review on `worktree-agent-a52d3641ca4d7c466` (main merged). OQ-11 decided (kept owner, no bounce). Glue: `register-hooks.ts` (WhatsApp inbound → intake/attach + contact upsert, CRM/outbound human action → ack, deactivation/join, voice transcript), AI stand-in + handoff jobs (`ai.standin_reply`, `ai.handoff`, brief on `leads.ai_brief`, migration 202610181500), lead events on Contact 360, `radar`/`dashboard` emits, metrics SQL aligned. Not done: Judge lead scenarios still placeholders, no end-to-end dev-server run.
