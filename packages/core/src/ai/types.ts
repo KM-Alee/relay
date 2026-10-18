@@ -49,6 +49,8 @@ export interface AIProvider {
     audio: Uint8Array;
     mime: string;
     languageHint?: 'ur' | 'en';
+    /** Biases the transcription (style/script), never instructions. */
+    prompt?: string;
     timeoutMs: number;
   }): Promise<AiResult<string>>;
 }

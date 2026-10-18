@@ -114,7 +114,10 @@
     "callLine": "{direction} کال، {outcome}، {minutes} منٹ۔",
     "stageLine": "{from} سے {to} میں منتقل",
     "editedLine": "تبدیل شدہ: {fields}",
-    "assignedLine": "مالک تبدیل ہوا"
+    "assignedLine": "مالک تبدیل ہوا",
+    "bookAppointment": "ملاقات بُک کریں",
+    "paymentLine": "ادائیگی: {status}",
+    "appointmentLine": "ملاقات {what}: {title}"
   },
   "companies": {
     "title": "کمپنیاں",
@@ -161,7 +164,10 @@
       "pipelines": "پائپ لائنز اور مراحل",
       "fields": "حسب ضرورت فیلڈز",
       "tags": "ٹیگز",
-      "integrations": "انضمام"
+      "integrations": "انضمام",
+      "ai": "اے آئی اسسٹنٹ",
+      "knowledge": "معلومات کا ذخیرہ",
+      "templates": "پیغام کے سانچے"
     },
     "pipelines": {
       "title": "پائپ لائنز اور مراحل",
@@ -235,5 +241,34 @@
       "newName": "نیا ٹیگ",
       "create": "ٹیگ شامل کریں"
     }
+  },
+  "payments": {
+    "send": "ادائیگی کا لنک بھیجیں",
+    "count": "{count, plural, one {# ادائیگی کی درخواست} other {# ادائیگی کی درخواستیں}}",
+    "amount": "رقم ({currency})، خالی ہو تو موقع کی قدر",
+    "create": "لنک بنائیں",
+    "created": "ادائیگی کا لنک بن گیا",
+    "copy": "لنک کاپی کریں",
+    "copied": "لنک کاپی ہو گیا",
+    "copyFailed": "کاپی نہیں ہو سکا۔ لنک منتخب کر کے خود کاپی کریں۔",
+    "sendWhatsapp": "واٹس ایپ پر بھیجیں",
+    "sent": "ادائیگی کا لنک واٹس ایپ کے لیے قطار میں ہے",
+    "preparing": "محفوظ ادائیگی کا لنک تیار ہو رہا ہے…",
+    "hidden": "رقم پوشیدہ ہے",
+    "status": {
+      "pending": "ادائیگی کا انتظار",
+      "paid": "ادا ہو گئی",
+      "failed": "ناکام",
+      "expired": "میعاد ختم",
+      "refunded": "رقم واپس",
+      "partially_refunded": "جزوی رقم واپس"
+    },
+    "reason": {
+      "no_conversation": "اس گاہک کے ساتھ ابھی کوئی واٹس ایپ گفتگو نہیں ہے۔ لنک کاپی کر کے کسی اور طریقے سے بھیجیں۔",
+      "window_closed": "واٹس ایپ کی 24 گھنٹے کی کھڑکی بند ہے۔ لنک کاپی کریں یا منظور شدہ ٹیمپلیٹ بھیجیں۔",
+      "opted_out": "اس گاہک نے پیغامات بند کروا رکھے ہیں۔",
+      "payment_link_unavailable": "یہ لنک تیار نہیں ہے یا اب ادا نہیں ہو سکتا۔"
+    },
+    "openCheckout": "ادائیگی کا صفحہ کھولیں"
   }
 }

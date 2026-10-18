@@ -22,7 +22,15 @@ function mondayOf(d: Date): Date {
 }
 const ymd = (d: Date, tz: string) => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
 
-export function AppointmentsView({ banner }: { banner: string | null }) {
+export type BookPrefill = { contactId: string; contactName: string };
+
+export function AppointmentsView({
+  banner,
+  prefill,
+}: {
+  banner: string | null;
+  prefill?: BookPrefill | null;
+}) {
   const t = useTranslations('appointments');
   const fmt = useFormatter();
   const [tz, setTz] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -33,7 +41,7 @@ export function AppointmentsView({ banner }: { banner: string | null }) {
   const [week, setWeek] = useState(() => mondayOf(new Date()));
   const [tick, setTick] = useState(0);
   const [dialog, setDialog] = useState<{ open: boolean; edit: AppointmentDto | null }>({
-    open: false,
+    open: !!prefill, // "Book appointment" from a contact page opens the dialog with that contact
     edit: null,
   });
   const reload = () => setTick((n) => n + 1);
@@ -203,6 +211,7 @@ export function AppointmentsView({ banner }: { banner: string | null }) {
           tz={tz}
           team={team}
           edit={dialog.edit}
+          prefill={prefill ?? null}
           onClose={() => setDialog({ open: false, edit: null })}
           onSaved={() => {
             setDialog({ open: false, edit: null });
@@ -260,12 +269,14 @@ function BookDialog({
   tz,
   team,
   edit,
+  prefill,
   onClose,
   onSaved,
 }: {
   tz: string;
   team: Team;
   edit: AppointmentDto | null;
+  prefill: BookPrefill | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -290,7 +301,7 @@ function BookDialog({
   const [minutes, setMinutes] = useState(() =>
     edit ? Math.round((+new Date(edit.endsAt) - +new Date(edit.startsAt)) / 60_000) : 30,
   );
-  const [title, setTitle] = useState(edit?.title ?? '');
+  const [title, setTitle] = useState(edit?.title ?? prefill?.contactName ?? '');
   const [avail, setAvail] = useState<AvailabilityResponse | null>(null);
   const [override, setOverride] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -353,6 +364,7 @@ function BookDialog({
         await api.calendar.create({
           body: {
             userId,
+            ...(prefill ? { contactId: prefill.contactId } : {}),
             title,
             startsAt: start.toISOString(),
             endsAt: end.toISOString(),

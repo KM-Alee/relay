@@ -11,5 +11,134 @@
     "collected": "Collected by AI",
     "suggestedReply": "Suggested first reply",
     "insert": "Insert into reply"
+  },
+  "admin": {
+    "eyebrow": "AI assistant",
+    "title": "AI assistant",
+    "description": "Decide when the assistant keeps customers warm, what it may say, and what it may spend. A person always stays accountable: the AI never acknowledges or owns a lead.",
+    "tabs": {
+      "label": "AI settings sections",
+      "settings": "Behaviour",
+      "knowledge": "Knowledge base",
+      "templates": "Message templates"
+    },
+    "loadFailed": "Could not load this page. Try again.",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading…"
+  },
+  "settings": {
+    "globalOff": "AI is switched off for the whole deployment (AI_ENABLED=false). Everything below is saved but has no effect until it is switched on. Lead routing, alerts and escalation work unchanged.",
+    "workspaceOff": "AI is switched off for this workspace. Customers get your standard replies and your team handles every message.",
+    "master": {
+      "title": "AI assistant for this workspace",
+      "label": "Enable the AI assistant",
+      "helper": "Master switch. When off, no AI call is made and every feature falls back to its non-AI version."
+    },
+    "standin": {
+      "title": "Stand-in replies",
+      "description": "While a lead waits for a person, the assistant answers from your knowledge base so the customer is not left on read. Its replies never count as an acknowledgement.",
+      "mode": "When should it reply?",
+      "modes": {
+        "off": "Never (suggest only)",
+        "unacked": "After a lead has gone unacknowledged for a while",
+        "no_handler": "Only when nobody on the team is available",
+        "after_hours": "Only outside business hours"
+      },
+      "seconds": "Wait before replying (seconds)",
+      "secondsHelper": "Between 10 and 3600. The timer for the human owner keeps running regardless.",
+      "guard": "The assistant never quotes prices outside the knowledge base, offers discounts, books, sends payment links or contacts people who opted out."
+    },
+    "triage": {
+      "title": "Understanding messages",
+      "label": "Analyse incoming messages",
+      "helper": "Detects language, intent and urgency, and summarises voice notes. Angry or urgent customers get a shorter acknowledge window."
+    },
+    "voice": {
+      "title": "Voice notes",
+      "label": "Transcribe voice notes",
+      "helper": "Customers' WhatsApp voice notes are transcribed, labelled as an AI transcript, and fed into triage. The audio is always kept."
+    },
+    "budget": {
+      "title": "Daily budget",
+      "cap": "Daily AI spend limit (USD)",
+      "capHelper": "When the limit is reached the assistant sends a standard reply and summaries pause until tomorrow (Pakistan time).",
+      "spent": "Spent today: {amount}",
+      "usage": "{pct}% of today's limit used"
+    }
+  },
+  "knowledge": {
+    "title": "Knowledge base",
+    "description": "The assistant answers only from these entries. If something is not here it says a team member will reply. Prices must appear here to be quoted.",
+    "add": "Add entry",
+    "empty": {
+      "title": "No knowledge yet",
+      "description": "Add your packages, prices, service areas and policies so the assistant can answer common questions."
+    },
+    "fields": {
+      "title": "Title",
+      "content": "Content",
+      "contentHelper": "Plain text, up to 2000 characters. Write it as you would tell a customer.",
+      "kind": "Type",
+      "language": "Language",
+      "enabled": "Use this entry"
+    },
+    "kinds": {
+      "pricing": "Pricing",
+      "service": "Service",
+      "faq": "FAQ",
+      "hours": "Hours",
+      "area": "Area"
+    },
+    "disabled": "Off",
+    "newTitle": "New knowledge entry",
+    "editTitle": "Edit knowledge entry",
+    "confirmDelete": "Delete this entry? The assistant will stop using it straight away.",
+    "countHint": "{count} of 2000 characters"
+  },
+  "templates": {
+    "title": "Message templates",
+    "description": "Reusable messages per language. Use '{{'1'}}', '{{'2'}}' for the parts that change. A template with a WhatsApp template name appears in the inbox picker when the 24-hour window is closed.",
+    "add": "Add template",
+    "empty": {
+      "title": "No templates yet",
+      "description": "Create a message once in English, Urdu and Roman Urdu and reuse it."
+    },
+    "fields": {
+      "key": "Name",
+      "keyHelper": "Lowercase letters, digits and underscores, e.g. follow_up.",
+      "language": "Language",
+      "body": "Message",
+      "bodyHelper": "Placeholders: '{{'1'}}', '{{'2'}}', '{{'3'}}'.",
+      "waName": "WhatsApp template name",
+      "waNameHelper": "Only if this message is approved in Meta. Leave empty for in-window use.",
+      "waLang": "WhatsApp language code"
+    },
+    "inPicker": "In inbox picker",
+    "newTitle": "New template",
+    "editTitle": "Edit template",
+    "confirmDelete": "Delete this template? Existing conversations are not changed.",
+    "conflict": "A template with this name and language already exists.",
+    "params": "{count, plural, =0 {No placeholders} one {# placeholder} other {# placeholders}}"
+  },
+  "languages": {
+    "en": "English",
+    "ur": "اردو",
+    "ur-Latn": "Roman Urdu"
+  },
+  "voice": {
+    "label": "AI transcript",
+    "summary": "Summary",
+    "pending": "Transcribing…",
+    "failed": "Transcription unavailable. The audio is still playable.",
+    "failedDisabled": "Transcription is switched off. The audio is still playable.",
+    "retry": "Retry",
+    "retrying": "Retrying…",
+    "toggle": "Transcript"
   }
 }

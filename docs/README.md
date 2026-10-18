@@ -23,3 +23,4 @@
 
 **Reading order for a new agent:** `AGENTS.md` → `STATUS.md` → 00 → 01 → your area's docs (see the table in `AGENTS.md` §2).
 | `14-rubric.md` | Judging rubric scorecard + self-check mapping (what we're scored on) |
+| `15-how-it-works.md` | 15-minute team explainer: data model, permissions, escalation timing, webhooks, judge Q&A |

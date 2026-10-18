@@ -1,0 +1,118 @@
+{
+  "title": "Judge Console",
+  "subtitle": "Run each rubric check live against the real code paths of this workspace. Every run is written to the audit log.",
+  "demoNote": "Demo tool: scenarios create short-lived records tagged [judge] and clean up after themselves.",
+  "runAll": "Run all",
+  "run": "Run",
+  "runAgain": "Run again",
+  "running": "Running",
+  "idle": "Not run yet",
+  "loadFailed": "The scenario list could not be loaded.",
+  "retry": "Try again",
+  "summary": "{pass} passed · {fail} failed · {pending} pending · {idle} not run",
+  "status": {
+    "pass": "Passed",
+    "fail": "Failed",
+    "pending": "Pending",
+    "running": "Running",
+    "idle": "Not run"
+  },
+  "expected": "Expected",
+  "actual": "Actual",
+  "steps": "Steps",
+  "evidence": "Evidence",
+  "ranFor": "{ms} ms",
+  "reqs": "Requirements",
+  "runFailed": "The scenario could not be run.",
+  "pendingNote": "This part of the product is not deployed yet. The check will run here once it ships.",
+  "criterion": {
+    "1": "Roles, permissions and security",
+    "3": "Lead assignment and escalation",
+    "4": "Audit log and integrity",
+    "5": "Messaging and webhooks",
+    "6": "Payments and webhooks",
+    "8": "Notifications",
+    "9": "Quality and resilience"
+  },
+  "links": {
+    "audit": "Audit log",
+    "syncHistory": "Sync history",
+    "integrations": "Integrations",
+    "contact": "Contact",
+    "opportunity": "Pipeline",
+    "dashboard": "Dashboard",
+    "team": "Team"
+  },
+  "scenarios": {
+    "cross-workspace": {
+      "title": "Another workspace's record is invisible",
+      "description": "Creates a record in a second, throwaway workspace, then tries to read it by id as this workspace, through the service and through raw SQL.",
+      "expected": "The service answers 404 (never 403, so existence is not leaked) and raw SQL under row-level security returns 0 rows."
+    },
+    "value-masking": {
+      "title": "Opportunity value hidden from a plain User",
+      "description": "Creates an opportunity with a value, then reads the same record, and a list, as the Owner and as a plain User.",
+      "expected": "The Owner sees the value. The plain User gets no value (masked) in the detail, the list and the serialized response."
+    },
+    "unauthorized": {
+      "title": "Unauthorized calls are rejected",
+      "description": "Calls the API with no session, then calls owner-only actions as a plain User.",
+      "expected": "Signed out: 401. Plain User on the audit log and on forcing a provider outage: 403."
+    },
+    "lead-fallback-custody": {
+      "title": "Everyone offline: fallback custody",
+      "description": "Sets every team member offline and creates a lead. It must still land with an accountable human and show why.",
+      "expected": "The lead goes to the fallback custodian. It is never ownerless."
+    },
+    "lead-timers-once": {
+      "title": "Two timers escalate once",
+      "description": "A lead past its escalation deadline is processed by two workers at the same moment.",
+      "expected": "Exactly one escalation event is recorded."
+    },
+    "lead-absence-reassign": {
+      "title": "Absence reassigns immediately",
+      "description": "Marks the owner of an open lead as on leave and checks where the lead went.",
+      "expected": "The lead moves to another Available person at once and the recovery queue shows why."
+    },
+    "audit-tamper": {
+      "title": "The audit log cannot be edited",
+      "description": "Verifies the hash chain, then tries UPDATE, DELETE and TRUNCATE on the audit table as the application database role.",
+      "expected": "The chain verifies, all three attempts are refused, and the chain still verifies afterwards."
+    },
+    "meta-forged": {
+      "title": "Forged WhatsApp webhook rejected",
+      "description": "Sends inbound-message payloads with a wrong secret, with the body altered after signing, and with no signature.",
+      "expected": "All three get 401, nothing is stored as a message, and the rejections appear in sync history."
+    },
+    "meta-duplicate": {
+      "title": "Duplicate WhatsApp message counted once",
+      "description": "Delivers the same correctly signed message id twice, as Meta does when it retries.",
+      "expected": "Both deliveries get 200, one message event is stored, and the duplicate counter is 1."
+    },
+    "stripe-forged": {
+      "title": "Forged Stripe webhook rejected",
+      "description": "Sends a payment event with a wrong secret, with the body altered after signing, and with no signature.",
+      "expected": "All three get 400, nothing is stored as an event, and the rejections appear in sync history."
+    },
+    "stripe-duplicate": {
+      "title": "Duplicate Stripe event counted once",
+      "description": "Delivers the same correctly signed event id twice, as Stripe does when it retries.",
+      "expected": "Both deliveries get 200, one event is stored, and the duplicate counter is 1."
+    },
+    "slack-forged": {
+      "title": "Forged or replayed Slack request rejected",
+      "description": "Sends a slash command with a wrong secret, with no signature, and with a valid signature that is one hour old.",
+      "expected": "All three get 401 and the rejections appear in sync history."
+    },
+    "provider-down": {
+      "title": "One provider down, platform still up",
+      "description": "Opens the Stripe circuit breaker, checks the other providers and the app, then closes it again.",
+      "expected": "Stripe calls are short-circuited, other providers stay healthy, contacts and the audit log still work, and the breaker recovers."
+    },
+    "data-survives-restart": {
+      "title": "Data survives a restart",
+      "description": "Compares the age of stored records with the start time of this server process and reads the scheduler heartbeat from the database.",
+      "expected": "Records written before this process started are still there, and timers live in the database, not in memory."
+    }
+  }
+}

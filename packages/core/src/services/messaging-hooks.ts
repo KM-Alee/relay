@@ -40,6 +40,42 @@ export function registerInboundCustomerMessageHandler(h: InboundCustomerMessageH
 /** Alias matching the agreed hook name `onInboundCustomerMessage`. */
 export const onInboundCustomerMessage = registerInboundCustomerMessageHandler;
 
+// ── voice notes (T-217, F8.2) ───────────────────────────────────────────
+// After `ai.transcribe` stores a transcript, the same continuation as a text message can run
+// (stand-in / AI fields / urgency from triage). The stand-in job or Lane A registers a handler; the AI never
+// acknowledges or owns anything here. Runs OUTSIDE any tx; a failing handler never fails the job.
+export interface TranscriptReady {
+  workspaceId: string;
+  conversationId: string;
+  messageId: string;
+  contactId: string | null;
+  transcript: string;
+  summary: string;
+  /** Triage of the transcript (AI or heuristic). */
+  triage: {
+    language: 'en' | 'ur' | 'ur-Latn';
+    urgency: string;
+    sentiment: string;
+    wantsHuman: boolean;
+    intent: string;
+  };
+}
+export type TranscriptReadyHandler = (e: TranscriptReady) => Promise<void>;
+const transcriptHandlers = new Set<TranscriptReadyHandler>();
+export function onTranscriptReady(h: TranscriptReadyHandler): () => void {
+  transcriptHandlers.add(h);
+  return () => transcriptHandlers.delete(h);
+}
+export async function runTranscriptHandlers(e: TranscriptReady): Promise<void> {
+  for (const h of transcriptHandlers) {
+    try {
+      await h(e);
+    } catch {
+      /* a failing continuation must not fail or retry the transcription job */
+    }
+  }
+}
+
 export async function runInboundHandlers(
   tx: Tx,
   msg: InboundCustomerMessage,

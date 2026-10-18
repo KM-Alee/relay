@@ -84,7 +84,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-146 | Conversations inbox UI | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | plain markup (Lane D components pending); polls every 4 s (no TanStack in deps) |
 | T-162 | Responsive + a11y pass | D | todo |  |  |  |
 | T-160 | P0 baseline acceptance suite | Q | todo |  |  |  |
-| T-161 | Security suite | Q | todo |  |  |  |
+| T-161 | Security suite | Q | review | agent:lane-Q | `worktree-agent-af03368468d308fcd` | `pnpm probe:security [baseUrl]`: 276 live checks (IDOR on all 77 /api/v1 route files, masking, CSRF, XSS in real Chromium, secrets in bundle+responses+git); 0 FAIL on `next start` build. Gaps: no appointment/media fixture (needs Google); DELETE /stages/:id without a JSON body answers 415 before lookup (Lane B, cosmetic) |
 
 ### W4: demo core (P1)
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
@@ -92,10 +92,10 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-202 | Policy builder + routing trace UI | A | todo |  |  |  |
 | T-203 | Slack Acknowledge button | A | todo |  |  |  |
 | T-210 | Time-warp | A | todo |  |  |  |
-| T-209 | Judge Console | B | todo |  |  |  |
+| T-209 | Judge Console | B | review | agent:lane-B4 | `worktree-agent-a8e90ee00747a7365` | 14 scenarios (11 live pass, 3 lead-engine pending placeholders); `core/services/judge/`, `/judge`, `/api/v1/judge`; ns `judge` |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
 | T-204 | AI foundation | C1 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | Provider (OpenAI/fake), runAiTask, cap, ai_usage, prompts registry. `pnpm ai:eval` ran for real. Not yet: integration_events row, breaker, DB-store integration test. |
-| T-208 | Knowledge base + templates editor | C1 | todo |  |  |  |
+| T-208 | Knowledge base + templates editor | C1 | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | settings/ai, /knowledge, /templates (ai.manage); ai_knowledge + ai_settings tables; loadKnowledge()/getAiSettings()/aiDepsFor() for the stand-in trigger (T-206 must call them); seeds for both workspaces; ai:eval grounded cases |
 | T-205 | AI triage + urgency | C2 | review | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | triageMessage + heuristic fallback + shouldMarkUrgent; caller applies setUrgent(source:ai). |
 | T-206 | AI stand-in | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateStandInReply + guards + templates. Remaining: handleInbound trigger/outbox job, send, state machine, audit. |
 | T-207 | Handoff card + AI brief | C2 | in-progress | Lane C2 (AI agent) | worktree-agent-a4c320d0e5d09ec69 | core done: generateHandoffBrief + baseline + en/ur i18n keys. Remaining: card UI, Slack wait, conversations.ai_brief storage. |
@@ -112,7 +112,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
 | T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
-| T-217 | Voice-note transcription | C | todo |  |  |  |
+| T-217 | Voice-note transcription | C | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | media.download enqueues ai.transcribe; transcript+summary on message; Transcript component mounted in inbox; Retry API; onTranscriptReady hook for stand-in/triage continuation (F8.2) not yet consumed. Real TTS->transcribe run passed |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
 | T-228 | PWA + demo polish | D | todo |  |  |  |
 
@@ -178,3 +178,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · agent:c2-ai:** T-204/T-205/T-214 -> review; T-206/T-207 core done (branch `worktree-agent-a4c320d0e5d09ec69`). `@relay/core/ai` exports triage, stand-in (+guards, static en/ur/ur-Latn templates), handoff brief, runAiTask with daily cap + `ai_usage`. Defaults gpt-4.1-mini (chat) / gpt-4.1-nano (triage) / gpt-4o-mini-transcribe. `pnpm ai:eval` run against real OpenAI, ~$0.0003/call. Not built: outbox jobs, trigger/state machine (messaging lane), integration_events row, breaker, transcription task.
 - **2026-10-18 · agent:lane-B2:** T-110…T-118 in `review` on `worktree-agent-a694b0e3941bc35ff`: crm schema/migration (`202610181303_b_crm.sql`), services `core/services/crm-*.ts` + `lists.ts` + `exports.ts`, ~40 `/api/v1` routes, screens (contacts, contact 360, companies, pipeline board/table, settings pipelines/fields/tags; en + ur), CRM seed (Sunrise 10 contacts/9 opps, Crescent 5/4). Lane A hook: `onHumanAction(tx, {leadId?, contactId, actor})` / `registerHumanActionHandler` in `core/services/crm-activity.ts` (the handler must check the actor owns the lead). Lane C hook: `registerContact360Provider(kind, fn)` in `core/services/crm-contact360.ts`. `contactScopeSql` now calls the late-bound `crm_contact_has_open_lead()` (works before Lane A's `leads` table exists). Real Playwright check against `pnpm dev:web` passed (see report).
 - **2026-10-18 · agent:lane-A:** T-121 (pure domain) then T-120/T-122/T-123/T-124 on `worktree-agent-a20c3ee4679194024` (merged main first). Migration `202610181410_a_teams_leads`, lead-engine service, timers processor, APIs, leads pages, public form. `pnpm check` green (417 tests) incl. Postgres invariants (two ticks escalate once, two acks one winner, ack vs timer, never ownerless). Live run: form with everyone Offline → fallback custodian `no_available`; 15 s window → escalation Bilal→Hina + `slack.send escalated` outbox row; owner ack 200, repeat 409. Follow-ups: policy settings form, sound cue, ur public form, OQ-11.
+- 2026-10-18 agent:lane-Q T-161: added `scripts/probe-security.ts` (`pnpm probe:security [baseUrl]`), a live HTTP probe (cookie jars + CSRF). Ran on `next start` (password login) and `next dev` (dev login): 0 FAIL, 3 WARN (no appointment/media fixture without Google; test-file fake secrets). Needs a built app for the bundle scan; Chromium optional.
