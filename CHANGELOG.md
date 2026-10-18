@@ -32,6 +32,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - AI triage + customer language detection (en / ur / ur-Latn) with heuristic fallback [T-205] [T-214] [F6.6] [F7.5]
 - AI stand-in reply core with code-level guards (prices, discounts, bookings, payment links, ETAs), localized static fallbacks and hard handoff [T-206] [F6.1] [F6.11]
 - Handoff brief generation with baseline fallback [T-207] [F9.2]
+- Meta WhatsApp Cloud API adapter (Graph v25.0), signed `/api/webhooks/meta/[connectionKey]`, idempotent inbound + statuses, `whatsapp.send` outbox job with retry, 24 h window + templates, opt-out; real send verified to test numbers [T-141] [I1.1] [I1.10]
+- WhatsApp media → private Vercel Blob (Postgres fallback) behind authed `/api/v1/media/:id` [T-142] [I1.11]
+- Conversations inbox + thread UI (status ticks, retry, window indicator, template composer, opt-out) [T-146]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
