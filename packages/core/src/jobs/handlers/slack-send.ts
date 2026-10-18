@@ -18,6 +18,7 @@ export const slackSendJob = defineJob({
     deadlineAt: z.iso.datetime({ offset: true }).nullable(),
     valueText: z.string().max(100).nullable(),
   }),
+  maxAttempts: 5,
   handle: async (p, ctx) => {
     if (!ctx.workspaceId) throw new Error('slack.send requires a workspace');
     await sendSlackAlert(ctx.workspaceId, p, ctx.now);

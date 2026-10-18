@@ -1,10 +1,11 @@
-// SEAMS to other lanes' APIs that are not on main yet (Lane A outbox T-008, Lane B audit T-007).
-// They are thin raw-SQL equivalents of `enqueue()` (core/jobs/outbox.ts) and `audit.append()`
-// (core/audit), writing the SAME tables/columns as the real ones. TODO: once both lanes are merged,
-// replace the bodies with calls to the real functions (one-line swaps) and delete the SQL here.
+// SEAMS to other lanes' APIs. enqueueJob -> Lane A's outbox repo (merged). appendAudit is a raw-SQL
+// equivalent of Lane B's `audit.append()` (T-007, not on main yet; same table, the chain is a DB trigger).
+// TODO(T-007): swap appendAudit's body for audit.append() once Lane B is merged.
 import type { Tx } from '@relay/db';
 import { sql } from 'drizzle-orm';
 import type { Actor } from '../auth/actor';
+import { DEFAULT_MAX_ATTEMPTS } from '../jobs/policy';
+import * as outboxRepo from '../repos/outbox';
 
 export interface EnqueueInput {
   type: string;
@@ -14,20 +15,22 @@ export interface EnqueueInput {
   maxAttempts?: number;
 }
 
-/** Insert an outbox row in the caller's tx; workspace comes from the tx context (NULL in a system tx). */
+/**
+ * Insert an outbox row in the caller's tx (Lane A's repo; workspace comes from the tx context).
+ * Goes through the repo rather than the typed enqueue() because the job registry imports the Slack
+ * handlers, which import this module (a cycle). The payload is validated by the handler at delivery.
+ */
 export async function enqueueJob(
   tx: Tx,
   job: EnqueueInput,
 ): Promise<{ id: string | null; deduped: boolean }> {
-  const res = await tx.execute<{ id: string }>(sql`
-    insert into outbox (workspace_id, type, payload, dedupe_key, available_at, max_attempts)
-    values (nullif(current_setting('app.workspace_id', true), '')::uuid, ${job.type},
-            ${JSON.stringify(job.payload)}::jsonb, ${job.dedupeKey ?? null},
-            ${(job.availableAt ?? new Date()).toISOString()}::timestamptz, ${job.maxAttempts ?? 6})
-    on conflict (dedupe_key) do nothing
-    returning id`);
-  const row = res.rows[0];
-  return { id: row?.id ?? null, deduped: !row };
+  return outboxRepo.insert(tx, {
+    type: job.type,
+    payload: job.payload,
+    dedupeKey: job.dedupeKey,
+    availableAt: job.availableAt,
+    maxAttempts: job.maxAttempts ?? DEFAULT_MAX_ATTEMPTS,
+  });
 }
 
 export type AuditActorLike = Actor | { type: 'system'; workspaceId: string };

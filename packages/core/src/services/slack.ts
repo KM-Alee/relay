@@ -20,6 +20,7 @@ import {
   type AlertPurpose,
   type SlackLocale,
 } from '../integrations/slack/blocks';
+import { DeferJobError } from '../jobs/policy';
 import { ProviderError } from '../integrations/types';
 import { appendAudit, enqueueJob } from '../integrations/upstream';
 import {
@@ -203,8 +204,8 @@ export async function sendSlackAlert(
   });
   if (!ctx.ok) return;
   if (!ctx.gate.allow) {
-    // Breaker open (I5.8): do not call the provider; retry after the half-open window. TODO(T-008): DeferJobError.
-    throw new ProviderError('temporary', 'breaker_open', 'slack circuit open', ctx.gate.retryInMs);
+    // Breaker open (I5.8): do not call the provider; retry after the half-open window. Does not consume an attempt.
+    throw new DeferJobError(ctx.gate.retryInMs, 'slack circuit open');
   }
 
   // 2. Call Slack (no tx open).
