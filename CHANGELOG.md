@@ -46,6 +46,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Read-only audit log viewer with filters + Verify integrity [T-151] [T-220] [F4.2] [F4.4]
 - Overview dashboard (all F5.1 figures, role-aware, show/hide, drill-downs) + metrics service; Lead Radar live mission control [T-150] [T-201] [F5.1] [F5.6]
 - Login/signup brand panel with motion, `/me` profile page, user menu with sign-out
+- Lead engine: pure routing/transitions domain, teams + availability, intake (manual + public form), acknowledge, escalation timers with overdue attempts and end-of-chain critical, fallback custody, notifications API + bell, leads pages; concurrency invariants tested on Postgres [T-120] [T-121] [T-122] [T-123] [T-124] [F3.1] [F3.3] [F3.4] [F3.5] [F3.8]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
