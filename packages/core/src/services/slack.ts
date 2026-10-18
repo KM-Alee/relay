@@ -344,7 +344,6 @@ const REPLIES = {
     taken: 'This Slack account is already connected to another Relay user.',
     wrongUser: 'This alert is not assigned to you.',
     notLinked: 'Your Slack account is not connected to Relay.',
-    ackSoon: 'Acknowledging from Slack is coming soon. Open the lead in Relay to acknowledge it.',
     unknown: 'Unknown action.',
   },
   ur: {
@@ -354,7 +353,6 @@ const REPLIES = {
     taken: 'یہ Slack اکاؤنٹ پہلے ہی کسی اور Relay صارف سے جڑا ہے۔',
     wrongUser: 'یہ الرٹ آپ کو تفویض نہیں ہے۔',
     notLinked: 'آپ کا Slack اکاؤنٹ Relay سے جڑا نہیں ہے۔',
-    ackSoon: 'Slack سے تصدیق جلد آ رہی ہے۔ تصدیق کے لیے Relay میں لیڈ کھولیں۔',
     unknown: 'نامعلوم عمل۔',
   },
 } as const;
@@ -368,11 +366,11 @@ export interface InteractionCtx {
   slackUserId: string;
   locale: string;
 }
-export type InteractionHandler = (c: InteractionCtx) => Promise<string>;
+export type InteractionHandler = (c: InteractionCtx) => Promise<string | null>;
 
-/** action_id -> handler. T-203 registers the real `lead_ack`; until then it answers "coming soon". */
+/** action_id -> handler. `lead_ack` (T-203, I4.5) lives in slack-ack.ts (lazy import: acyclic with leads.ts). */
 export const interactionHandlers = new Map<string, InteractionHandler>([
-  ['lead_ack', async (c) => reply(c.locale, 'ackSoon')],
+  ['lead_ack', async (c) => (await import('./slack-ack')).slackLeadAck(c)],
 ]);
 
 type EventRow = {
@@ -397,10 +395,12 @@ async function finish(
 
 /** `integration.process` for Slack events. Idempotent: an already-processed event is a no-op. */
 export async function processSlackEvent(eventId: string, workspaceId: string | null): Promise<void> {
+  // Atomic claim: the after() kick and the outbox job may both run this; exactly one wins (a crashed
+  // claimer's 2-minute lease is retaken).
   const ev = await (workspaceId
-    ? withWorkspaceTx(workspaceId, readEvent(eventId))
-    : withSystemTx(readEvent(eventId)));
-  if (!ev || ev.status !== 'received' || !ev.normalized) return;
+    ? withWorkspaceTx(workspaceId, claimEvent(eventId))
+    : withSystemTx(claimEvent(eventId)));
+  if (!ev || !ev.normalized) return;
   const n = ev.normalized;
   let replyText: string | null = null;
   let resolvedWs = workspaceId;
@@ -435,12 +435,15 @@ export async function processSlackEvent(eventId: string, workspaceId: string | n
   }
 }
 
-const readEvent =
+const claimEvent =
   (eventId: string) =>
-  async (tx: Tx): Promise<(EventRow & { status: string }) | undefined> =>
+  async (tx: Tx): Promise<EventRow | undefined> =>
     (
-      await tx.execute<EventRow & { status: string }>(
-        sql`select id, kind, workspace_id, status, normalized from integration_events where id = ${eventId}`,
+      await tx.execute<EventRow>(
+        sql`update integration_events set status = 'processing', processed_at = now()
+            where id = ${eventId}
+              and (status = 'received' or (status = 'processing' and processed_at < now() - interval '2 minutes'))
+            returning id, kind, workspace_id, normalized`,
       )
     ).rows[0];
 

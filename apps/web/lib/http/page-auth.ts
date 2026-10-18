@@ -35,11 +35,23 @@ async function currentLocale(): Promise<'en' | 'ur'> {
   return (await getLocale()) === 'ur' ? 'ur' : 'en';
 }
 
-/** Signed out (or session expired/revoked) → redirect to /login. */
+/** The path the user asked for (set by proxy.ts), without the locale prefix; null when unknown/unsafe. */
+async function requestedPath(): Promise<string | null> {
+  const raw = (await headers()).get('x-relay-path');
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return null;
+  const p = raw.replace(/^\/ur(?=\/|\?|$)/, '') || '/';
+  return p === '/' || p.startsWith('/login') || !p.startsWith('/') ? null : p;
+}
+
+/** Signed out (or session expired/revoked) → redirect to /login?next=<requested path>. */
 export async function requireActor(): Promise<Actor> {
   const actor = await getPageActor();
   if (actor) return actor;
-  return redirect({ href: '/login', locale: await currentLocale() });
+  const next = await requestedPath();
+  return redirect({
+    href: next ? `/login?next=${encodeURIComponent(next)}` : '/login',
+    locale: await currentLocale(),
+  });
 }
 
 /** Signed in AND holding `key`, else 404 (never reveal what exists, F1.5/F1.6). */

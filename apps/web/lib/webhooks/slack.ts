@@ -5,6 +5,7 @@ import { ingestSlack } from '@relay/core/services/integrations-ingest';
 import { processSlackEvent } from '@relay/core/services/slack';
 import { after } from 'next/server';
 import { clientIp } from '@/lib/http/request';
+import { kickDueWork } from '@/lib/jobs/kick';
 
 export async function handleSlackWebhook(
   req: Request,
@@ -36,6 +37,7 @@ export async function handleSlackWebhook(
           log.error('slack.after_process_failed', { eventId: e.eventId, err });
         }
       }
+      kickDueWork(); // deliver the chat.update / confirmation DM that processing enqueued
     });
   }
   const text = result.status === 401 ? 'bad signature' : result.status === 404 ? 'not found' : 'ok';
