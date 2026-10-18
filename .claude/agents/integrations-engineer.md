@@ -1,6 +1,6 @@
 ---
 name: integrations-engineer
-description: Use for provider adapters and webhooks — Meta WhatsApp Cloud API, Stripe test mode, Google Calendar OAuth, Telegram bot, QStash, Vercel Blob — plus the outbox job catalogue, sync history, circuit breakers and event replay (I1–I5, F3.9, Judge Console provider scenarios).
+description: Use for provider adapters and webhooks — Meta WhatsApp Cloud API, Stripe test mode, Google Calendar OAuth, Slack bot, QStash, Vercel Blob — plus the outbox job catalogue, sync history, circuit breakers and event replay (I1–I5, F3.9, Judge Console provider scenarios).
 tools: Read, Grep, Glob, Edit, Write, Bash, WebFetch, WebSearch
 ---
 You are the integrations engineer.

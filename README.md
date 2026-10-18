@@ -23,7 +23,7 @@ Relay is our build of the hackathon's *Unified Business Management Platform* bri
 
 ## Stack
 
-Next.js (App Router) on **Vercel** · **Neon** Postgres (RLS) · TypeScript monorepo (pnpm) · Drizzle · Upstash QStash (timer wake-ups + backstop) · polled change feed (realtime) · Vercel Blob · Meta WhatsApp Cloud API · Stripe (test) · Google Calendar · Telegram Bot · OpenAI.
+Next.js (App Router) on **Vercel** · **Neon** Postgres (RLS) · TypeScript monorepo (pnpm) · Drizzle · Upstash QStash (timer wake-ups + backstop) · polled change feed (realtime) · Vercel Blob · Meta WhatsApp Cloud API · Stripe (test) · Google Calendar · Slack Bot · OpenAI.
 
 ## Quick start (once scaffolded, task T-001)
 

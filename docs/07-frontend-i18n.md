@@ -39,7 +39,7 @@ All app routes live under `/[locale]` (`en` | `ur`). The gate is checked **serve
 | `/audit` | Audit log with filters + Verify integrity | F4.2, F4.4 | `audit.view` |
 | `/judge` | Judge Console scenarios (expected vs actual) | F10.1 | `demo.judge_console` + `workspace.demo_mode` |
 | `/traceability` | Requirement → test → last run → status; re-run | F10.3 | `demo.judge_console` |
-| `/me` | Profile: language, timezone, theme, sound mute, availability, Telegram link (deep link `/start <token>`), Google Calendar connect, sessions | F7.1, F3.2, I4.3, I3.1, F1.8 | self |
+| `/me` | Profile: language, timezone, theme, sound mute, availability, Connect Slack (one-time code for `/relay link <code>`; unlink), Google Calendar connect, sessions | F7.1, F3.2, I4.3, I3.1, F1.8 | self |
 | `/f/[formSlug]` (no locale prefix, no auth) | Public web form + thank-you + P1 instant booking | F3.1, I3.8 | public, rate-limited |
 
 Navigation is built from a single `nav.ts` config with `{ href, labelKey, icon, perm, group: 'primary'|'more' }`. Primary: Overview · Leads · Inbox · Pipeline · Recovery · Automations. More: Appointments · Payments · Team · Integrations · Audit log · Settings · Judge Console (`design/screens.md` §1). Entries the user lacks permission for are omitted.
@@ -102,7 +102,7 @@ Payloads never contain data, only hints (architecture rule 5). New-lead / escala
 - **Library:** `next-intl` with the `[locale]` segment. Locales: `en`, `ur`. The default comes from the user's profile `users.locale`, then the workspace `default_locale`, then `Accept-Language`. Switching locale updates the profile and navigates to the same path under the new prefix.
 - **Messages:** `apps/web/messages/en.json`, `ur.json`, namespaced by area: `common`, `nav`, `auth`, `lead`, `lead.state`, `routing.trace`, `recovery`, `crm`, `inbox`, `ai`, `payments`, `calendar`, `settings.*`, `audit`, `judge`, `errors` (one key per `AppError.code`), `integrations.limits`. Keys are `camelCase`, and values use ICU (`{count, plural, …}`).
 - **No hard-coded strings:** ESLint `i18next/no-literal-string` (or `eslint-plugin-react/jsx-no-literals`) runs in error mode on `apps/web/{app,components,features}`. A CI script checks that `en.json` and `ur.json` have identical key sets.
-- Server-produced text shown to users (routing trace sentences, banners, Telegram alerts, errors) is rendered from **keys + params** in the recipient's locale. The DB stores codes, not prose.
+- Server-produced text shown to users (routing trace sentences, banners, Slack alerts, errors) is rendered from **keys + params** in the recipient's locale. The DB stores codes, not prose.
 - **Formatting:** `lib/format.ts` wraps `Intl.DateTimeFormat`, `NumberFormat` and `RelativeTimeFormat` with locale `ur-PK` or `en-PK` and the user's timezone. Money: `formatMoney(minor, currency)` with correct minor units, and PKR supported alongside the Stripe test currency. Never use `toLocaleString()` without explicit args, and never concatenate a date manually. Urdu shows Latin digits by default (configurable via `-u-nu-arabext` later; record the choice in `docs/design/`).
 - **Customer-facing text** (WhatsApp templates: AI disclosure, fallback reply, payment link, booking confirmation, "has joined") comes from `message_templates` per `en` | `ur` | `ur-Latn`, rendered server-side (F7.5, F7.6). Not in `messages/*.json`.
 - **Third language (F7.7):** add `messages/<loc>.json`, register the locale in `i18n/config.ts` (a data list, not code branches), and seed templates. **No component code changes.** A test asserts the locale list is data-driven.
@@ -135,7 +135,7 @@ Payloads never contain data, only hints (architecture rule 5). New-lead / escala
 
 - Phone-first for the **acknowledge flow**: notification → lead detail → Acknowledge must work one-handed at 360 px width. The Acknowledge button is in thumb reach and sticky at the bottom on mobile.
 - No horizontal page scroll at 360 / 768 / 1280 px in LTR or RTL. Tables collapse into cards on phones. The board scrolls horizontally *inside* its container only.
-- **PWA:** `app/manifest.ts` (name, icons, `start_url: /{locale}/leads`, `display: standalone`, `dir`/`lang` per locale), a minimal service worker (app-shell caching; never cache `/api/*`) and an install prompt on `/me`. Web Push is optional (P2). Telegram is the guaranteed external channel.
+- **PWA:** `app/manifest.ts` (name, icons, `start_url: /{locale}/leads`, `display: standalone`, `dir`/`lang` per locale), a minimal service worker (app-shell caching; never cache `/api/*`) and an install prompt on `/me`. Web Push is optional (P2). Slack is the guaranteed external channel.
 
 ## 9. Keyboard shortcuts and command bar (Q17, F9.4, F2.10)
 

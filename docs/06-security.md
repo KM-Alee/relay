@@ -29,7 +29,7 @@ Fixed window in `rate_limits`. Keys: `login:ip:<ip>` (20 / 15 min) and `login:em
 INSERT INTO rate_limits(key, window_start, count) VALUES ($1, date_trunc('minute', now()) - (extract(minute from now())::int % 15) * interval '1 minute', 1)
 ON CONFLICT (key, window_start) DO UPDATE SET count = rate_limits.count + 1 RETURNING count;
 ```
-Over the limit → `429 RATE_LIMITED` with `retryAfter`. Same generic error for unknown email vs wrong password (no user enumeration). A daily outbox job deletes windows older than 1 day. The same helper guards the public form (`form:ip:<ip>` 10/10 min), tick nudges (`nudge:user:<id>` 6/min), invite acceptance and the Telegram link start.
+Over the limit → `429 RATE_LIMITED` with `retryAfter`. Same generic error for unknown email vs wrong password (no user enumeration). A daily outbox job deletes windows older than 1 day. The same helper guards the public form (`form:ip:<ip>` 10/10 min), tick nudges (`nudge:user:<id>` 6/min), invite acceptance and the Slack link start.
 
 ### Invites (F1.2)
 1. `POST /api/v1/invites { baseLevel, roleId? }` (perm `users.invite`). The level can't exceed the inviter's (only the Owner can invite admins). Creates a random token; stores `sha256` in `invites.token_hash`. Response returns the link `PUBLIC_BASE_URL/{locale}/invite/{token}` **once**. Copy-link is the delivery method.
@@ -95,7 +95,7 @@ visibleLeadScope(actor) // { all: true } | { ownerUserId: actor.userId }  → ad
 export function maskOpportunity<T extends { valueMinor: bigint|null }>(actor: Actor, o: T): T & { valueMasked: boolean }
 export function maskMoneyFigure(actor: Actor, minor: bigint|null): { value: bigint|null; masked: boolean }
 ```
-Mandatory call sites (each gets a test): list/detail serializers, CSV export rows, dashboard figures (pipeline value, revenue at risk/rescued, collected revenue), AI task input builders (`ai/context.ts` strips values unless the task needs them **and** the requesting user may see them; I6.6), AI outputs shown to the user, Telegram alert renderer (renders per recipient), handoff cards, search results. Realtime is safe by design (hints only). The client never receives the raw value and then hides it. **The masking happens on the server.**
+Mandatory call sites (each gets a test): list/detail serializers, CSV export rows, dashboard figures (pipeline value, revenue at risk/rescued, collected revenue), AI task input builders (`ai/context.ts` strips values unless the task needs them **and** the requesting user may see them; I6.6), AI outputs shown to the user, Slack alert renderer (renders per recipient), handoff cards, search results. Realtime is safe by design (hints only). The client never receives the raw value and then hides it. **The masking happens on the server.**
 
 ## 3. Row-level security on Neon (F1.6, second layer)
 
@@ -145,7 +145,7 @@ All are owned by the owner role, `SET search_path = pg_catalog, public`, and `RE
 | `auth_find_invite(token_hash bytea)` | `invite_id, workspace_id, base_level, role_id` (only usable rows) | Invite accept |
 | `resolve_connection_key(key text)` | `connection_id, workspace_id, provider` | Webhooks (§7) |
 | `resolve_meta_phone_number(phone_number_id text)` | `connection_id, workspace_id` | Meta webhook fallback |
-| `resolve_telegram_link(token_hash bytea)` / `resolve_telegram_chat(chat_id bigint)` | `user_id, workspace_id` | Telegram webhook |
+| `resolve_slack_link(token_hash bytea)` / `resolve_slack_user(team_id text, slack_user_id text)` | `user_id, workspace_id` | Slack webhook |
 | `public_form_by_slug(slug text)` | `form_id, workspace_id, field defs (labels/types only)` | Public form (F3.1) |
 | `claim_due_leads(lim int)` | `id, workspace_id, version` (`FOR UPDATE SKIP LOCKED`) | `runDueWork` |
 | `claim_due_outbox(lim int, lease interval)` | `id, workspace_id, type` (sets `status='in_flight', locked_until=now()+lease`) | `runDueWork` |
@@ -161,7 +161,7 @@ After resolving `workspace_id`, all further work happens inside `withWorkspaceTx
 |---|---|
 | Invalid input | Every route handler parses body/query/params with a Zod schema from `contracts`. Unknown keys are stripped (`.strict()` on mutations). IDs are `z.string().uuid()`. Business validation lives in services. **Never trust the client's `workspaceId`.** It always comes from the session |
 | SQL injection | Drizzle query builder or `sql\`\`` tagged templates only. No string-concatenated SQL. Saved-list criteria (F2.6) compile from a whitelisted AST (field id, operator enum, typed value) → parameterized SQL |
-| XSS | React escaping only. **`dangerouslySetInnerHTML` is banned** (lint) for anything containing user, customer, imported, AI or transcript content. Message bodies render as plain text with a safe linkifier (http/https only, `rel="noopener noreferrer nofollow"`). Telegram uses `parse_mode: HTML` with an `escapeHtml()` on every interpolated value |
+| XSS | React escaping only. **`dangerouslySetInnerHTML` is banned** (lint) for anything containing user, customer, imported, AI or transcript content. Message bodies render as plain text with a safe linkifier (http/https only, `rel="noopener noreferrer nofollow"`). Slack messages use Block Kit with `mrkdwn` text and every interpolated value is escaped (`&`, `<`, `>`) so customer text cannot inject links or mentions |
 | CSRF | Cookie `SameSite=Lax` **plus** (a) an `Origin` (fallback `Referer`) host check against `PUBLIC_BASE_URL` on every non-GET `/api/v1/*`, and (b) double-submit: readable cookie `csrf` (random, not HttpOnly) must equal header `x-csrf-token`. Webhooks, `/api/internal/*` and the public form are exempt from (b) because they use their own auth. The public form uses a per-render token + honeypot + rate limit (F3.1) |
 | CSV formula injection (F2.12, F2.11) | On export, any cell starting with `=`, `+`, `-`, `@`, TAB or CR gets a leading `'`. Imported values are stored verbatim, displayed escaped, and neutralized again on export |
 | Uploads (CSV, recorded audio) | Max 5 MB CSV / 10 MB audio. Sniff the magic bytes (`file-type`) and allow only `text/csv`, `audio/webm`, `audio/ogg`, `audio/mpeg`, `audio/mp4`. Store in Vercel Blob under a random key. Never serve with the user-supplied filename or content type |
@@ -174,10 +174,10 @@ After resolving `workspace_id`, all further work happens inside `withWorkspaceTx
 ## 5. Secrets (I5.3, I6.1)
 
 - **Platform secrets** live only in env (Vercel env scopes), are listed in `.env.example` with placeholder values, and are never committed. `.gitignore` covers `.env*` except `.env.example`.
-- **Per-workspace integration secrets** (Meta app secret + access token, Stripe secret + webhook secret, Google refresh token, Telegram bot token if overridden, OpenAI key if overridden) are stored in `integration_connections.secrets_enc` as an AES-256-GCM envelope: `v1 | keyId | iv(12) | ciphertext | tag(16)`. The key is `APP_ENCRYPTION_KEY` (32 bytes base64). The AAD is `connection_id`, so ciphertexts can't be swapped between rows.
+- **Per-workspace integration secrets** (Meta app secret + access token, Stripe secret + webhook secret, Google refresh token, Slack bot token + signing secret if overridden, OpenAI key if overridden) are stored in `integration_connections.secrets_enc` as an AES-256-GCM envelope: `v1 | keyId | iv(12) | ciphertext | tag(16)`. The key is `APP_ENCRYPTION_KEY` (32 bytes base64). The AAD is `connection_id`, so ciphertexts can't be swapped between rows.
 - **Rotation:** add `APP_ENCRYPTION_KEY_PREVIOUS`, decrypt with the key matching `keyId`, and run a script that re-encrypts all rows. Document the steps in `12-demo-and-ops.md`.
 - Decrypted secrets exist only inside adapter calls. They are never returned by any API: the UI gets `secrets_hint` (last 4), and APIs accept write-only fields.
-- **Logging redaction** (`core/log.ts` pino-style redact paths): `authorization`, `cookie`, `set-cookie`, `password`, `password_hash`, `token`, `access_token`, `refresh_token`, `client_secret`, `app_secret`, `api_key`, `x-hub-signature-256`, `stripe-signature`, `upstash-signature`, `x-telegram-bot-api-secret-token`, `secrets_enc`, `card*`. `integration_events.payload_redacted` passes through the same redactor before insert.
+- **Logging redaction** (`core/log.ts` pino-style redact paths): `authorization`, `cookie`, `set-cookie`, `password`, `password_hash`, `token`, `access_token`, `refresh_token`, `client_secret`, `app_secret`, `api_key`, `x-hub-signature-256`, `stripe-signature`, `upstash-signature`, `x-slack-signature`, `x-slack-request-timestamp`, `secrets_enc`, `card*`. `integration_events.payload_redacted` passes through the same redactor before insert.
 - OpenAI calls are server-only (I6.1). The key is never in client bundles; a CI grep fails the build if `OPENAI_API_KEY` appears under `.next/static`.
 
 ## 6. Audit log (F4.1–F4.4)
@@ -229,7 +229,7 @@ Actor types: `user`, `system` (timers, webhooks), `ai`. `before`/`after` hold on
 | `GET /api/webhooks/meta/:key` | `hub.mode=subscribe` and `hub.verify_token` == the connection's verify token → echo `hub.challenge` (I1.1) |
 | `POST /api/webhooks/meta/:key` | `X-Hub-Signature-256` = `sha256=` HMAC-SHA256(app secret, **raw body**) (I1.2) |
 | `POST /api/webhooks/stripe/:key` | `stripe.webhooks.constructEvent(rawBody, Stripe-Signature, endpointSecret)` with the default 300 s tolerance (I2.3) |
-| `POST /api/webhooks/telegram/:key` | Header `X-Telegram-Bot-Api-Secret-Token` == the `secret_token` set via `setWebhook` (random per connection) |
+| `POST /api/webhooks/slack/:key/commands` and `/interactions` | `X-Slack-Signature` = `v0=` HMAC-SHA256(signing secret, `v0:{X-Slack-Request-Timestamp}:{raw body}`), constant-time compare, reject timestamps older than 5 min; optional `team_id` == `SLACK_TEAM_ID`. Interaction button values are additionally signed opaque ids (I4.5) |
 | `GET /api/oauth/google/callback` | `state` = signed, single-use, 10-min nonce bound to the user's session (+ PKCE) |
 | `POST /api/internal/tick` | Either `Upstash-Signature` verified with `@upstash/qstash` `Receiver` (current + next signing keys, URL-bound), or `Authorization: Bearer $CRON_SECRET` (constant-time). Otherwise 401 |
 | `POST /api/internal/test-results` | `Authorization: Bearer $TEST_RESULTS_SECRET` (GitHub Actions) |
@@ -243,11 +243,11 @@ A failed verification records an `integration_events` row (`status='rejected'`, 
 - [ ] Every new route: Zod-parsed input, `requireSession`, `assertPermission`, scope filter, CSRF (mutations), typed errors, no workspaceId from the client.
 - [ ] Every new table: `workspace_id NOT NULL`, RLS enabled + forced + policy, grants for `app_user`, composite FKs, `scripts/check-rls.ts` passes.
 - [ ] No query outside `withWorkspaceTx`/`withSystemTx`. No `set_config(..., false)` or `SET`. No `LISTEN`.
-- [ ] Opportunity value goes through `mask.ts` on every new output path (API, CSV, dashboard, AI input, Telegram, handoff card).
+- [ ] Opportunity value goes through `mask.ts` on every new output path (API, CSV, dashboard, AI input, Slack, handoff card).
 - [ ] State changes write `audit.append` for actions in §6 and `lead_events` for lead transitions.
 - [ ] External side effects go via the outbox, never awaited inside the lead transaction.
 - [ ] Webhooks verify the raw body before parsing and are idempotent on `(provider, external_event_id)`.
-- [ ] No `dangerouslySetInnerHTML`. Telegram/HTML output is escaped. CSV export is neutralized.
+- [ ] No `dangerouslySetInnerHTML`. Slack/HTML output is escaped. CSV export is neutralized.
 - [ ] No secrets in logs, responses, client bundles or fixtures. `.env.example` is updated for new env vars.
 - [ ] Out-of-scope record → 404. Stale version → 409. Rate limits applied on public/auth endpoints.
 - [ ] Tests tagged with the requirement IDs touched, including at least one negative (unauthorized / cross-tenant) test.

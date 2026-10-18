@@ -54,7 +54,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-112 | Custom fields | B | todo |  |  |  |
 | T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
 | T-140 | Integrations page + sync history | C | todo |  |  |  |
-| T-145 | Telegram alerts + linking | C | todo |  |  | critical path |
+| T-145 | Slack alerts + linking | C | todo |  |  | critical path |
 | T-150 | Metrics + dashboard | D | todo |  |  |  |
 
 ### W3: P0 complete
@@ -87,7 +87,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
 | T-202 | Policy builder + routing trace UI | A | todo |  |  |  |
-| T-203 | Telegram Acknowledge button | A | todo |  |  |  |
+| T-203 | Slack Acknowledge button | A | todo |  |  |  |
 | T-210 | Time-warp | A | todo |  |  |  |
 | T-209 | Judge Console | B | todo |  |  |  |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
@@ -152,14 +152,16 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 | OQ-1 | Fallback custody does not count toward the custodian's capacity | `03-lead-engine.md` §11 |
 | OQ-2 | Manual assign to an ineligible user only with explicit override + reason (audited) | §11 |
 | OQ-3 | Custodian works the lead via "Take over" (if eligible) or an override | §11 |
-| OQ-4 | Telegram alert on every assignment; escalation alerts mandatory | §11 |
+| OQ-4 | Slack alert on every assignment; escalation alerts mandatory | §11 |
 | OQ-5 | A returning customer after their lead closed gets a new lead on the same contact | §11 |
 | OQ-6 | One workspace per user account; email globally unique | ADR-0004 |
 | OQ-7 | Tight timeline, with the team plus parallel AI agents → follow the fast-track waves | `09-build-plan.md` §0 |
 | S-1 | Realtime = polled change feed (no Ably); backstop = QStash cron schedule (no cron-job.org) | ADR-0003, ADR-0002 |
+| A-1 | Amendment: notification channel is Slack, not Telegram (Telegram unreliable in Pakistan; the PDF accepted Slack for I4). Wherever `requirements.md` says Telegram (C4, F1.4, F3.4, F3.5, F3.9, F9.2, I4.x, §8–§10), read Slack. `requirements.md` is unchanged. | ADR-0011, `AGENTS.md` §1 |
 
 ## Session log (append-only, newest last)
 
 - **2026-10-18 · Claude (pre-dev):** Created `docs/00–12`, ADR-0001..0008, AGENTS.md/CLAUDE.md, `.claude` agents and commands, STATUS/CHANGELOG, `.env.example`. Deploy target switched to Vercel + Neon at the user's request, and the architecture was adapted (serverless timers, Ably realtime, transaction-local RLS). Waiting for the design guidelines.
 - **2026-10-18 · Claude (pre-dev):** At the user's request: all open questions resolved with defaults, organizer caveat dropped, Ably → polled `realtime_events` change feed, cron-job.org → QStash schedule, fast-track wave plan added (`09-build-plan.md` §0). Next: W0.
 - **2026-10-18 · Claude (pre-dev):** Integrated the design package (Warm Orange) into `docs/design/` (tokens, components, screens, decisions DS-1..14) + ADR-0009. Added the parallel playbook (doc 13, ADR-0010, `scripts/wt.sh`, `/launch-wave`), vertical lanes, T-012/T-013, and the Wave/Lane board. Project named **Relay**.
+- **2026-10-18 · Claude (docs):** Switched the I4 notification channel from Telegram to Slack: ADR-0011, amendment A-1 in `AGENTS.md` §1, and all docs/`.env.example`/agent files updated (Slack app manifest, `/relay link`, `slack.send`, Block Kit Acknowledge button). `requirements.md` untouched. No code yet; T-145/T-203 renamed.

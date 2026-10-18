@@ -17,7 +17,7 @@
 | Table | Key columns | Notes |
 |---|---|---|
 | `workspaces` | `id, name, slug UNIQUE, owner_user_id, default_locale ('en'|'ur'), timezone (IANA), currency, default_lead_value_minor, time_warp_multiplier numeric(6,2) DEFAULT 1 CHECK > 0, demo_mode bool, business_hours jsonb, settings jsonb (e.g. invite_ttl_hours), version` | Not RLS-filtered by `workspace_id`. The policy is `id = current_setting(...)` |
-| `users` | `id, workspace_id, email citext UNIQUE (global), name, password_hash, base_level ('owner'|'admin'|'user'), availability ('available'|'busy'|'on_leave'|'offline'), is_active bool, deactivated_at, locale, timezone, capacity int NULL (P1 per-employee; NULL = team default), skills text[], telegram_chat_id bigint NULL, ui_prefs jsonb (dashboard figures F5.5, theme, sound, radar layout), version` | **One user belongs to exactly one workspace** (ADR-0004). Email is globally unique, so login needs no workspace picker |
+| `users` | `id, workspace_id, email citext UNIQUE (global), name, password_hash, base_level ('owner'|'admin'|'user'), availability ('available'|'busy'|'on_leave'|'offline'), is_active bool, deactivated_at, locale, timezone, capacity int NULL (P1 per-employee; NULL = team default), skills text[], slack_user_id text NULL, slack_team_id text NULL, ui_prefs jsonb (dashboard figures F5.5, theme, sound, radar layout), version` | **One user belongs to exactly one workspace** (ADR-0004). Email is globally unique, so login needs no workspace picker |
 | `level_permissions` | `workspace_id, base_level, permissions text[]` | Default grants per base level, editable by the Owner |
 | `roles` | `id, workspace_id, name, permissions text[], is_system bool` | Custom roles (F1.7). Seeded "Manager" (`is_system=false`, editable) |
 | `user_roles` | `workspace_id, user_id, role_id` PK(user_id, role_id) | |
@@ -75,7 +75,7 @@
 | `awaiting_handler` | `bool` | True whenever `custody='fallback'` because no eligible handler accepted |
 | `awaiting_reason` | `text NULL` | Code: `no_available`, `all_at_capacity`, `no_skill_match`, `first_to_claim_pending`, `chain_exhausted`, `owner_absent`, `owner_deactivated` |
 | `ack_status` | `'pending'|'acknowledged'` | Human-only (Section 9) |
-| `acknowledged_at, acknowledged_via` | | `via`: `app`, `telegram`, `action:<type>`, `claim`, `pond_claim` |
+| `acknowledged_at, acknowledged_via` | | `via`: `app`, `slack`, `action:<type>`, `claim`, `pond_claim` |
 | `first_assigned_at` | `NOT NULL` | Set at intake (includes fallback custody). **Never reset** |
 | `assigned_at` | `NOT NULL` | Last ownership change |
 | `first_acknowledged_at` | `NULL` | **Never reset** after first set |
@@ -109,7 +109,7 @@ Constraints and indexes:
 
 `notifications`: `id, workspace_id, user_id, type, lead_id NULL, params jsonb, read_at, created_at` (in-app centre with unread count, F3.4).
 
-`telegram_alerts`: `id (short random text, ≤ 16 chars), workspace_id, user_id, lead_id, lead_version, chat_id, telegram_message_id, purpose, status, created_at`. Callback data is `ack:<id>` (fits Telegram's 64-byte limit). On press, compare the stored `lead_version`/owner against the current lead (I4.5).
+`slack_alerts`: `id (short random text, ≤ 16 chars), workspace_id, user_id, lead_id, lead_version, slack_channel, slack_ts, purpose, status, created_at`. The Block Kit button `value` is the signed opaque alert id (`lead_ack`). On press, compare the stored `lead_version`/owner against the current lead (I4.5). `slack_channel` + `slack_ts` allow `chat.update`.
 
 ## 5. Messaging
 
@@ -141,10 +141,10 @@ The calendar connection is an `integration_connections` row with `user_id` set (
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `integration_connections` | `id, workspace_id, user_id NULL, provider ('meta_whatsapp'|'twilio_whatsapp'|'stripe'|'google_calendar'|'telegram'|'openai'), status ('not_connected'|'connected'|'error'|'needs_reconnect'), connection_key text UNIQUE (webhook path token), public_config jsonb, secrets_enc bytea, secrets_hint text (last 4), last_ok_at, last_error_at, last_error, health jsonb (breaker), version` | I5.1–I5.3, I5.7 |
+| `integration_connections` | `id, workspace_id, user_id NULL, provider ('meta_whatsapp'|'twilio_whatsapp'|'stripe'|'google_calendar'|'slack'|'openai'), status ('not_connected'|'connected'|'error'|'needs_reconnect'), connection_key text UNIQUE (webhook path token), public_config jsonb, secrets_enc bytea, secrets_hint text (last 4), last_ok_at, last_error_at, last_error, health jsonb (breaker), version` | I5.1–I5.3, I5.7 |
 | `integration_events` | `id, workspace_id NULL, connection_id NULL, provider, direction ('in'|'out'), kind, external_event_id NULL, status ('received'|'processed'|'rejected'|'failed'|'ignored'), duplicate_count int, http_status, latency_ms, reference, payload_redacted jsonb, normalized jsonb NULL (parsed event, for replay I5.9), error, ai_tokens_in, ai_tokens_out, ai_cost_micros, prompt_version, replay_of NULL, created_at, processed_at` | `UNIQUE (provider, external_event_id) WHERE direction='in'`. A duplicate does `ON CONFLICT DO UPDATE SET duplicate_count = duplicate_count + 1`. Rejected forgeries are stored too (I1.2) |
 | `oauth_states` | `state_hash UNIQUE, workspace_id, user_id, code_verifier_enc, expires_at, used_at` | Google OAuth state + PKCE (I3.1), single use, 10 min |
-| `telegram_link_tokens` | `token_hash UNIQUE, workspace_id, user_id, expires_at, used_at` | `/start <token>` deep link (I4.3), single use, 10 min |
+| `slack_link_tokens` | `token_hash UNIQUE, workspace_id, user_id, expires_at, used_at` | one-time code for `/relay link <code>` (I4.3), single use, 10 min |
 | `ai_usage_daily` | `workspace_id, day date, tokens int, cost_micros bigint` | Cap check (I6.4) |
 | `outbox` | `id, workspace_id NULL, type, payload jsonb, status ('pending'|'in_flight'|'done'|'failed'|'dead'), attempts, max_attempts, available_at, locked_until, last_error, dedupe_key UNIQUE NULL, created_at, done_at` | Outbox job types are listed in `04-integrations.md` §7 |
 | `scheduler_state` | singleton: `next_wake_at, qstash_message_id, updated_at` | Global |

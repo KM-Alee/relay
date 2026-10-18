@@ -91,7 +91,7 @@
 | GET | `/api/integrations/google/callback` (outside `/v1`) | state-verified, single use |
 | GET | `/integration-events` | `integrations.view` |
 | POST | `/integration-events/:id/replay` (P1) | `integrations.manage` |
-| POST | `/me/telegram-link` → deep link | session |
+| POST | `/me/slack-link` → one-time `/relay link <code>` (10 min) · DELETE `/me/slack-link` unlinks | session |
 | GET / PATCH | `/ai/settings`, CRUD `/knowledge`, `/templates` | `ai.manage` |
 | POST | `/conversations/:id/suggestions` (P2) | `ai.use` + `messaging.send` |
 | POST | `/ai/onboarding-proposals` · `/:id/apply` | Owner |
@@ -109,7 +109,7 @@
 |---|---|
 | `GET/POST /api/webhooks/meta/:connectionKey` | GET verify-token handshake; POST `X-Hub-Signature-256` |
 | `POST /api/webhooks/stripe/:connectionKey` | `Stripe-Signature` |
-| `POST /api/webhooks/telegram/:connectionKey` | `X-Telegram-Bot-Api-Secret-Token` |
+| `POST /api/webhooks/slack/:connectionKey/commands` · `/interactions` | `X-Slack-Signature` + `X-Slack-Request-Timestamp` (v0 HMAC, 5 min window) |
 | `POST /api/internal/tick` | QStash signature **or** `Bearer CRON_SECRET` |
 | `POST /api/internal/test-results` | `Bearer TEST_RESULTS_SECRET` (from CI) |
 | `GET /api/health` | public, no data |

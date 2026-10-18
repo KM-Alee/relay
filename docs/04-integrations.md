@@ -51,13 +51,15 @@ interface CalendarProvider {                                           // Google
 type CalEvent = { title: string; description?: string; start: Date; end: Date; timeZone: string /* IANA */;
   attendeeEmail?: string; idempotencyKey: string };
 
-interface Notifier {                                                   // Telegram
-  verifyWebhook(req: RawRequest, creds: Creds): { ok: boolean; reason?: string };
-  parseUpdate(req: RawRequest): TelegramUpdate;                       // /start <token> | callback_query
-  sendAlert(chatId: number, a: { text: string; buttons?: Array<{ label: string; data: string }>; linkUrl: string }, creds: Creds)
-    : Promise<{ messageId: number }>;
-  editAlert(chatId: number, messageId: number, text: string, creds: Creds): Promise<void>;
-  answerCallback(callbackQueryId: string, text: string, creds: Creds): Promise<void>;
+interface Notifier {                                                   // Slack (core/integrations/slack/)
+  verifyRequest(req: RawRequest, creds: Creds): { ok: boolean; reason?: string };   // v0 HMAC-SHA256 + 5 min window
+  parseCommand(req: RawRequest): SlackCommand;                        // /relay link <code> | help
+  parseInteraction(req: RawRequest): SlackInteraction;                // block_actions (lead_ack, lead_claim)
+  sendAlert(slackUserId: string, a: { blocks: unknown[]; text: string }, creds: Creds)
+    : Promise<{ channel: string; ts: string }>;                       // conversations.open + chat.postMessage
+  updateAlert(channel: string, ts: string, a: { blocks: unknown[]; text: string }, creds: Creds): Promise<void>; // chat.update
+  respond(responseUrl: string, text: string, ephemeral: boolean): Promise<void>;
+  lookupByEmail?(email: string, creds: Creds): Promise<{ slackUserId: string } | null>;   // optional auto-link
 }
 
 interface AIProvider { /* see 05-ai.md §3 */ }
@@ -93,7 +95,8 @@ Routes:
 |---|---|---|
 | `/api/webhooks/meta_whatsapp/[connectionKey]` | Meta | GET (handshake), POST |
 | `/api/webhooks/stripe/[connectionKey]` | Stripe | POST |
-| `/api/webhooks/telegram/[connectionKey]` | Telegram | POST |
+| `/api/webhooks/slack/[connectionKey]/commands` | Slack (slash command) | POST |
+| `/api/webhooks/slack/[connectionKey]/interactions` | Slack (Block Kit buttons) | POST |
 | `/api/integrations/google/callback` | Google OAuth redirect (not a webhook) | GET |
 | `/api/internal/tick` | QStash / cron / nudge | POST |
 
@@ -176,21 +179,26 @@ Local dev: `stripe listen --forward-to localhost:3000/api/webhooks/stripe/<devCo
 
 `oauth_states` table: `state_hash, workspace_id, user_id, code_verifier_enc, expires_at, used_at` (added to 02-data-model §8).
 
-## 6. Telegram bot (I4)
+## 6. Slack app (I4)
+
+Replaces the earlier chat-bot notifier (ADR-0011). **Verify all Slack API specifics (method names, scopes, payload shapes, rate-limit tiers, error codes) against the current Slack docs at build time.**
 
 | Topic | Implementation |
 |---|---|
-| Bot | One platform bot from BotFather (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`). A workspace may connect its own bot (same code path, per-connection token). Webhook set by `pnpm telegram:set-webhook` to `PUBLIC_BASE_URL/api/webhooks/telegram/<connectionKey>` with `secret_token` |
-| Verify | Header `X-Telegram-Bot-Api-Secret-Token` must equal the stored secret (constant-time). Idempotency on `update_id` |
-| Linking (I4.3) | Profile → "Link Telegram" → service creates a `telegram_link_tokens` row (random 32-char token, hash stored, 10 min expiry, single use) → deep link `https://t.me/<bot>?start=<token>`. On `/start <token>`: validate, set `users.telegram_chat_id`, reply in the user's locale, audit. Unlink clears it |
-| Alert (I4.1, I4.2) | Outbox `telegram.alert {leadId, userId, purpose, leadVersion}` → render in **the recipient's locale**: lead/contact name, source, reason (escalation level/trace sentence), countdown, deep link `PUBLIC_BASE_URL/<locale>/leads/<id>`. Opportunity value is included **only if** the recipient has `crm.opportunity.value.view` (F1.4). P1 AI brief appended when present (05 §5, never awaited > 1.5 s) |
+| App | One Slack app in a free Slack workspace, defined by the app manifest `apps/web/slack/manifest.json` (created by a build task). `pnpm slack:manifest` prints it with the prod `PUBLIC_BASE_URL` filled in, so setup is one paste in api.slack.com → "Create app from manifest" → install to workspace → copy bot token + signing secret. Bot scopes: `chat:write`, `im:write`, `commands`, `users:read`, `users:read.email`. Platform credentials: `SLACK_BOT_TOKEN` (`xoxb-…`), `SLACK_SIGNING_SECRET`, `SLACK_APP_ID`, optional `SLACK_TEAM_ID` (reject payloads from other workspaces). A workspace `integration_connections` row with provider `slack` (encrypted) may override them; same code path |
+| Inbound endpoints | `POST /api/webhooks/slack/<connectionKey>/commands`: slash command `/relay` (`/relay link <code>`, `/relay help`). `POST /api/webhooks/slack/<connectionKey>/interactions`: Block Kit button clicks (form-encoded `payload` JSON). Both return 200 within 3 s; real work goes to the outbox; slow replies use `response_url` |
+| Verify | On the **raw body**: compute `v0=` + hex HMAC-SHA256 of `v0:{X-Slack-Request-Timestamp}:{raw body}` with the signing secret; compare to `X-Slack-Signature` in constant time; reject if the timestamp is older than 5 minutes (replay) or the signature is missing/invalid (401, `integration_events.status='rejected'`). Optionally check `team_id` == `SLACK_TEAM_ID`. Then record idempotently in `integration_events`. Dedupe key: commands = `trigger_id`; interactions = action `trigger_id`/`action_ts` + Slack user id |
+| Linking (I4.3) | Profile (`/me`) → "Connect Slack" → service creates a `slack_link_tokens` row (random one-time code, hash stored, `user_id`, `workspace_id`, 10 min expiry, single use) and shows the code. The user types `/relay link <code>` in Slack. On match: store `users.slack_user_id` + `users.slack_team_id`, open the DM with `conversations.open`, send a confirmation in the user's locale, audit. Optional convenience (P1): "Auto-link by email": `users.lookupByEmail` when the Slack email equals the Relay email, still confirmed by a DM. Unlink from `/me` clears both columns |
+| Alert (I4.1, I4.2, F3.9) | Outbox `slack.send {leadId, userId, purpose, leadVersion}` → render a Block Kit message in **the recipient's locale**: lead/contact name, source, reason (assigned / escalated level / critical / fallback custody, with trace sentence), time left, link `PUBLIC_BASE_URL/<locale>/leads/<id>`. Opportunity value is included **only if** the recipient has `crm.opportunity.value.view` (F1.4, via `core/auth/mask.ts`). P1 AI brief appended when present (05 §5, never awaited > 1.5 s). Sent with `chat.postMessage` to the user's DM; the returned `ts` + channel are stored on the `slack_alerts` row so the message can be edited later |
 | Timing | Escalation alerts are enqueued in the escalation tx and kicked via `after()`/tick, which comfortably meets "within the same minute". `outbox.available_at=now` |
-| Acknowledge (I4.5, P1) | Inline button `callback_data = "ack:<telegram_alerts.id>"`. On callback: look up the alert → check that `from.id` maps to the alert's user **and** that user's `telegram_chat_id` → call `leads.acknowledge(actor=user, via='telegram', expectedOwner=user)`. Success → `editAlert` "✅ Acknowledged by you at 14:03" + `answerCallback`. Stale (owner changed / already acked / closed) → `answerCallback` "This lead is now with Sara — nothing changed" + edit the message. Audit both outcomes |
-| Claim (P1 first-to-claim) | `callback_data = "claim:<id>"` → `leads.claim` (03 §T8). The loser gets "Already claimed by Hamza" |
-| Failure (I4.4) | Retries: 5 attempts, backoff 2 s, 8 s, 30 s, 2 min, 5 min. Honor `retry_after` on 429. 403 (user blocked bot) → permanent, clear `telegram_chat_id`, notify in-app. Failures appear in sync history + integrations page for Admins |
-| Limits copy | "Users must press Start in the bot before alerts can reach them"; "Telegram rate-limits bursts (~30 msgs/s global, ~1 msg/s per chat, **verify**)" |
+| Acknowledge button (I4.5, P1) | Block Kit button `action_id: "lead_ack"`, `value` = signed opaque alert id (`slack_alerts.id` + HMAC). The interactions handler verifies the signature, that the Slack user is linked, **is the current owner**, and the lead is still pending → `leads.acknowledge(actor=user, via='slack', expectedOwner=user)` (T2) → `chat.update` to "Acknowledged by Ayesha at 14:03". Stale (owner changed / already acked / closed) → ephemeral reply via `response_url` ("This lead is now with Sara, nothing changed"), no state change. Both outcomes audited |
+| Claim button (P1 first-to-claim) | `action_id: "lead_claim"`, same signed value → `leads.claim` (03 §T8). The loser gets "Already claimed by Hamza" (ephemeral) and the message is updated |
+| Failure (I4.4) | Retries with backoff (2 s, 8 s, 30 s, 2 min, 5 min; 5 attempts) on 5xx and on 429, honoring `Retry-After`. Permanent errors (`channel_not_found`, `not_in_channel`, `account_inactive`, `invalid_auth`, `user_not_found`) mark the delivery `failed`, show the reason in-app, and appear in sync history + the integrations page for Admins (`invalid_auth` also sets the connection `needs_reconnect`; `user_not_found`/`account_inactive` clear the user's link). Users who have not linked Slack are skipped with a visible reason ("Slack not connected") |
+| Limits copy | "Recipients must be members of our Slack workspace and must connect Slack in their profile before alerts reach them"; "Slack rate-limits messages (~1 msg/sec per channel; Web API methods are tiered, **verify**)". Free Slack workspace: no cost |
 
-`telegram_link_tokens` table: `token_hash, workspace_id, user_id, expires_at, used_at` (added to 02-data-model §8).
+`slack_link_tokens` table: `token_hash, workspace_id, user_id, expires_at, used_at` (02-data-model §8). `slack_alerts` table: see 02-data-model §4.
+
+Test double: `core/integrations/slack/fake.ts` (enabled with `INTEGRATIONS_FAKE=1`) records posted/updated messages and lets tests simulate button clicks and slash commands with correctly signed requests.
 
 ## 7. Outbox job catalogue (single source of truth)
 
@@ -198,11 +206,11 @@ Default retry: exponential backoff `min(2^attempt × 2 s, 10 min)` with ±20 % j
 
 | Type | Payload | Handler | Retry | `dedupe_key` |
 |---|---|---|---|---|
-| `integration.process` | `{eventId}` | dispatch by provider/kind → messaging / payments / telegram services | default | `iev:<eventId>` |
+| `integration.process` | `{eventId}` | dispatch by provider/kind → messaging / payments / slack services | default | `iev:<eventId>` |
 | `message.send` | `{messageId}` | checks opt-out + window again, then adapter send; updates status | default; permanent → `failed` + reason | `msg:<messageId>` |
 | `media.download` | `{messageId, providerMediaId}` | download → Blob → `media` row | 4 attempts (media URLs expire) | `media:<messageId>` |
-| `telegram.alert` | `{leadId, userId, purpose, leadVersion}` | render + send + `telegram_alerts` row | 5 (see §6) | `tg:<purpose>:<leadId>:<leadVersion>:<userId>` |
-| `telegram.reply` | `{chatId, text, editMessageId?}` | link confirmations, stale replies | 3 | `tgr:<updateId>` |
+| `slack.send` | `{leadId, userId, purpose, leadVersion}` | render Block Kit + `chat.postMessage` + `slack_alerts` row (`slack_channel`, `slack_ts`) | 5 (see §6) | `sl:<purpose>:<leadId>:<leadVersion>:<userId>` |
+| `slack.update` | `{alertId, text, blocks?}` | `chat.update` (acknowledged / stale), link confirmations (`conversations.open` + post) | 3 | `slu:<interactionKey>` |
 | `payment.create_checkout` | `{paymentRequestId}` | create session, store url, realtime | default | `pay:<paymentRequestId>` |
 | `payment.expire_checkout` | `{paymentRequestId}` | user cancels a link | 3 | `payx:<id>` |
 | `calendar.create_event` / `.update_event` / `.cancel_event` | `{appointmentId, version}` | Google call with deterministic event id | default; auth → needs_reconnect | `cal:<op>:<appointmentId>:<version>` |
@@ -219,10 +227,10 @@ Handlers are **idempotent by construction**: they re-read state and exit if work
 
 | ID | How we satisfy it |
 |---|---|
-| I5.1 Integrations page | `/[locale]/settings/integrations`: one card per provider: status chip (`not_connected`/`connected`/`error`/`needs_reconnect`), `last_ok_at`, last 5 errors (from `integration_events` with `status in (rejected, failed)`), breaker state, **AI spend today** (from `ai_usage_daily`), last tick (`job_runs`), stated limits (I5.6). Per-employee Google + Telegram link status for Admins |
+| I5.1 Integrations page | `/[locale]/settings/integrations`: one card per provider: status chip (`not_connected`/`connected`/`error`/`needs_reconnect`), `last_ok_at`, last 5 errors (from `integration_events` with `status in (rejected, failed)`), breaker state, **AI spend today** (from `ai_usage_daily`), last tick (`job_runs`), stated limits (I5.6). Per-employee Google + Slack link status for Admins |
 | I5.2 Per-workspace config | Every adapter call receives the connection resolved for **that** workspace (or user). There are no module-level clients holding credentials. Webhook routes resolve by `connectionKey` and also check that the payload's business ID (e.g. `phone_number_id`) matches the connection |
 | I5.3 Secrets | AES-256-GCM `secrets_enc` (`APP_ENCRYPTION_KEY`), decrypted only inside job/service code. API returns `secrets_hint` (last 4) only. The logger has redaction paths for `*.token`, `*.secret`, `authorization`. `.env*` is gitignored except `.env.example` |
-| I5.4 Sync history | Every inbound event **and** outbound call writes `integration_events` (direction, kind, status, http_status, latency_ms, reference = wamid / Stripe id / Google event id / Telegram message id). Viewer: `/settings/integrations/:provider/history` (permission `integrations.manage` or `audit.view`), filter by status/kind/date |
+| I5.4 Sync history | Every inbound event **and** outbound call writes `integration_events` (direction, kind, status, http_status, latency_ms, reference = wamid / Stripe id / Google event id / Slack message `ts`). Viewer: `/settings/integrations/:provider/history` (permission `integrations.manage` or `audit.view`), filter by status/kind/date |
 | I5.5 Resilience | Outbox retry policy (§7). Permanent errors produce a localized explanation via `integration.error.<provider>.<code>` keys with a generic fallback |
 | I5.6 Limits | Static, localized "What this can and can't do" block per card (copy in §3–6 and `05-ai.md` §8) |
 | I5.7 Permission + audit | Connect/change/remove requires `integrations.manage`. Audit actions: `integration.connected`, `.updated`, `.disconnected`, `.secret_rotated`, `.breaker_forced` |
@@ -247,16 +255,16 @@ Each scenario runs real code paths against the demo workspace, and shows expecte
 | Duplicate WhatsApp webhook (I1.8) | Server builds a Meta payload for a seeded number, signs it with the real `app_secret`, POSTs it **twice** to the real webhook URL → assert 1 message, 1 lead, `duplicate_count=1` |
 | Duplicate Stripe event (I2.4) | Sign a `checkout.session.completed` fixture with the endpoint secret (Stripe's documented signature scheme) and POST twice → 1 payment |
 | Forged signature (I1.2, I2.3) | Same payload with a tampered byte / wrong secret → 401, `integration_events.status='rejected'`, no state change |
-| Provider outage (I5.8) | Force the breaker open for Telegram/OpenAI/WhatsApp → trigger an escalation → lead still escalates, in-app alert shown, job deferred, AI fallback reply used. Close the breaker → deferred jobs deliver |
+| Provider outage (I5.8) | Force the breaker open for Slack/OpenAI/WhatsApp → trigger an escalation → lead still escalates, in-app alert shown, job deferred, AI fallback reply used. Close the breaker → deferred jobs deliver |
 | Lose the doorbell (Q5) | Cancel the scheduled QStash wake → countdown hits 0 → nudge/backstop still escalates exactly once |
-| Telegram stale button | Escalate a lead, then press the old alert's Acknowledge → "nothing changed" |
+| Slack stale button | Escalate a lead, then press the old alert's Acknowledge → "nothing changed" |
 
 ## 11. Environments and local testing
 
 | | Local dev | Preview (Vercel) | Production |
 |---|---|---|---|
 | DB | Docker Postgres | Neon branch | Neon main |
-| Webhooks | Cloudflare quick tunnel → **separate dev** Meta app/number, dev Telegram bot, `stripe listen` | none (don't register previews) | fixed domain registered at Meta, Stripe, Google, Telegram |
+| Webhooks | Cloudflare quick tunnel → **separate dev** Meta app/number, dev Slack app (own manifest, tunnel URL), `stripe listen` | none (don't register previews) | fixed domain registered at Meta, Stripe, Google, Slack |
 | Adapters | real (dev creds) or `INTEGRATIONS_FAKE=1` | real dev creds or fakes | real |
 | Wake-ups | `scripts/dev-ticker.ts` | QStash optional | QStash + cron backstop |
 

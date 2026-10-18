@@ -91,7 +91,7 @@ Headline (name, company, language badge, owner, next action button) → tabs: **
 | Audit log | Filterable table (type/user/date) + "Verify integrity" (P1) with result banner. |
 | Settings | Workspace, pipelines & fields, tags, AI & knowledge base, templates, language/time zone/currency. |
 | Judge Console | Scenario cards: description · Run · expected vs actual · pass/fail badge · link to evidence (audit/sync history). |
-| Profile (`/me`) | Language, theme, sound, Telegram link, active sessions. |
+| Profile (`/me`) | Language, theme, sound, Slack link, active sessions. |
 
 ## 9. Public web form (`/f/[slug]`)
 A standalone, workspace-branded, minimal page: workspace name, short intro, fields, honeypot, submit (primary). The success state explains what happens next. P1: instant booking slots. Mobile-first, RTL-ready, no app nav.

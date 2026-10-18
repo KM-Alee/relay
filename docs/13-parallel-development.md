@@ -64,7 +64,7 @@
 | Tool | What it unblocks |
 |---|---|
 | `NEXT_PUBLIC_API_FIXTURES=1` + fixture builders | UI without backend |
-| `INTEGRATIONS_FAKE=1` + fake adapters (`core/integrations/*/fake.ts`) | Messaging, payments, calendar and Telegram flows without real accounts |
+| `INTEGRATIONS_FAKE=1` + fake adapters (`core/integrations/*/fake.ts`) | Messaging, payments, calendar and Slack flows without real accounts |
 | `AI_ENABLED=false` / fake `AIProvider` | Everything AI-adjacent without spending tokens |
 | `pnpm db:seed` (demo workspaces, users per role) | Realistic screens and manual testing |
 | **Dev login** `/dev/login-as` (lists seed users; refused unless `NODE_ENV=development` **and** `DEMO_MODE`) | Switch role in one click to test permissions |

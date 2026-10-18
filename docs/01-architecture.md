@@ -37,14 +37,14 @@ Pin versions at scaffold time (T-001). Don't add a dependency that duplicates on
                         │ HTTPS /api/v1/*  (data + change-feed hints)
 Providers ─webhooks─►┌──▼─────────────────────────────┐
 (Meta, Stripe,       │ Vercel: apps/web (Next.js)      │
- Google, Telegram)   │  • /api/v1/*       JSON API     │
+ Google, Slack)   │  • /api/v1/*       JSON API     │
                      │  • /api/webhooks/* raw-body     │
 QStash ─signed POST─►│  • /api/internal/tick  runDueWork│  (QStash: next-deadline wake-ups
  (wake + schedule)   │  • after(): post-response work  │   + cron schedule backstop)
                      └──┬───────────────────────┬──────┘
                         │ pg pool (pooled URL,   │ outbound calls (from jobs)
                         │ role app_user, RLS)    ▼
-                   ┌────▼─────┐        Meta / Stripe / Google / Telegram / OpenAI / Blob
+                   ┌────▼─────┐        Meta / Stripe / Google / Slack / OpenAI / Blob
                    │  Neon    │  ← single source of truth for data AND timers
                    └──────────┘
 ```
@@ -53,7 +53,7 @@ QStash ─signed POST─►│  • /api/internal/tick  runDueWork│  (QStash: 
 
 1. **Postgres owns time.** Every deadline is a column (`leads.escalate_at`, `leads.routing_retry_at`, `leads.idle_check_at`, `outbox.available_at`). No timer lives in memory, `setTimeout`, or QStash alone. QStash only *wakes us up*. Correctness comes from the DB. (Q5, F3.8)
 2. **`runDueWork()` is idempotent and safe to run concurrently.** It claims due rows with `FOR UPDATE SKIP LOCKED` and applies conditional updates on `version`. Two ticks at once, a duplicate QStash delivery, or a crash mid-tick all produce exactly one effect.
-3. **Outbox for every side effect.** A WhatsApp send, Telegram alert, Google event, OpenAI call or QStash schedule is written as an `outbox` row **in the same transaction** as the state change that causes it. Delivery happens in `runDueWork()` (usually kicked immediately via `after()`), with retries and backoff (I5.5).
+3. **Outbox for every side effect.** A WhatsApp send, Slack alert, Google event, OpenAI call or QStash schedule is written as an `outbox` row **in the same transaction** as the state change that causes it. Delivery happens in `runDueWork()` (usually kicked immediately via `after()`), with retries and backoff (I5.5).
 4. **Webhooks: verify → record → 200 → process later.** Raw body → signature check → `INSERT integration_events … ON CONFLICT DO NOTHING` + outbox row in one tx → respond 200 → `after(() => processOutboxItem(id))`. (F6.13, I1.8, I2.4)
 5. **Realtime is invalidation, not data.** `realtime_events` rows carry `{topic, ids}` only. Clients poll them and refetch. The browser refetches through the permissioned API. So realtime can never leak masked fields such as opportunity value (F1.4) or cross-workspace data.
 
@@ -167,14 +167,14 @@ Rules:
 
 - Env vars are defined in `.env.example` and validated at boot by `core/config.ts`, which fails fast. Use Vercel env scopes (Production / Preview / Development). Locally, run `vercel env pull apps/web/.env.local` or copy `.env.example`.
 - Per-workspace provider credentials live in `integration_connections.secrets_enc` (AES-256-GCM, key `APP_ENCRYPTION_KEY`). They are never sent to the browser; the UI shows the last 4 characters only.
-- Platform-level credentials (OpenAI key, QStash, Blob token, default Telegram bot) live in env. A workspace may override provider credentials.
+- Platform-level credentials (OpenAI key, QStash, Blob token, default Slack bot) live in env. A workspace may override provider credentials.
 
 ## 9. Deployment
 
 - Vercel project root `apps/web`, framework Next.js, functions region `sin1`, Fluid compute on.
 - Build: `vercel-build` = `pnpm db:migrate && next build`. Migrations are idempotent and run against the Neon branch selected by env: preview → branch, production → main.
 - Production domain: `https://<project>.vercel.app` (stable) or a custom domain. **Every provider webhook and OAuth redirect points at the production domain**, because preview URLs change. Drive links from `PUBLIC_BASE_URL`.
-- Local webhook testing: Cloudflare quick tunnel with a **separate** dev Meta app, Telegram bot and Stripe CLI (`stripe listen --forward-to`). Never repoint production webhooks to a laptop.
+- Local webhook testing: Cloudflare quick tunnel with a **separate** dev Meta app, Slack bot and Stripe CLI (`stripe listen --forward-to`). Never repoint production webhooks to a laptop.
 - Runbook and demo-day steps: `12-demo-and-ops.md`.
 
 ## 10. Platform limits to design around (verify current numbers before relying on them)
@@ -191,6 +191,6 @@ Rules:
 
 ## 11. Failure isolation (I5.8, F6.11)
 
-- Every adapter call has a timeout (messaging 10 s, Stripe 10 s, Google 10 s, Telegram 5 s, OpenAI chat 8 s, transcription 30 s).
+- Every adapter call has a timeout (messaging 10 s, Stripe 10 s, Google 10 s, Slack 5 s, OpenAI chat 8 s, transcription 30 s).
 - Each connection has a circuit-breaker state in `integration_connections.health`. The Judge Console can force it open to simulate an outage.
-- **The lead pipeline never awaits an external call.** Intake, assignment, escalation and in-app notifications are pure DB transactions. Telegram, WhatsApp, AI and QStash are all fired from the outbox or after commit. Realtime has no external dependency. If QStash is down, the backstop and nudges keep timers firing. If OpenAI is down, a static fallback reply goes out. This is how P0 works with every P1 feature off (C20).
+- **The lead pipeline never awaits an external call.** Intake, assignment, escalation and in-app notifications are pure DB transactions. Slack, WhatsApp, AI and QStash are all fired from the outbox or after commit. Realtime has no external dependency. If QStash is down, the backstop and nudges keep timers firing. If OpenAI is down, a static fallback reply goes out. This is how P0 works with every P1 feature off (C20).

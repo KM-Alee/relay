@@ -27,7 +27,7 @@ Every interactive component defines these states: default, hover, focus-visible 
 | **StatusBadge** | Semantic colour + icon + label, pill. Variants: `success` (✓), `warning` (⚠), `danger` (⛔/!), `info` (i), `neutral`/pending (◷), `disabled`. Lead-state mapping: Awaiting handler → warning + "Awaiting handler"; Assigned · pending → info + "Waiting ack"; Overdue → danger; Critical → danger + bold; Acknowledged → success; Idle → neutral; Closed → neutral. |
 | **CountdownRing** | Circular progress around a **numeric remaining time** (`1:42`, tabular). State by fraction remaining: > 50 % success, 20–50 % warning, < 20 % danger, ≤ 0 "Overdue" + danger icon. An icon + severity label sits beside the ring at ≥ md ("Escalates in 1:42"). Pulsing only in the danger state and only without reduced motion. Updates visually every second. The screen-reader label updates at most every 30 s, plus at threshold crossings (guide §10). Driven by server `ack_window_ends_at` + server-time offset. Sizes: 20 (row), 40 (card), 96 (radar). |
 | **OwnerChip** | Avatar + name + availability dot. Variant `fallback`: adds a "Fallback custody" warning badge and a tooltip with the reason ("No one available: all at capacity"). There's always exactly one OwnerChip on a lead (never "assigned to team"). |
-| **EscalationStep** | "Level 2 of 4 · escalated 14:03 · Telegram ✓ delivered" (guide §10 "Escalated"). |
+| **EscalationStep** | "Level 2 of 4 · escalated 14:03 · Slack ✓ delivered" (guide §10 "Escalated"). |
 | **RoutingTrace** | Ordered list: skipped rows (muted, reason badge: On leave / 5/5 open / No skill / Offline) → chosen row (✓, brand-soft background). Collapsible on mobile. (F3.11) |
 | **AIBadge** | Text "AI" in an `--ai` pill, always as text. Used on AI messages, AI-filled fields ("AI · 14:02"), and the AI stand-in banner. |
 | **MaskedValue** | Lock icon + "Hidden" (i18n). Tooltip: "You don't have permission to see values." Renders the server's `{masked:true}` (F1.4). |
@@ -77,7 +77,7 @@ Every interactive component defines these states: default, hover, focus-visible 
 | Component | Spec |
 |---|---|
 | **RuleSummary** | Default view: readable sentence chain, e.g. "When a WhatsApp lead arrives → assign to an available rep (round-robin, max 5 open) → wait 2 min for acknowledgement → escalate to next rep → then backup → then manager. Repeat once." Each segment is an editable chip that opens the property inspector. This **is** the P0 "basic settings form" in friendlier form. |
-| **FlowCanvas** (advanced) | `@xyflow/react`. Node types: Source trigger, Availability check, Round-robin assign, Ack wait (timeout), Ack/Timed-out branch, Reassign, Backup, Manager, Notify (Telegram). Category icons, verb labels, labelled branches. Static edges; never animate edges to suggest success. A linear rule list + full keyboard editing is the accessible alternative. |
+| **FlowCanvas** (advanced) | `@xyflow/react`. Node types: Source trigger, Availability check, Round-robin assign, Ack wait (timeout), Ack/Timed-out branch, Reassign, Backup, Manager, Notify (Slack). Category icons, verb labels, labelled branches. Static edges; never animate edges to suggest success. A linear rule list + full keyboard editing is the accessible alternative. |
 | **TestPanel** | "Test flow" runs a simulated lead through `domain/leads/route` (pure functions) using the current team state and shows the event timeline + routing trace. "Publish" is a separate, permission-gated (`routing.manage`), audited action. |
 
 ## 7. Motion budget (Q17 + guide §10)
