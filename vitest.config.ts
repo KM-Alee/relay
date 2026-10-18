@@ -22,7 +22,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['packages/*/src/**/*.test.ts', 'apps/web/**/*.test.{ts,tsx}'],
+          include: ['packages/*/src/**/*.test.ts', 'apps/web/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
           exclude: ['**/node_modules/**', '**/.next/**'],
         },
       },

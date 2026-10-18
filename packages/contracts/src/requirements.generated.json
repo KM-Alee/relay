@@ -1,0 +1,896 @@
+[
+  {
+    "id": "F1.1",
+    "title": "Sign up, log in, log out and persistent sessions",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.2",
+    "title": "Three base levels: Owner, Admin, User",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.3",
+    "title": "Configurable permissions, not tied to role names",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.4",
+    "title": "Field-level protection",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.5",
+    "title": "Server-side enforcement",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.6",
+    "title": "Workspace isolation",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.7",
+    "title": "Custom roles",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F1.8",
+    "title": "User lifecycle and sessions",
+    "priority": "P0",
+    "section": "F1. Accounts, roles and permissions (P0)"
+  },
+  {
+    "id": "F2.1",
+    "title": "Contacts, companies and opportunities with relationships",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.2",
+    "title": "Custom fields created from the interface",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.3",
+    "title": "Different fields for different pipelines",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.4",
+    "title": "Stage-specific required fields",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.5",
+    "title": "Customizable pipeline",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.6",
+    "title": "Filtering and saved lists",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.7",
+    "title": "Activity history",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.8",
+    "title": "Complete customer view",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.9",
+    "title": "Stage rot timers",
+    "priority": "P1",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.10",
+    "title": "\"Work this list\" mode",
+    "priority": "P2",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.11",
+    "title": "Export",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.12",
+    "title": "Import",
+    "priority": "P1",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F2.13",
+    "title": "Manual activity logging",
+    "priority": "P0",
+    "section": "F2. Customizable CRM (P0)"
+  },
+  {
+    "id": "F3.1",
+    "title": "Lead capture from multiple sources",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.2",
+    "title": "Employee availability",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.3",
+    "title": "Configurable assignment rules",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.4",
+    "title": "Acknowledgement window",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.5",
+    "title": "Escalation chain",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.6",
+    "title": "Reassignment on absence",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.7",
+    "title": "Recovery queue",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.8",
+    "title": "No duplicate action",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.9",
+    "title": "External notification of escalations",
+    "priority": "P0",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.10",
+    "title": "Acknowledged-but-idle re-trigger",
+    "priority": "P1",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.11",
+    "title": "Routing decision trace",
+    "priority": "P1",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F3.12",
+    "title": "Urgency-based windows",
+    "priority": "P1",
+    "section": "F3. Lead capture, assignment, acknowledgement and escalation (P0, core)"
+  },
+  {
+    "id": "F4.1",
+    "title": "Record of important actions",
+    "priority": "P0",
+    "section": "F4. Audit history (P0)"
+  },
+  {
+    "id": "F4.2",
+    "title": "Restricted visibility",
+    "priority": "P0",
+    "section": "F4. Audit history (P0)"
+  },
+  {
+    "id": "F4.3",
+    "title": "Tamper resistance",
+    "priority": "P0",
+    "section": "F4. Audit history (P0)"
+  },
+  {
+    "id": "F4.4",
+    "title": "Hash chain",
+    "priority": "P1",
+    "section": "F4. Audit history (P0)"
+  },
+  {
+    "id": "F5.1",
+    "title": "Live overview",
+    "priority": "P0",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.2",
+    "title": "Consistent definitions",
+    "priority": "P0",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.3",
+    "title": "Drill-down",
+    "priority": "P0",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.4",
+    "title": "Role-aware view",
+    "priority": "P0",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.5",
+    "title": "Basic customization",
+    "priority": "P0",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.6",
+    "title": "Lead Radar",
+    "priority": "P1",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.7",
+    "title": "Revenue at Risk",
+    "priority": "P1",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.8",
+    "title": "Revenue Rescued",
+    "priority": "P1",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F5.9",
+    "title": "AI stand-in stats",
+    "priority": "P1",
+    "section": "F5. Operational dashboard (P0)"
+  },
+  {
+    "id": "F6.1",
+    "title": "Modes",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.2",
+    "title": "Trigger conditions",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.3",
+    "title": "Disclosure",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.4",
+    "title": "Information collection",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.5",
+    "title": "Grounded answers only",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.6",
+    "title": "Triage",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.7",
+    "title": "Honest status",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.8",
+    "title": "Forbidden actions",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.9",
+    "title": "Hard handoff triggers",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.10",
+    "title": "Human takeover",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.11",
+    "title": "Failure isolation",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.12",
+    "title": "Auditability",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F6.13",
+    "title": "Latency target",
+    "priority": "P1",
+    "section": "F6. AI Stand-in: customer engagement while no human is available (P1, new)"
+  },
+  {
+    "id": "F7.1",
+    "title": "UI languages",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.2",
+    "title": "Right-to-left layout",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.3",
+    "title": "Typography",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.4",
+    "title": "Formatting",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.5",
+    "title": "Customer language matching",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.6",
+    "title": "Localized templates",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F7.7",
+    "title": "Extensibility",
+    "priority": "P1",
+    "section": "F7. Localization (P1, new)"
+  },
+  {
+    "id": "F8.1",
+    "title": "Customer voice notes",
+    "priority": "P1",
+    "section": "F8. Voice (P1/P2, new)"
+  },
+  {
+    "id": "F8.2",
+    "title": "Voice notes feed AI and triage",
+    "priority": "P1",
+    "section": "F8. Voice (P1/P2, new)"
+  },
+  {
+    "id": "F8.3",
+    "title": "Transcription failure handling",
+    "priority": "P1",
+    "section": "F8. Voice (P1/P2, new)"
+  },
+  {
+    "id": "F8.4",
+    "title": "Employee push-to-talk",
+    "priority": "P2",
+    "section": "F8. Voice (P1/P2, new)"
+  },
+  {
+    "id": "F8.5",
+    "title": "Voice commands",
+    "priority": "P2",
+    "section": "F8. Voice (P1/P2, new)"
+  },
+  {
+    "id": "F9.1",
+    "title": "AI field type",
+    "priority": "P1",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F9.2",
+    "title": "AI handoff brief in alerts",
+    "priority": "P1",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F9.3",
+    "title": "Describe-your-business onboarding",
+    "priority": "P1",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F9.4",
+    "title": "Natural-language command bar",
+    "priority": "P2",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F9.5",
+    "title": "Suggested replies",
+    "priority": "P2",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F9.6",
+    "title": "Deal health score",
+    "priority": "P2",
+    "section": "F9. AI-assisted CRM (P1/P2, new)"
+  },
+  {
+    "id": "F10.1",
+    "title": "Judge Console",
+    "priority": "P1",
+    "section": "F10. Demonstrability (P1, new)"
+  },
+  {
+    "id": "F10.2",
+    "title": "Time-warp",
+    "priority": "P1",
+    "section": "F10. Demonstrability (P1, new)"
+  },
+  {
+    "id": "F10.3",
+    "title": "Requirement traceability page",
+    "priority": "P1",
+    "section": "F10. Demonstrability (P1, new)"
+  },
+  {
+    "id": "F10.4",
+    "title": "Seeded demo workspaces",
+    "priority": "P1",
+    "section": "F10. Demonstrability (P1, new)"
+  },
+  {
+    "id": "I1.0",
+    "title": "Provider adapter",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.1",
+    "title": "Receive messages",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.2",
+    "title": "Request authenticity",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.3",
+    "title": "Send messages",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.4",
+    "title": "Delivery status",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.5",
+    "title": "Contact matching",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.6",
+    "title": "Ownership",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.7",
+    "title": "Failure handling",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.8",
+    "title": "Duplicates",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.9",
+    "title": "Opt-out",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.10",
+    "title": "24-hour service window",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I1.11",
+    "title": "Media",
+    "priority": "P0",
+    "section": "I1. Messaging (Meta WhatsApp Cloud API)"
+  },
+  {
+    "id": "I2.1",
+    "title": "Create a payment request",
+    "priority": "P1",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.2",
+    "title": "Payment confirmation by webhook",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.3",
+    "title": "Request authenticity",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.4",
+    "title": "Idempotent processing",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.5",
+    "title": "Other outcomes",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.6",
+    "title": "Collected versus expected",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.7",
+    "title": "Traceability",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I2.8",
+    "title": "No card data stored",
+    "priority": "P0",
+    "section": "I2. Payments (Stripe test mode)"
+  },
+  {
+    "id": "I3.1",
+    "title": "Connect with consent",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.2",
+    "title": "Token handling",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.3",
+    "title": "Create appointments",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.4",
+    "title": "Avoid conflicts",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.5",
+    "title": "Time zones",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.6",
+    "title": "Change and cancel",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.7",
+    "title": "Availability link",
+    "priority": "P0",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.8",
+    "title": "Instant booking after web form",
+    "priority": "P1",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I3.9",
+    "title": "Localized confirmation",
+    "priority": "P1",
+    "section": "I3. Calendar (Google Calendar, OAuth 2.0)"
+  },
+  {
+    "id": "I4.1",
+    "title": "Real delivery",
+    "priority": "P0",
+    "section": "I4. Notifications (Telegram bot)"
+  },
+  {
+    "id": "I4.2",
+    "title": "Useful content",
+    "priority": "P1",
+    "section": "I4. Notifications (Telegram bot)"
+  },
+  {
+    "id": "I4.3",
+    "title": "Per-user routing",
+    "priority": "P0",
+    "section": "I4. Notifications (Telegram bot)"
+  },
+  {
+    "id": "I4.4",
+    "title": "Failure handling",
+    "priority": "P0",
+    "section": "I4. Notifications (Telegram bot)"
+  },
+  {
+    "id": "I4.5",
+    "title": "Acknowledge from Telegram",
+    "priority": "P1",
+    "section": "I4. Notifications (Telegram bot)"
+  },
+  {
+    "id": "I6.1",
+    "title": "Server-side only",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.2",
+    "title": "Model configuration",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.3",
+    "title": "Structured outputs",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.4",
+    "title": "Cost controls",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.5",
+    "title": "Logging",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.6",
+    "title": "Data minimization",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I6.7",
+    "title": "Timeouts and retries",
+    "priority": "P1",
+    "section": "I6. AI (OpenAI API) (new)"
+  },
+  {
+    "id": "I5.1",
+    "title": "Central integrations page",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.2",
+    "title": "Per-workspace configuration",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.3",
+    "title": "Secret handling",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.4",
+    "title": "Synchronization history",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.5",
+    "title": "Resilience",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.6",
+    "title": "Clearly stated limits",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.7",
+    "title": "Permission and audit",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.8",
+    "title": "Isolation of failures",
+    "priority": "P0",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "I5.9",
+    "title": "Event replay",
+    "priority": "P1",
+    "section": "I5. Requirements shared by every integration (I1–I4, I6)"
+  },
+  {
+    "id": "Q1",
+    "title": "Authentication security",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q2",
+    "title": "Authorization",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q3",
+    "title": "Input safety",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q4",
+    "title": "Data integrity",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q5",
+    "title": "Concurrency and timing",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q6",
+    "title": "Persistence",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q7",
+    "title": "Responsive interface",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q8",
+    "title": "Accessibility",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q9",
+    "title": "Performance",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q10",
+    "title": "Feedback and errors",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q11",
+    "title": "Real-time awareness",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q12",
+    "title": "Consistent data",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q13",
+    "title": "Configuration and secrets",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q14",
+    "title": "Maintainable structure",
+    "priority": "P0",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q15",
+    "title": "AI safety and cost",
+    "priority": "P1",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q16",
+    "title": "Internationalization",
+    "priority": "P1",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q17",
+    "title": "Demo polish",
+    "priority": "P1",
+    "section": "6. Quality requirements"
+  },
+  {
+    "id": "Q18",
+    "title": "Cost and deployment",
+    "priority": "P1",
+    "section": "6. Quality requirements"
+  }
+]

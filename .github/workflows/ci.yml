@@ -1,0 +1,112 @@
+# CI (T-011, docs/08-testing.md §7). Runs on every PR and every push to main.
+#   static : lint + typecheck
+#   test   : unit + integration (real postgres:16; migrations as owner, code under test as app_user),
+#            then the traceability report (artifact; POSTed to TEST_RESULTS_URL on pushes to main)
+#   build  : `next build` with NO database env vars (proves the build never touches the DB)
+# Action versions verified against the latest releases on 2026-10-18.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  static:
+    name: lint + typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+
+  test:
+    name: unit + integration (postgres 16)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: relay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d relay"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      # The integration setup creates `relay_test` (and the app_user role with this password) and runs every
+      # migration as the owner; the code under test connects as app_user (RLS applies).
+      TEST_DATABASE_URL: postgres://app_user:app_user_dev@localhost:5432/relay_test
+      TEST_DATABASE_URL_UNPOOLED: postgres://postgres:postgres@localhost:5432/relay_test
+      APP_DB_PASSWORD: app_user_dev
+      # Required config values for tests that exercise the config loader (throwaway, CI only).
+      PUBLIC_BASE_URL: http://localhost:3000
+      SESSION_SECRET: Y2ktb25seS1zZXNzaW9uLXNlY3JldC0zMi1ieXRlcyEhISE=
+      APP_ENCRYPTION_KEY: Y2ktb25seS1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcyE=
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Vitest runs both projects (unit, integration); the JSON report feeds the traceability script.
+      - name: unit + integration tests
+        run: pnpm test:ci
+      - name: traceability report
+        if: always()
+        env:
+          # Only pushes to main publish results (secrets are not available to fork PRs anyway).
+          TEST_RESULTS_URL: ${{ github.event_name == 'push' && secrets.TEST_RESULTS_URL || '' }}
+          TEST_RESULTS_SECRET: ${{ github.event_name == 'push' && secrets.TEST_RESULTS_SECRET || '' }}
+        run: pnpm traceability
+      - name: upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            reports/vitest.json
+            reports/playwright.json
+            docs/traceability.md
+          if-no-files-found: warn
+          retention-days: 14
+
+  build:
+    name: build (no database env)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build

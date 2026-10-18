@@ -16,6 +16,8 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:int": "vitest run --project integration",
+    "test:ci": "vitest run --reporter=default --reporter=json --outputFile.json=reports/vitest.json",
+    "traceability": "tsx scripts/traceability.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "e2e": "playwright test",
