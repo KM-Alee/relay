@@ -25,17 +25,20 @@
 | POST | `/auth/login` · `/auth/logout` | public | **Built (T-101).** Login → `MeResponse` + new `sid` (previous cookie's session revoked); limits `login:ip` 20/15 min + `login:email:<sha256>` 5/15 min → 429; unknown email / wrong password / deactivated → `INVALID_CREDENTIALS` 401. Logout → 204, clears cookie (always) |
 | GET | `/me` | session | **Built.** `{ user{id, workspaceId, baseLevel, locale, name, email, timezone, availability}, workspace{id, name, slug, timezone, currency, defaultLocale, demoMode}, permissions, flags }` |
 | GET / DELETE | `/me/sessions` · `/me/sessions/:id` | session | **Built (T-101).** List own live sessions (`current` flag) / revoke own (other ids → 404; audited `user.sessions_revoked`) |
-| POST | `/invites` · DELETE `/invites/:id` | `users.invite` | returns the copyable link once |
-| POST | `/invites/:token/accept` | public | single-use |
+| GET / POST | `/invites` | `users.invite` | **Built (T-103).** POST `{baseLevel:'admin'|'user', roleId?}` → 201 `{invite, link}`: the copyable link `PUBLIC_BASE_URL/{locale}/invite/{token}` is returned ONCE (only sha256 stored); Admin cannot invite admins; TTL `workspace.settings.invite_ttl_hours` (72). GET lists with computed `status` (pending/used/expired/revoked). Audited `user.invited` |
+| DELETE | `/invites/:id` | `users.invite` | **Built (T-103).** Revoke a pending invite (204; used/revoked → 409; unknown → 404). Audited `invite.revoked` |
+| POST | `/invites/preview` · `/invites/accept` | public, rate-limited per IP | **Built (T-103).** Token travels in the body (not the URL). Preview → `{workspaceName, baseLevel, roleName, expiresAt}`. Accept `{token, name, email, password, locale?}` → 201 `MeResponse` + `Set-Cookie sid`; atomic single use; used/expired/revoked/unknown → 410 `INVITE_INVALID`; `EMAIL_TAKEN` 409. Audited `user.joined` (doc 06 §1 form; supersedes `/invites/:token/accept`) |
 
 ### Users, roles, teams (F1.2–F1.8, F3.2)
 | Method | Path | Permission |
 |---|---|---|
-| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability). **GET built (T-102)**: keyset `?cursor&limit` → `{items: UserSummary[], nextCursor}`; other workspace's id → 404 |
-| POST | `/users/:id/deactivate` | `users.manage` (guards per F1.8) |
-| DELETE | `/users/:id/sessions` | Owner |
+| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability). **GET built (T-102)**: keyset `?cursor&limit` → `{items: UserSummary[] (+ openLoad), nextCursor}`; other workspace's id → 404. **PATCH built (T-104)** `{version, baseLevel?, roleIds?}`: Owner-protection (Admin → 403 on the Owner, cannot make/demote admins or hand out `roles.manage`/`audit.view`), `STALE_VERSION` 409, sessions rotate, audited `user.level_changed` / `user.roles_changed` |
+| POST | `/users/:id/deactivate` | `users.manage` (guards per F1.8). **Built (T-105)** `{version?}`: one tx = guards → `is_active=false` → all sessions revoked (next request 401) → `onUserDeactivated` hooks (lead transfer, T-127) → audit `user.deactivated`. Owner / self → 422 `BUSINESS_RULE_VIOLATION` |
+| DELETE | `/users/:id/sessions` | Owner. **Built (T-105)** → `{revoked}`; audited `user.sessions_revoked` |
 | PATCH | `/users/:id/availability` | self or `users.manage` |
-| CRUD | `/roles`, `/level-permissions`, `/users/:id/permission-overrides` | `roles.manage` |
+| GET / POST · PATCH / DELETE | `/roles` · `/roles/:id` | GET: `users.manage` or `roles.manage`; writes: `roles.manage`. **Built (T-104)** `{name, permissions}` / `{version, name?, permissions?}`; seeded Manager cannot be deleted; members' sessions rotate; audited `role.created/updated/deleted` |
+| GET · PUT | `/level-permissions` · `/level-permissions/:level` (`admin`\|`user`) | read: `users.manage`/`roles.manage`; PUT `{version, permissions}`: `roles.manage`. **Built (T-104)** |
+| GET · PUT | `/users/:id/permission-overrides` | read: `users.manage`/`roles.manage`; PUT `{items:[{permission, effect}]}` replaces: `roles.manage`. Returns `{items, effective}`. **Built (T-104)**; audited `user.permissions_changed` |
 | CRUD | `/teams`, `/teams/:id/members` | `routing.manage` |
 | CRUD | `/escalation-policies` (+ levels) | `routing.manage` |
 
@@ -117,7 +120,7 @@
 | GET / PATCH | `/ai/settings`, CRUD `/knowledge`, `/templates` | `ai.manage` |
 | POST | `/conversations/:id/suggestions` (P2) | `ai.use` + `messaging.send` |
 | POST | `/ai/onboarding-proposals` · `/:id/apply` | Owner |
-| GET | `/audit` (T-151) · POST `/audit/verify` | `audit.view`. **`/audit/verify` built (T-007)**: `{ ok, checked, firstBrokenSeq, expectedHash, storedHash }` (hex), rate-limited 6/min per user |
+| GET | `/audit` (T-151) · POST `/audit/verify` | `audit.view`. **`GET /audit` built (T-151)**: `?type=<action or entity prefix>&userId&from&to&cursor&limit` → `{items, nextCursor}` newest first (keyset by `seq`), diffs value-masked; no mutation route exists (test enumerates). **`/audit/verify` built (T-007)**: `{ ok, checked, firstBrokenSeq, expectedHash, storedHash }` (hex), rate-limited 6/min per user |
 | GET | `/dashboard/metrics?figures=` · `/dashboard/drilldown/:figure` | session; company-wide needs `dashboard.company` (F5.4) |
 | POST | `/judge/:scenario` | `demo.judge_console` + `demo_mode` |
 | PATCH | `/workspace/time-warp` | `workspace.settings` + `demo_mode` |

@@ -66,6 +66,8 @@ export const userSummary = z.object({
   locale: localeSchema,
   roles: z.array(z.object({ id: z.uuid(), name: z.string() })),
   version: z.number().int(),
+  /** Open (unacknowledged + active) leads owned right now; 0 until the lead engine reports (T-103). */
+  openLoad: z.number().int().nonnegative().optional(),
 });
 export type UserSummary = z.infer<typeof userSummary>;
 

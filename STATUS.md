@@ -66,15 +66,15 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-127 | Deactivation transfer | A | todo |  |  |  |
 | T-128 | Manual reassign | A | todo |  |  |  |
 | T-129 | Recovery queue | A | todo |  |  |  |
-| T-103 | Invites | B | todo |  |  |  |
-| T-104 | Roles & permissions UI | B | todo |  |  |  |
-| T-105 | User deactivation + sessions UI | B | todo |  |  |  |
+| T-103 | Invites | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
+| T-104 | Roles & permissions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
+| T-105 | User deactivation + sessions UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-113 | Stage-required fields | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-114 | Tags | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-115 | Filters + saved lists | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-117 | Contact 360 page | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-118 | CSV export | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
-| T-151 | Audit log viewer | B | todo |  |  |  |
+| T-151 | Audit log viewer | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-141 | Meta WhatsApp adapter + webhook | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | Graph v25.0; webhook `/api/webhooks/meta/[key]`; Lane A hook `registerInboundCustomerMessageHandler` (messaging-hooks.ts); contacts/leads tables not on main: contact match is guarded (`to_regclass`) and the hook creates contact+lead |
 | T-142 | WhatsApp media → Blob | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | private Blob (`access:'private'`), Postgres `bytea` fallback (8 MB cap) when no token; proxy `/api/v1/media/:id` |
 | T-143 | Stripe payments | C | review | agent:lane-C4 | `worktree-agent-a4ed361607e8f1719` | stripe@23 (API 2026-09-30.endive); `POST /api/webhooks/stripe/[key]`, `/api/v1/opportunities/:id/payment-links`, `/api/v1/payments`; real Checkout Session + signed-event round trip verified (scripts/stripe-smoke.ts); opp/contact ids are FK-less until B2; WhatsApp send awaits C3 |
@@ -107,7 +107,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 |---|---|---|---|---|---|---|
 | T-222 | First-to-claim + pond | A | todo |  |  |  |
 | T-225 | Urgency windows | A | todo |  |  |  |
-| T-220 | Audit verify-integrity UI | B | todo |  |  |  |
+| T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
 | T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
 | T-217 | Voice-note transcription | C | todo |  |  |  |

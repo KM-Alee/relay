@@ -17,7 +17,53 @@ export const auditVerifyResponse = z.object({
 });
 export type AuditVerifyResponse = z.infer<typeof auditVerifyResponse>;
 
+// ── List (F4.2, T-151) ──────────────────────────────────────────────────
+export const auditEventDto = z.object({
+  id: z.number().int(),
+  seq: z.number().int(),
+  occurredAt: z.iso.datetime({ offset: true }),
+  actorType: auditActorTypeSchema,
+  actorUserId: z.uuid().nullable(),
+  actorName: z.string().nullable(),
+  action: z.string(),
+  targetType: z.string(),
+  targetId: z.string().nullable(),
+  before: z.unknown().nullable(),
+  after: z.unknown().nullable(),
+  meta: z.unknown().nullable(),
+});
+export type AuditEventDto = z.infer<typeof auditEventDto>;
+
+export const auditListQuery = z
+  .object({
+    /** Exact action ('user.invited') or an entity prefix ('user'). */
+    type: z
+      .string()
+      .regex(/^[a-z_]+(\.[a-z_]+)?$/)
+      .optional(),
+    userId: z.uuid().optional(),
+    /** ISO dates/datetimes; `to` is inclusive of the whole day when a bare date is given. */
+    from: z.string().max(40).optional(),
+    to: z.string().max(40).optional(),
+    /** Keyset: return events with seq below this (newest first). */
+    cursor: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
+  })
+  .strict();
+export const auditListResponse = z.object({
+  items: z.array(auditEventDto),
+  nextCursor: z.number().int().nullable(),
+});
+export type AuditListResponse = z.infer<typeof auditListResponse>;
+
 export const auditEndpoints = {
+  /** GET /api/v1/audit (perm audit.view): newest first, filter by type/user/date. Read-only (F4.3). */
+  list: endpoint({
+    method: 'GET',
+    path: '/api/v1/audit',
+    query: auditListQuery,
+    response: auditListResponse,
+  }),
   /** POST /api/v1/audit/verify (perm audit.view): recompute the chain, report the first broken link. */
   verify: endpoint({ method: 'POST', path: '/api/v1/audit/verify', response: auditVerifyResponse }),
 } as const;

@@ -1,8 +1,10 @@
-// STUB (W0/T-013). Owner: Lane B (T-151) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Audit log viewer (T-151, T-220; F4.2, F4.3, F4.4). Gate: nav.ts (audit.view). Read-only by construction.
 import { requirePage } from '@/lib/http/page-auth';
+import { AuditView } from './audit-view';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await requirePage('audit'); // T-102: server-side gate (permission from nav.ts)
-  return <ComingSoon screen="nav.audit" />;
+  await requirePage('audit');
+  return <AuditView />;
 }

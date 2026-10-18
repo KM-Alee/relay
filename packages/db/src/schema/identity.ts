@@ -155,3 +155,30 @@ export const sessions = pgTable(
   ],
 );
 export type Session = typeof sessions.$inferSelect;
+
+/** Invitations (F1.2, T-103). Migration 202610181430_b_invites.sql. Only sha256(token) is stored. */
+export const invites = pgTable(
+  'invites',
+  {
+    id: uuid('id').primaryKey(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id),
+    tokenHash: bytea('token_hash').notNull().unique('invites_token_hash_key'),
+    baseLevel: userBaseLevel('base_level').notNull(),
+    roleId: uuid('role_id'),
+    createdBy: uuid('created_by').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    usedBy: uuid('used_by'),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('invites_ws_id_key').on(t.workspaceId, t.id),
+    foreignKey({ columns: [t.workspaceId, t.roleId], foreignColumns: [roles.workspaceId, roles.id] }),
+    foreignKey({ columns: [t.workspaceId, t.createdBy], foreignColumns: [users.workspaceId, users.id] }),
+    foreignKey({ columns: [t.workspaceId, t.usedBy], foreignColumns: [users.workspaceId, users.id] }),
+  ],
+);
+export type Invite = typeof invites.$inferSelect;
