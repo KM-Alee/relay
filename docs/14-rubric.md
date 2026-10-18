@@ -6,34 +6,35 @@
 
 ## 1. Scorecard
 
+Verified by `scripts/verify-selfcheck.ts` against production on 2026-10-18 (raw results: `reports/selfcheck/results.json`).
 Status: ✅ verified live on prod · 🟡 built, not yet verified live / one gap · 🔴 missing · Tasks in `09-build-plan.md`.
 
 | # | Criterion (pts) | Self-check items (judges test these) | Our feature / task | Status | Gap to close |
 |---|---|---|---|---|---|
-| 1 | Roles, permissions, security (10) | Owner can invite users and change roles and permissions in the interface | Invites + roles matrix + overrides (T-103, T-104) | 🟡 | Verify on prod UI |
-| | | Opportunity value hidden without permission, incl. through the API | `core/auth/mask.ts` everywhere (T-102, T-118) | 🟡 | Live API check as plain User |
-| | | Unauthorized API call rejected; one workspace can't see another | `route()` + `assertPermission` + RLS + 404 (T-002, T-102) | 🟡 | Live cross-workspace check |
-| 2 | Customizable CRM (12) | Custom fields created from the UI appear immediately | T-112 | 🟡 | UI polish (D3) |
-| | | Two pipelines have different fields; stages added, renamed, reordered | T-111, T-112 | 🟡 | Drag-reorder check |
-| | | A stage blocks a move until required fields are filled | T-113 | 🟡 | — |
-| | | A saved list updates automatically; each contact shows full history | T-115, T-116, T-117 | 🟡 | Timeline must include messages, payments, appointments, lead events (glue) |
-| 3 | Lead assignment + escalation (14) | Leads from web form, incoming message and manual entry | T-122 + WhatsApp→intake glue | 🔴 | Lead engine merging; glue task |
-| | | Only Available employees get leads, with a visible countdown | T-121, T-123 | 🔴 | Lead engine merging |
-| | | Expired lead escalates once, through levels and times you can configure | T-124 + policy settings form | 🔴 | Lead engine merging |
-| | | On leave/Offline reassigns immediately; recovery queue shows why | **T-125, T-126, T-127, T-128, T-129** | 🔴 | Next lead batch |
-| 4 | Audit log + dashboard (8) | Key actions logged with who, when, before/after; entries can't be edited | T-007, T-151, T-220 | 🟡 | Ensure every F4.1 action appends (leads, payments, settings) |
-| | | Dashboard figures live, match the records, differ by role | T-150 (metrics repos) | 🟡 | Align metric SQL with leads/payments/appointments columns; drill-down counts = figures |
-| 5 | Messaging (12) | Real message arrives, reply delivered, status updates | T-141, T-146 (webhook registered with Meta) | 🟡 | Live phone round-trip on prod |
-| | | Duplicate and forged webhooks handled; failed sends retryable | T-141 | ✅ (local + prod verify challenge) | Show failure + Retry in UI |
-| 6 | Payments (12) | A test payment updates the record automatically | T-143 | 🟡 | "Send payment link" button on opportunity/contact; pay with 4242 on prod → "Paid ✓" live |
-| | | Webhooks verified and counted once; refunds and failures show | T-143 | 🟡 | Refund from Stripe dashboard → status shows; fix payment activity insert |
-| 7 | Calendar (10) | Google sign-in works; appointments appear in the real calendar | T-144 | 🟡 | Human OAuth on prod + booking |
-| | | Clashes detected; revoked connection detected; time zones correct | T-144 | 🟡 | Revoke access in Google → Reconnect shown |
-| 8 | Notifications (4) | An escalation sends a real alert with a working link | T-145 + T-124 | 🟡 | Escalation → Slack DM with deep link to `/leads/:id`; "Connect Slack" card i18n bug |
-| 9 | Quality (10) | Secrets out of code and browser; one provider failing doesn't break the platform | Config/secrets, breakers, outbox isolation | ✅ | Judge Console "provider down" scenario (T-209) |
-| | | Every screen works on a phone and with a keyboard | T-162 | 🔴 | Responsive + keyboard pass on every page |
-| | | Actions show loading, success and clear error messages | Design system toasts/states | 🟡 | Audit every form/button |
-| | | Data survives a restart; timers keep working | Postgres + QStash schedule | ✅ | Demo: redeploy mid-countdown |
+| 1 | Roles, permissions, security (10) | Owner can invite users and change roles and permissions in the interface | Invites + roles matrix + overrides (T-103, T-104) | ✅ prod 2026-10-18 (invite via UI; permission change via override API, roles matrix rendered) | Drive a permission toggle in the UI |
+| | | Opportunity value hidden without permission, incl. through the API | `core/auth/mask.ts` everywhere (T-102, T-118) | ✅ prod 2026-10-18 | — |
+| | | Unauthorized API call rejected; one workspace can't see another | `route()` + `assertPermission` + RLS + 404 (T-002, T-102) | ✅ prod 2026-10-18 | — |
+| 2 | Customizable CRM (12) | Custom fields created from the UI appear immediately | T-112 | ✅ prod 2026-10-18 | — |
+| | | Two pipelines have different fields; stages added, renamed, reordered | T-111, T-112 | ✅ prod 2026-10-18 (API; UI move-up/down not driven) | Drive reorder in the UI |
+| | | A stage blocks a move until required fields are filled | T-113 | ✅ prod 2026-10-18 (API 422 → 200) | — |
+| | | A saved list updates automatically; each contact shows full history | T-115, T-116, T-117 | ✅ prod 2026-10-18 | — |
+| 3 | Lead assignment + escalation (14) | Leads from web form, incoming message and manual entry | T-122 + WhatsApp→intake glue | 🟡 web form + manual ✅ prod; incoming WhatsApp not verified live | Phone round-trip → lead |
+| | | Only Available employees get leads, with a visible countdown | T-121, T-123 | ✅ prod 2026-10-18 | — |
+| | | Expired lead escalates once, through levels and times you can configure | T-124 + policy settings form | ✅ prod 2026-10-18 (2-level policy, warp 60×) | — |
+| | | On leave/Offline reassigns immediately; recovery queue shows why | **T-125, T-126, T-127, T-128, T-129** | ✅ prod 2026-10-18 | — |
+| 4 | Audit log + dashboard (8) | Key actions logged with who, when, before/after; entries can't be edited | T-007, T-151, T-220 | ✅ prod 2026-10-18 | — |
+| | | Dashboard figures live, match the records, differ by role | T-150 (metrics repos) | ✅ prod 2026-10-18 (new leads + waiting ack) | Other figures not cross-checked |
+| 5 | Messaging (12) | Real message arrives, reply delivered, status updates | T-141, T-146 (webhook registered with Meta) | 🟡 Meta connected + 4 webhook events; needs a human phone test | Live phone round-trip |
+| | | Duplicate and forged webhooks handled; failed sends retryable | T-141 | 🟡 local tests only; not re-verified on prod today | Show failure + Retry in UI |
+| 6 | Payments (12) | A test payment updates the record automatically | T-143 | 🔴 1 request, 0 paid, 0 Stripe events in current prod data | Pay with 4242 on prod after the reseed |
+| | | Webhooks verified and counted once; refunds and failures show | T-143 | 🟡 not verified live today | Refund from the Stripe dashboard |
+| 7 | Calendar (10) | Google sign-in works; appointments appear in the real calendar | T-144 | 🟡 needs a human (not_connected) | Human OAuth + booking |
+| | | Clashes detected; revoked connection detected; time zones correct | T-144 | 🟡 needs a human | — |
+| 8 | Notifications (4) | An escalation sends a real alert with a working link | T-145 + T-124 | ✅ prod 2026-10-18 (Slack postMessage processed) | Link click-through checked by a human |
+| 9 | Quality (10) | Secrets out of code and browser; one provider failing doesn't break the platform | Config/secrets, breakers, outbox isolation | 🟡 not re-verified today (/api/health ok on prod) | Judge Console "provider down" scenario (T-209) |
+| | | Every screen works on a phone and with a keyboard | T-162 | 🔴 /leads 499px, /contacts 594px, /me 379px overflow at 375px; keyboard not checked | Fix horizontal overflow |
+| | | Actions show loading, success and clear error messages | Design system toasts/states | 🟡 error ✅ (bad login), success ✅ (field create); loading not checked | — |
+| | | Data survives a restart; timers keep working | Postgres + QStash schedule | 🟡 not re-verified today | Demo: redeploy mid-countdown |
 | | | A new person can start the app from the instructions | README quickstart | 🔴 | Rewrite README "Run it in 5 commands" |
 | 10 | Demo + understanding (8) | The live demo runs; I tested every ticked item today | Demo script (`12-demo-and-ops.md`), seeded demo workspaces (T-211) | 🔴 | Seed prod demo data; rehearse |
 | | | Every member can explain data model, permission checks, escalation timing, webhook handling | `docs/15-how-it-works.md` (team explainer) | 🔴 | Write the explainer |
@@ -49,4 +50,9 @@ Status: ✅ verified live on prod · 🟡 built, not yet verified live / one gap
 
 | What does not fully work | What works instead |
 |---|---|
-| _fill during the verification pass_ | |
+| Stripe: no paid payment in the current prod data (demo reseeded today; 1 open request, 0 Stripe webhook events) | Payment link creation; webhook verify + idempotency covered by integration tests; pay with 4242 live in the demo |
+| Google Calendar not connected on prod (OAuth needs a human sign-in) | Appointments page shows the connect state; slot/clash logic tested |
+| WhatsApp round-trip with a real phone not verified by the script | Meta connection live, webhook events recorded; forged/duplicate webhooks tested |
+| Phone width: /leads, /contacts (tables) and /me scroll horizontally at 375px | The other main pages fit at 375px (screenshots in `reports/selfcheck/`) |
+| Loading states and keyboard-only use not checked automatically | Error + success feedback verified (login, custom-field create) |
+| Dashboard: only "new leads today" and "waiting ack" cross-checked against records | Scope differs by role (company vs mine); payments masked for plain users |
