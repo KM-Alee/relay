@@ -21,6 +21,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@node-rs/argon2": "2.2.2",
     "@relay/contracts": "workspace:*",
     "@relay/db": "workspace:*",
     "drizzle-orm": "0.45.4",

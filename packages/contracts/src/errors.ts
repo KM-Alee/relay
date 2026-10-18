@@ -62,6 +62,19 @@ export const ERROR_CATALOGUE = {
     i18nKey: 'errors.providerUnavailable',
     message: 'An external service is unavailable.',
   },
+  // Lane B / T-101: login with unknown email, wrong password or a deactivated account (one generic
+  // answer, no user enumeration, 06 §1).
+  INVALID_CREDENTIALS: {
+    status: 401,
+    i18nKey: 'errors.invalidCredentials',
+    message: 'Email or password is incorrect.',
+  },
+  // Lane B / T-101: signup with an email that already has an account (emails are global, ADR-0004).
+  EMAIL_TAKEN: {
+    status: 409,
+    i18nKey: 'errors.emailTaken',
+    message: 'An account with this email already exists.',
+  },
   // Client-only: fetch failed before any HTTP response (offline, DNS, CORS).
   NETWORK_ERROR: { status: 0, i18nKey: 'errors.networkError', message: 'Network error.' },
 } as const satisfies Record<string, { status: number; i18nKey: `errors.${string}`; message: string }>;
