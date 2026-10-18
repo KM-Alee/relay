@@ -1,7 +1,7 @@
 // Localized root layout (F7.1–F7.3). Owner: Lane D.
-// <html lang dir>, Inter + Noto Nastaliq Urdu via next/font, theme script (no flash), providers.
+// <html lang dir>, Inter + Noto Naskh Arabic (legible Urdu UI font) via next/font, theme script (no flash), providers.
 import type { Metadata } from 'next';
-import { Inter, Noto_Nastaliq_Urdu } from 'next/font/google';
+import { Inter, Noto_Naskh_Arabic } from 'next/font/google';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -13,10 +13,10 @@ import { dirOf, routing } from '@/lib/i18n/routing';
 import '../globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-const nastaliq = Noto_Nastaliq_Urdu({
+const naskh = Noto_Naskh_Arabic({
   subsets: ['arabic'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-nastaliq',
+  variable: '--font-naskh',
   display: 'swap',
 });
 
@@ -54,7 +54,7 @@ export default async function LocaleLayout({
       lang={locale}
       dir={dirOf(locale)}
       suppressHydrationWarning
-      className={cn(inter.variable, nastaliq.variable)}
+      className={cn(inter.variable, naskh.variable)}
     >
       <head>
         <ThemeScript />

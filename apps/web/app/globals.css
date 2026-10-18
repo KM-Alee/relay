@@ -209,7 +209,7 @@
   --color-chart-grid: var(--chart-grid);
 
   --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-urdu: var(--font-nastaliq), 'Jameel Noori Nastaleeq', serif;
+  --font-urdu: var(--font-naskh), 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-sm: 600px;
@@ -248,13 +248,13 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
-/* Urdu: Latin text keeps Inter (listed first; it has no Arabic glyphs), Urdu script uses Nastaliq. */
+/* Urdu: Latin text keeps Inter (listed first; it has no Arabic glyphs), Urdu script uses Noto Naskh Arabic (legible UI Naskh). */
 :lang(ur) {
-  font-family: var(--font-inter), var(--font-nastaliq), 'Jameel Noori Nastaleeq', serif;
+  font-family: var(--font-inter), var(--font-naskh), 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif;
 }
 body:lang(ur) {
   font-size: 16px;
-  line-height: 2;
+  line-height: 1.8;
 }
 
 /* Focus: the 2 px charcoal ring (AA, components.md) plus a soft brand halo as a focus accent (DS-3 allows). */
@@ -312,7 +312,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 30px;
-      line-height: 1.9;
+      line-height: 1.7;
       letter-spacing: 0;
       @media (min-width: 960px) {
         font-size: 40px;
@@ -331,7 +331,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 26px;
-      line-height: 2;
+      line-height: 1.8;
       letter-spacing: 0;
       @media (min-width: 960px) {
         font-size: 28px;
@@ -348,7 +348,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 17px;
-      line-height: 2;
+      line-height: 1.8;
     }
   }
   .text-kpi {
@@ -373,7 +373,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 16px;
-      line-height: 2;
+      line-height: 1.8;
     }
   }
   .text-meta {
@@ -383,7 +383,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 14px;
-      line-height: 1.9;
+      line-height: 1.7;
     }
   }
   .text-button {
@@ -405,7 +405,7 @@ a {
     &:lang(ur),
     :lang(ur) & {
       font-size: 13px;
-      line-height: 1.9;
+      line-height: 1.7;
       letter-spacing: 0;
       text-transform: none;
     }
@@ -575,8 +575,8 @@ a {
   font-family: var(--font-sans);
 }
 :lang(ur) .relay-toast {
-  font-family: var(--font-inter), var(--font-nastaliq), serif;
-  line-height: 1.9;
+  font-family: var(--font-inter), var(--font-naskh), 'Segoe UI', Tahoma, sans-serif;
+  line-height: 1.7;
 }
 
 @media (prefers-reduced-motion: reduce) {
