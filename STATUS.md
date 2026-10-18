@@ -54,8 +54,8 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-111 | Pipelines & stages + board | B | todo |  |  |  |
 | T-112 | Custom fields | B | todo |  |  |  |
 | T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
-| T-140 | Integrations page + sync history | C | todo |  |  |  |
-| T-145 | Slack alerts + linking | C | todo |  |  | critical path |
+| T-140 | Integrations page + sync history | C | in-progress | agent:lane-C | `lane-c-w2` |  |
+| T-145 | Slack alerts + linking | C | in-progress | agent:lane-C | `lane-c-w2` | critical path |
 | T-150 | Metrics + dashboard | D | todo |  |  |  |
 
 ### W3: P0 complete
