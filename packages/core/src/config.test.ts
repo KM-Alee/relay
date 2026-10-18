@@ -57,6 +57,15 @@ describe('[Q13] config validation', () => {
     expect(() => c.db).toThrow(/DATABASE_URL must connect as role app_user/);
   });
 
+  it('[Q13][F1.6] accepts an owner DATABASE_URL when APP_DB_PASSWORD lets the runtime rewrite it to app_user', () => {
+    const c = createConfig({
+      ...base,
+      DATABASE_URL: 'postgres://neondb_owner:pw@localhost:5432/relay',
+      APP_DB_PASSWORD: 'app-pw',
+    });
+    expect(() => c.db).not.toThrow();
+  });
+
   it('[Q13] rejects a short encryption key and placeholder-only provider values count as unset', () => {
     expect(() => createConfig({ ...base, APP_ENCRYPTION_KEY: 'c2hvcnQ=' }).core).toThrow(
       /APP_ENCRYPTION_KEY must be base64/,

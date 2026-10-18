@@ -8,6 +8,7 @@
 //   listed sections and throws ONE error listing every missing/invalid variable.
 // - Empty strings count as "not set" (.env.example ships `KEY=` placeholders).
 // - Values are never included in error messages (they may be secrets); only variable names.
+import { runtimeDatabaseUrl } from '@relay/db/runtime-url';
 import { z } from 'zod';
 
 type Env = Record<string, string | undefined>;
@@ -69,8 +70,17 @@ export const sections = {
     })
     .superRefine((v, ctx) => {
       // 06 §3: the app must never serve requests as the owner (owner bypasses RLS). Tests create roles.
-      if (v.NODE_ENV !== 'test' && new URL(v.DATABASE_URL).username !== 'app_user') {
-        ctx.addIssue({ code: 'custom', path: ['DATABASE_URL'], message: 'must connect as role app_user' });
+      // The runtime pool rewrites an owner URL to app_user when APP_DB_PASSWORD is set (db/runtime-url.ts).
+      const effective = runtimeDatabaseUrl({
+        DATABASE_URL: v.DATABASE_URL,
+        APP_DB_PASSWORD: v.APP_DB_PASSWORD,
+      });
+      if (v.NODE_ENV !== 'test' && new URL(effective ?? v.DATABASE_URL).username !== 'app_user') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['DATABASE_URL'],
+          message: 'must connect as role app_user (or set APP_DB_PASSWORD so the runtime rewrites it)',
+        });
       }
     }),
 

@@ -5,6 +5,7 @@
 import { attachDatabasePool } from '@vercel/functions';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
+import { runtimeDatabaseUrl } from './runtime-url';
 import * as schema from './schema/index';
 
 export type Schema = typeof schema;
@@ -32,7 +33,7 @@ export function createDb({ connectionString, max = 5 }: CreateDbOptions): DbStat
 
 function init(): DbState {
   if (state) return state;
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = runtimeDatabaseUrl(process.env);
   if (!connectionString) {
     throw new Error('DATABASE_URL is not set (runtime pooled URL, role app_user). See .env.example.');
   }
