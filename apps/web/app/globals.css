@@ -258,15 +258,18 @@ body:lang(ur) {
 }
 
 /* Focus: the 2 px charcoal ring (AA, components.md) plus a soft brand halo as a focus accent (DS-3 allows). */
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand) 18%, transparent);
-  transition: box-shadow var(--dur-fast) var(--ease-standard);
-}
-/* Mouse/tap focus never leaves a ring behind (e.g. on the brand link after a click). Keyboard keeps it. */
-:focus:not(:focus-visible) {
-  outline: none;
+/* In @layer base so component utilities (e.g. `outline-none` on the ⌘K input) can override it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand) 18%, transparent);
+    transition: box-shadow var(--dur-fast) var(--ease-standard);
+  }
+  /* Mouse/tap focus never leaves a ring behind (e.g. on the brand link after a click). Keyboard keeps it. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 /* Thin token scrollbars inside scroll areas (lists, threads, tables). */
 * {

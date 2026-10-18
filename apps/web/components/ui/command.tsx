@@ -28,7 +28,7 @@ export function CommandInput({ className, ...props }: ComponentProps<typeof C.In
       <Search aria-hidden className="size-4 shrink-0 text-fg-muted" />
       <C.Input
         className={cn(
-          'h-14 w-full bg-transparent text-body text-fg outline-none placeholder:text-fg-muted',
+          'h-14 w-full bg-transparent text-body text-fg outline-none placeholder:text-fg-muted focus-visible:shadow-none focus-visible:outline-none',
           className,
         )}
         {...props}
