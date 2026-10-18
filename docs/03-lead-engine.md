@@ -9,7 +9,7 @@
 - **Eligible handler**: an active user, `availability='available'`, open handler-lead count < capacity, team member, and matching skills when skill routing is on.
 - **Handler custody** (`custody='handler'`): the owner is an eligible handler who was assigned the lead to work it.
 - **Fallback custody** (`custody='fallback'`, `awaiting_handler=true`): the owner is the team's active **manager**, or the workspace **Owner** if there is no active manager. They are accountable for *monitoring and recovering* the lead. This is not a handling assignment: it does not count toward their capacity, it never acknowledges the lead, and it never stops routing retries. The custodian may be unavailable.
-- **Acknowledged**: the *current human owner while in handler custody* clicked Acknowledge (app or Telegram), or recorded a human action on the lead: note, outbound human message, call log, stage change, appointment created. **AI messages never count.** Actions by other users do not acknowledge.
+- **Acknowledged**: the *current human owner while in handler custody* clicked Acknowledge (app or Slack), or recorded a human action on the lead: note, outbound human message, call log, stage change, appointment created. **AI messages never count.** Actions by other users do not acknowledge.
 - **Escalation**: an automatic owner transfer caused by an **expired acknowledgement window**. Only this increments `escalation_count`.
 - **Overdue routing attempt**: a window expired but no transfer happened (nobody eligible). Increments `overdue_attempt_count`. This is not an escalation.
 - **Idle re-trigger reassignment** (P1): a transfer caused by inactivity after acknowledgement. Increments `idle_retrigger_count` only.
@@ -94,7 +94,7 @@ withWorkspaceTx(ws, async tx => {
   UPDATE leads SET ..., version = version+1 WHERE id=$1 AND version=$v   // must hit 1 row
   INSERT lead_events, activities, notifications
   audit.append(...)                                          // F4.1
-  outbox.enqueue('telegram.alert' | 'ai.*' | 'wake.schedule', dedupe_key per 04-integrations.md §7)
+  outbox.enqueue('slack.send' | 'ai.*' | 'wake.schedule', dedupe_key per 04-integrations.md §7)
   realtime.emit(tx, {topic:'leads', ids:[lead.id]})
 })
 ```
@@ -105,22 +105,22 @@ Triggers: public form submit, inbound WhatsApp from a contact with no open lead,
 2. Insert the lead **with an owner already set**: run `route(mode:'intake')`. Never insert first and assign later.
 3. Set `first_assigned_at = assigned_at = now`, `base_window_ends_at = now + window`, `ack_window_ends_at = escalate_at = now + window` (urgent → urgent window), and `escalation_level = 1`.
 4. Fallback → also set `routing_retry_at = now + routing_retry_seconds`.
-5. Event `intake_assigned` with trace. Notify the owner in-app. Telegram alert outbox row (P0: all new assignments notify; required for escalations by F3.9). First-to-claim: notify each eligible user with a Claim action.
+5. Event `intake_assigned` with trace. Notify the owner in-app. Slack alert outbox row (P0: all new assignments notify; required for escalations by F3.9). First-to-claim: notify each eligible user with a Claim action.
 6. Form response: success confirmation regardless of routing outcome. P1 instant booking (I3.8) is offered only if custody = handler, the handler has a connected calendar, and Google is healthy.
 
 ### T2. Acknowledge (F3.4, I4.5, F2.13)
-- Allowed if `ack_status='pending'`, `custody='handler'` and actor = owner. Via `app`, `telegram`, or `action:<type>` (a note / call / human message / stage change / appointment created by the owner auto-acknowledges).
+- Allowed if `ack_status='pending'`, `custody='handler'` and actor = owner. Via `app`, `slack`, or `action:<type>` (a note / call / human message / stage change / appointment created by the owner auto-acknowledges).
 - Set `ack_status='acknowledged'`, `acknowledged_at=now`, `first_acknowledged_at = COALESCE(first_acknowledged_at, now)`, `last_human_action_at=now`. Clear `escalate_at` and `ack_window_ends_at`. Clear `is_critical`. If P1 F3.10 is enabled, set `idle_check_at = now + idle_seconds`.
 - Stops the AI stand-in for the conversation (F6.10) through an outbox job `ai.handoff`.
-- Stale or invalid attempt (not owner, already acked, lead moved): **no change**. Return `409 LEAD_STATE_CHANGED` with the current owner. Telegram edits the message to explain.
+- Stale or invalid attempt (not owner, already acked, lead moved): **no change**. Return `409 LEAD_STATE_CHANGED` with the current owner. The Slack interaction handler replies ephemerally (via `response_url`) to explain.
 
 ### T3. Acknowledgement window expiry → escalate (F3.5, F3.8, F3.9)
 Timer: `escalate_at <= now`, `ack_status='pending'`, `status='open'`.
 1. Lock the row. Re-check the guard (it may have been acked a millisecond ago → no-op).
 2. Walk the levels starting at `escalation_level + 1`. For each level, `route(mode:'escalation', level)`. Take the first `assign` whose target ≠ current owner. Record skipped levels in the trace.
-3. **Transfer found** → `custody='handler'`, owner = target, `escalation_count += 1`, `escalation_level = that level`, `assigned_at = now`, new window `escalate_at = now + level.timeout`, event `escalation`, Telegram alert to the new owner (I4.1: within the same minute), in-app notification. `awaiting_handler=false`, `routing_retry_at = NULL`.
+3. **Transfer found** → `custody='handler'`, owner = target, `escalation_count += 1`, `escalation_level = that level`, `assigned_at = now`, new window `escalate_at = now + level.timeout`, event `escalation`, Slack alert to the new owner (I4.1: within the same minute), in-app notification. `awaiting_handler=false`, `routing_retry_at = NULL`.
 4. **No transfer possible on this pass** → `overdue_attempt` event, `overdue_attempt_count += 1`. Owner becomes or stays the fallback custodian (reason recorded; if this moves ownership off an unacked handler, emit `lead_events` type `overdue_attempt` with from/to so custody is visible). Next evaluation `escalate_at = now + current level timeout`. Set `routing_retry_at`.
-5. **End of chain** (past the last level): `escalation_cycle += 1`. If `escalation_cycle < repeat_count`, restart at level 1. Otherwise mark **critical**: `is_critical=true`, `awaiting_reason='chain_exhausted'`, custody = fallback, alert the custodian in-app + Telegram **even if unavailable**, event `critical_flagged`. Keep `routing_retry_at` running. `escalate_at` stays set at the retry cadence, so a newly available person still receives the lead (as `routing_retry_assigned`, not an escalation).
+5. **End of chain** (past the last level): `escalation_cycle += 1`. If `escalation_cycle < repeat_count`, restart at level 1. Otherwise mark **critical**: `is_critical=true`, `awaiting_reason='chain_exhausted'`, custody = fallback, alert the custodian in-app + Slack **even if unavailable**, event `critical_flagged`. Keep `routing_retry_at` running. `escalate_at` stays set at the retry cadence, so a newly available person still receives the lead (as `routing_retry_assigned`, not an escalation).
 
 ### T4. Routing retry (F3.3)
 Timer `routing_retry_at <= now` while `awaiting_handler`. It is also kicked immediately (outbox `lead.retry_routing` for the team) when any user in the team becomes Available, when a lead closes, or when capacity changes.
@@ -204,13 +204,13 @@ Value figures are masked unless the viewer has `crm.opportunity.value.view` (F1.
 2. One owner at a time is inherent: it's a single column, and transfers are `UPDATE … WHERE version=$v`.
 3. Two simultaneous timer evaluations → exactly one `escalation` event.
 4. Two simultaneous claims → one winner, one `claim_rejected`, one owner.
-5. Ack racing an escalation: whichever commits first wins, and the loser no-ops. A Telegram ack after reassignment gets a "stale" reply.
+5. Ack racing an escalation: whichever commits first wins, and the loser no-ops. A Slack ack after reassignment gets a "stale" reply.
 6. Absence, deactivation and chain exhaustion never leave a live lead ownerless or with an inactive owner.
 7. An idle re-trigger never changes `escalation_count`, `first_assigned_at` or `first_acknowledged_at`.
 
 ## 10. Notifications produced by the engine
 
-| Event | In-app | Telegram (I4) |
+| Event | In-app | Slack (I4) |
 |---|---|---|
 | intake/retry/manual assignment | owner | owner (baseline alert) |
 | escalation | new owner | new owner, **within the same minute** (I4.1), with name, source, reason, link; P1 AI brief + Acknowledge button |
@@ -218,12 +218,12 @@ Value figures are masked unless the viewer has `crm.opportunity.value.view` (F1.
 | critical (chain exhausted) | custodian | custodian, even if unavailable |
 | absence/deactivation transfer | new owner | new owner |
 
-A Telegram alert **never waits** for AI. The brief is attached only if it is already available within ~1.5 s (F9.2); otherwise the baseline alert is sent.
+A Slack alert **never waits** for AI. The brief is attached only if it is already available within ~1.5 s (F9.2); otherwise the baseline alert is sent.
 
 ## 11. Resolved decisions (final; build exactly this)
 
 - **Q1** Fallback custody does **not** count toward the custodian's capacity, because custody isn't a handling assignment.
 - **Q2** A manager may manually assign to an ineligible user (e.g. Busy) **only with an explicit override + reason**, which is audited.
 - **Q3** The fallback custodian works a lead via **"Take over"**, allowed only if they are eligible, or via the manual-reassign override. Their notes on a lead they hold only as fallback are logged but don't acknowledge it.
-- **Q4** Telegram alerts go out on **every** assignment. Escalation alerts are mandatory (F3.9).
+- **Q4** Slack alerts go out on **every** assignment. Escalation alerts are mandatory (F3.9).
 - **Q5** A returning customer whose lead is closed gets a **new lead** on the same contact.

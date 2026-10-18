@@ -16,7 +16,7 @@
 - **Subagents** (`.claude/agents/`): delegate by area.
   - `lead-engine-engineer`: routing, escalation, timers, concurrency (F3, Q5)
   - `backend-engineer`: auth, permissions, CRM services, API (F1, F2, F4, F5)
-  - `integrations-engineer`: Meta, Stripe, Google, Telegram, webhooks, outbox (I1–I5)
+  - `integrations-engineer`: Meta, Stripe, Google, Slack, webhooks, outbox (I1–I5)
   - `ai-engineer`: OpenAI tasks, prompts, stand-in, voice (F6, F8, F9, I6)
   - `frontend-engineer`: screens, i18n/RTL, a11y, realtime UI (F7, Q7, Q8, Q17)
   - `qa-engineer`: requirement-tagged tests, baseline acceptance suite, Judge Console (F10)

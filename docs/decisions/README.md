@@ -10,9 +10,10 @@ One file per significant decision: `ADR-NNNN-kebab-title.md`, numbered sequentia
 | [0004](ADR-0004-auth-db-sessions.md) | Own DB sessions; one workspace per user | Accepted |
 | [0005](ADR-0005-rls-on-neon.md) | Tenant isolation with RLS on Neon's pooler | Accepted |
 | [0006](ADR-0006-no-server-actions.md) | One mutation path: `/api/v1` route handlers, no Server Actions | Accepted |
-| [0007](ADR-0007-meta-whatsapp-telegram.md) | Meta WhatsApp Cloud API + Telegram (Twilio waived) | Accepted |
+| [0007](ADR-0007-meta-whatsapp-telegram.md) | Meta WhatsApp Cloud API + Telegram (Twilio waived) | Partially superseded by ADR-0011 (Telegram part) |
 | [0008](ADR-0008-openai-only-paid.md) | OpenAI as the only paid dependency; AI is optional by design | Accepted |
 | [0009](ADR-0009-design-system-ui-stack.md) | Design system: Warm Orange tokens on shadcn/ui | Accepted |
 | [0010](ADR-0010-parallel-development.md) | Parallel development: lanes, contracts-first, conflict-free file layout | Accepted |
+| [0011](ADR-0011-slack-notifications.md) | Slack (not Telegram) for notifications, I4 | Accepted |
 
 Template: copy `ADR-template.md`.

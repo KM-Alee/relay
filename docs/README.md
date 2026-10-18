@@ -8,7 +8,7 @@
 | 01 | [Architecture](01-architecture.md) | Stack, Vercel/Neon topology, layering, request/webhook lifecycle, serverless timers | Before any code |
 | 02 | [Data model](02-data-model.md) | Every table, key columns, constraints | DB / service work |
 | 03 | [Lead engine](03-lead-engine.md) | Ownership, routing, ack, escalation, recovery, metrics, invariants | Anything touching leads |
-| 04 | [Integrations](04-integrations.md) | Adapters, webhooks, Meta/Stripe/Google/Telegram, outbox job catalogue (§7) | Provider work |
+| 04 | [Integrations](04-integrations.md) | Adapters, webhooks, Meta/Stripe/Google/Slack, outbox job catalogue (§7) | Provider work |
 | 05 | [AI](05-ai.md) | AI tasks, stand-in state machine, prompts, safety, cost, voice | AI work |
 | 06 | [Security](06-security.md) | Auth, permission catalogue (§2), RLS (§3), input safety, secrets, audit chain (§6) | Auth/permission/DB work, PR review |
 | 07 | [Frontend & i18n](07-frontend-i18n.md) | Screen inventory, client patterns, realtime UI, i18n, RTL, a11y, PWA | UI work |

@@ -11,9 +11,9 @@ We assume a tight timeline with the team plus parallel AI agents. **How lanes, o
 |---|---|---|---|---|---|---|
 | **W0 parallel-ready skeleton** (1 agent, serial) | T-001 → T-002 → T-003 → T-006 → **T-013** | | | | | `pnpm check` green; RLS test passes; W0 checklist (13 §10) complete |
 | **W1 platform** | T-008 (jobs/tick/QStash) | T-101 + T-102 (auth, permissions, masking), T-007 (audit), T-010 (seed) | T-004 (Vercel + Neon live), T-009 (change feed), T-011 (CI) | T-005 (i18n/RTL), **T-012** (design system + shell + kitchen sink) | – | Prod URL live with the Relay shell; login works; QStash tick runs; kitchen sink in en/ur × light/dark |
-| **W2 P0 core loop** | T-120, T-121, T-122, T-123, T-124 + leads list/detail, notifications panel, public form pages | T-110, T-111, T-112, T-116 + contacts, board, timeline pages | T-140 (integrations page), T-145 (Telegram) | T-150 (Overview on fixtures → real metrics) | test harness, invariant tests for T-121/T-124 | **Loop demo:** form lead → assigned with trace → ignored → escalates → Telegram alert → ack |
+| **W2 P0 core loop** | T-120, T-121, T-122, T-123, T-124 + leads list/detail, notifications panel, public form pages | T-110, T-111, T-112, T-116 + contacts, board, timeline pages | T-140 (integrations page), T-145 (Slack) | T-150 (Overview on fixtures → real metrics) | test harness, invariant tests for T-121/T-124 | **Loop demo:** form lead → assigned with trace → ignored → escalates → Slack alert → ack |
 | **W3 P0 complete** | T-125, T-126, T-127, T-128, T-129 (+ Recovery page) | T-113, T-114, T-115, T-117, T-118, T-103, T-104, T-105, T-151 | T-141, T-142, T-146 (WhatsApp + Inbox), T-143 (Stripe), T-144 (Google) | T-150 finish (all 8 figures), T-162 first pass | T-160, T-161 | Every P0 row works by hand; WhatsApp round-trip on a real phone; baseline suite green |
-| **W4 demo core (P1)** | T-210 (time-warp), T-203 (Telegram ack), T-202 (Automations builder + trace UI) | T-211 (demo workspaces), T-209 (Judge Console) | C1: T-204, T-208 · C2: T-205, T-206, T-207, T-214 | T-201 (Lead Radar), T-213 (full Urdu/RTL pass) | AI-off suite, T-212 | Requirements §8 demo steps 1–5 run live |
+| **W4 demo core (P1)** | T-210 (time-warp), T-203 (Slack ack), T-202 (Automations builder + trace UI) | T-211 (demo workspaces), T-209 (Judge Console) | C1: T-204, T-208 · C2: T-205, T-206, T-207, T-214 | T-201 (Lead Radar), T-213 (full Urdu/RTL pass) | AI-off suite, T-212 | Requirements §8 demo steps 1–5 run live |
 | **W5 harden + money shots** | T-225, T-222 | T-220, T-221 | T-216 ($ button + booking after form), T-217 (voice notes) | T-215 (Revenue at Risk/Rescued), T-228 (PWA + polish), T-162 final | T-160/T-161 with P1 on **and** off | Full suite green both ways; demo rehearsed twice |
 | **W6 only if time remains** | T-223, T-224 | T-226 | T-227, T-218, T-219 | – | – | – |
 | **P2** | – | T-305 | T-301, T-302, T-304 | T-303, T-306 | – | – |
@@ -31,10 +31,10 @@ We assume a tight timeline with the team plus parallel AI agents. **How lanes, o
 | Milestone | Exit criteria | Tasks |
 |---|---|---|
 | **M0 Foundation live** | Monorepo builds. Vercel production URL serves a localized shell. Neon migrations run as owner and the app runs as `app_user` with RLS proven by a test. `/api/internal/tick` runs from QStash and the cron backstop. Audit append works. CI green. | T-001…T-013 |
-| **M1 P0 lead loop** | Manual + public-form lead → routed with trace → in-app countdown → ack or escalate → Telegram alert → recovery queue, with everyone-offline fallback custody working | T-101…T-105, T-110, T-120…T-129, T-145 |
+| **M1 P0 lead loop** | Manual + public-form lead → routed with trace → in-app countdown → ack or escalate → Slack alert → recovery queue, with everyone-offline fallback custody working | T-101…T-105, T-110, T-120…T-129, T-145 |
 | **M2 P0 CRM + integrations** | Custom fields/pipelines/required fields/tags/saved lists/export. WhatsApp in/out with status. Stripe paid/expired/refund. Google booking with free/busy. Integrations page + sync history. | T-111…T-118, T-140…T-144, T-146 |
 | **M3 P0 verified** | Dashboard + audit viewer. Baseline acceptance suite (requirements §10 a–e) and security suite green. Responsive/a11y pass. | T-150, T-151, T-160…T-162 |
-| **M4 Demo core (P1)** | Demo script steps 3–5 work live: Lead Radar, AI stand-in + handoff, Telegram Acknowledge, Judge Console, time-warp, seeded workspaces | T-201…T-212 |
+| **M4 Demo core (P1)** | Demo script steps 3–5 work live: Lead Radar, AI stand-in + handoff, Slack Acknowledge, Judge Console, time-warp, seeded workspaces | T-201…T-212 |
 | **M5 P1 complete** | All remaining P1 rows pass | T-213…T-228 |
 | **M6 P2 stretch** | Only after M5 | T-301…T-306 |
 
@@ -114,7 +114,7 @@ Legend: **Size** S ≤ 2 h, M ≤ half day, L ≤ 1 day (agent-time, rough).
 | T-142 | WhatsApp media download → Vercel Blob → authed proxy → thread rendering | I1.11 | T-141 | S | Images/audio/docs render; the proxy enforces permission |
 | T-143 | Stripe: checkout from opportunity, send link, webhooks (completed/expired/failed/refund), idempotency, collected vs projected | I2.1–I2.8 | T-140, T-110 | M | Test card → "Paid ✓" without refresh; duplicate event recorded once |
 | T-144 | Google Calendar: OAuth connect/disconnect, encrypted tokens + refresh + needs_reconnect, free/busy conflict check, create/reschedule/cancel, UTC + IANA, "no calendar" reason | I3.1–I3.7 | T-140, T-110 | L | The event appears in the real calendar; a revoked token shows Reconnect |
-| T-145 | Telegram: bot webhook (secret token), `/start <token>` linking, alert content, retries with backoff, failures visible to Admins | I4.1–I4.4, F3.9 | T-140, T-124 | M | Escalation → Telegram message within the same minute |
+| T-145 | Slack: app manifest + `pnpm slack:manifest`, signed `/relay` command + interactions endpoints, `/relay link <code>` linking, `slack.send` alert content, retries with backoff, failures visible to Admins | I4.1–I4.4, F3.9 | T-140, T-124 | M | Escalation → Slack message within the same minute |
 | T-146 | Conversations inbox + thread UI: assigned employee, status ticks, failed + retry, opt-out reason, window indicator, template picker | I1.1, I1.3, I1.4, I1.6, I1.7, I1.9, I1.10 | T-141 | M | Visible only to permitted users |
 
 **DASH / AUDIT / QA**
@@ -133,11 +133,11 @@ Legend: **Size** S ≤ 2 h, M ≤ half day, L ≤ 1 day (agent-time, rough).
 |---|---|---|---|---|
 | T-201 | Lead Radar (avatars + status rings, countdown rings with numbers, escalation animation, realtime) | F5.6, F3.2 | T-150, T-009 | L |
 | T-202 | Visual escalation policy builder + routing trace display (lead page + audit) | F3.5 P1, F3.11 | T-124 | M |
-| T-203 | Telegram inline Acknowledge (verify linked user + current owner, edit message, stale button reply) | I4.5, F3.4 P1 | T-145 | S |
+| T-203 | Slack Acknowledge button (Block Kit `lead_ack`; verify linked user + current owner, `chat.update`, stale button ephemeral reply) | I4.5, F3.4 P1 | T-145 | S |
 | T-204 | AI foundation: `AIProvider` (OpenAI), prompt registry, Zod structured outputs, timeouts/retries, usage logging, daily caps + degrade | I6.1–I6.7, Q15 | T-140, T-008 | M |
 | T-205 | AI triage (language, intent, urgency, sentiment, summary) → urgent flag + shorter window | F6.6, F3.12 | T-204, T-141 | M |
 | T-206 | AI stand-in: modes, triggers, disclosure, question collection, grounding, honest status, forbidden actions in code, hard handoff, fallback reply, latency path | F6.1–F6.9, F6.11–F6.13 | T-205, T-208 | L |
-| T-207 | Human takeover + handoff card + "X joined" message + AI brief in Telegram (never delays the baseline alert) | F6.10, F9.2, I4.2 P1 | T-206, T-145 | M |
+| T-207 | Human takeover + handoff card + "X joined" message + AI brief in Slack (never delays the baseline alert) | F6.10, F9.2, I4.2 P1 | T-206, T-145 | M |
 | T-208 | Knowledge base editor + localized templates editor | F6.5, F7.6 | T-140 | S |
 | T-209 | Judge Console (all F10.1 scenarios, expected vs actual) | F10.1 | T-141, T-143, T-124 | M |
 | T-210 | Time-warp (multiplier, proportional reschedule, badge, audit) | F10.2 | T-124 | S |

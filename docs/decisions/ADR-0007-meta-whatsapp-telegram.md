@@ -1,6 +1,6 @@
 # ADR-0007: Meta WhatsApp Cloud API for messaging; Telegram for notifications
 
-- **Status:** Accepted
+- **Status:** Partially superseded by ADR-0011 (Telegram part). The WhatsApp/Meta decision stands.
 - **Date:** 2026-10-18
 - **Requirements touched:** C1, C4, I1, I4
 

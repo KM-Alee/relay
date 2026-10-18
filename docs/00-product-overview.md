@@ -21,7 +21,7 @@ Small service businesses in Pakistan (real estate agencies, solar installers, cl
 | Owner | Signs up (creates the workspace), invites people, sets roles/permissions, watches revenue at risk/rescued, last-resort fallback custodian |
 | Admin | Configures pipelines, custom fields, routing and escalation, AI behaviour, integrations, templates |
 | Manager (a configurable role, not a hard-coded level) | Watches team availability and the recovery queue, reassigns, default fallback custodian for their team |
-| User (sales/support rep) | Gets leads, acknowledges from phone/Telegram, chats on WhatsApp (also in Urdu or by voice), logs notes/calls, sends payment links, books appointments |
+| User (sales/support rep) | Gets leads, acknowledges from phone/Slack, chats on WhatsApp (also in Urdu or by voice), logs notes/calls, sends payment links, books appointments |
 | Customer (external) | Messages on WhatsApp or fills the public form; gets a fast reply in their language, a payment link and a confirmed slot |
 
 ## 3. Core loop (what the demo proves)
@@ -38,7 +38,7 @@ Customer WhatsApps (Roman Urdu / voice note)  ──►  webhook verified, dedup
    │                                               │ countdown
    │                                               ▼
    │                         ignored → escalation → next eligible → backup → manager
-   │                         Telegram alert (+AI brief) → "Acknowledge" button
+   │                         Slack alert (+AI brief) → "Acknowledge" button
    │                                               │
    ▼                                               ▼
 "Hamza has joined the chat"  ◄──── human takes over (handoff card: goal, fields, mood, suggested reply)
@@ -51,7 +51,7 @@ Everything → activity timeline + tamper-evident audit chain + live dashboard /
 ## 4. Priorities: how to decide what to build
 
 - **P0 = original problem statement. Must pass. Built and verified first, and must work with every P1/P2 feature switched off** (requirements "Mixed-priority requirements", C20).
-- **P1 = committed differentiators** (Lead Radar, AI stand-in, Telegram Acknowledge, Urdu/RTL, Judge Console, time-warp, voice notes, revenue metrics, hash chain …).
+- **P1 = committed differentiators** (Lead Radar, AI stand-in, Slack Acknowledge, Urdu/RTL, Judge Console, time-warp, voice notes, revenue metrics, hash chain …).
 - **P2 = stretch**, attempted only when all P0 and P1 items pass.
 
 Build order is in `09-build-plan.md` (mirrors requirements §10). When in doubt: **ship the P0 baseline end-to-end before polishing anything.**
@@ -61,10 +61,10 @@ Build order is in `09-build-plan.md` (mirrors requirements §10). When in doubt:
 1. A lead is **never ownerless** and **never owned twice**, even with everyone offline, two timers firing together, two people claiming, or a crash mid-countdown.
 2. **Server-side authorization** on every endpoint; workspace isolation also enforced by Postgres RLS; guessed IDs get nothing.
 3. **Webhooks**: signature-verified on the raw body; duplicates have no effect; failures are visible, never silent.
-4. **Real integrations** in free/test modes: Meta WhatsApp Cloud API, Stripe test mode, Google Calendar OAuth, Telegram bot, OpenAI. No fakes in the running app.
+4. **Real integrations** in free/test modes: Meta WhatsApp Cloud API, Stripe test mode, Google Calendar OAuth, Slack bot, OpenAI. No fakes in the running app.
 5. **Timers are persisted** in Postgres and configurable down to seconds (plus time-warp for demos).
 6. **AI never acknowledges, never owns, never stops a timer, never takes an irreversible action.** With AI off, everything still works.
-7. **Opportunity value is masked** for users without permission everywhere: UI, exports, dashboard, AI, Telegram.
+7. **Opportunity value is masked** for users without permission everywhere: UI, exports, dashboard, AI, Slack.
 8. **Audit history cannot be edited or deleted** by the application's DB role.
 9. **Zero cost**: free tiers / sandboxes only; OpenAI is the only paid dependency.
 
@@ -74,7 +74,7 @@ Build order is in `09-build-plan.md` (mirrors requirements §10). When in doubt:
 - **Twilio waived** (organizer guidance for Pakistan); Meta WhatsApp Cloud API test number instead (C1). Test numbers reach **registered test recipients only**.
 - **Stripe** doesn't onboard Pakistani businesses; the test-mode account is created under a supported country. JazzCash and Easypaisa are roadmap only.
 - **Google OAuth** app stays in *Testing*: only listed test users, and refresh tokens may be short-lived.
-- **Telegram** is our chosen notification channel (I4).
+- **Slack** is our chosen notification channel (I4).
 - **Languages:** English + Urdu UI (RTL); customer language detection `en` / `ur` / `ur-Latn`.
 - **Design:** accepted design system in `docs/design/`: bright, spacious, top-nav-only dashboard, **Warm Orange** accent, Inter + Noto Nastaliq Urdu, light + dark.
 

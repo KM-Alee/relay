@@ -9,6 +9,7 @@ Read this file fully before your first change. It is short on purpose. The detai
 ## 1. Sources of truth (in priority order)
 
 1. **`requirements.md`**: the canonical requirements (v2.2). Requirement IDs (F3.5, I1.2, Q5 …) are used everywhere: tests, commits, comments.
+   - **Amendment A-1 (team decision 2026-10-18, ADR-0011):** wherever `requirements.md` says *Telegram* (C4, F1.4, F3.4, F3.5, F3.9, F9.2, I4.x, §8, §9, §10), read **Slack**. The PDF accepted Slack for I4. The Telegram inline Acknowledge button (I4.5) becomes a Slack Block Kit **Acknowledge** button with identical rules.
 2. **`docs/decisions/ADR-*.md`**: accepted architecture decisions.
 3. **`docs/00…12`**: specs derived from the above (see `docs/README.md` for the index).
 4. **`STATUS.md`**: what is being built right now, by whom, plus blockers and open questions.
@@ -42,9 +43,9 @@ If two sources conflict, the higher one wins. **Never silently override a requir
 
 1. **A lead is never ownerless and never double-owned.** All lead transitions go through `core/services/leads` in one transaction, with `SELECT … FOR UPDATE` plus a conditional `UPDATE … WHERE version = $v`. Spec: `docs/03-lead-engine.md`.
 2. **Postgres owns time.** No `setTimeout`/in-memory timers for business deadlines. Deadlines are columns, processed by `runDueWork()`. Durations go through `clock.deadline()` (time-warp).
-3. **No external call inside a DB transaction.** Side effects (WhatsApp, Telegram, Google, Stripe, OpenAI, QStash) go to the **outbox** in the same transaction.
+3. **No external call inside a DB transaction.** Side effects (WhatsApp, Slack, Google, Stripe, OpenAI, QStash) go to the **outbox** in the same transaction.
 4. **Every DB access runs inside `withWorkspaceTx`/`withSystemTx`** (transaction-local `set_config`). Never use plain `SET`, `LISTEN`, or session advisory locks (Neon pooler). The runtime role is `app_user`, never the owner.
-5. **Authorization on the server, in services.** `assertPermission(actor, key)` plus record-visibility scope on every read and write. Other workspaces' or out-of-scope IDs → **404**. Opportunity value goes through `core/auth/mask.ts` everywhere (UI, exports, dashboard, AI input, Telegram).
+5. **Authorization on the server, in services.** `assertPermission(actor, key)` plus record-visibility scope on every read and write. Other workspaces' or out-of-scope IDs → **404**. Opportunity value goes through `core/auth/mask.ts` everywhere (UI, exports, dashboard, AI input, Slack).
 6. **Webhooks**: verify the signature on the **raw body** → record idempotently → 200 → process from the outbox.
 7. **AI never acknowledges, owns, stops timers, sends payment links, books, or promises prices/discounts.** Enforce this in code, not just in prompts. The app must fully work with `AI_ENABLED=false`.
 8. **P0 must work with every P1 feature flag off.** New P1 behaviour that touches P0 flows sits behind a workspace flag.

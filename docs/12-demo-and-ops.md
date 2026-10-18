@@ -15,7 +15,7 @@
 | Meta for Developers | WhatsApp Cloud API test number | test recipients only (max ~5), 24 h window | _tbd_ |
 | Stripe (test mode) | payments | account under a supported country (not PK) | _tbd_ |
 | Google Cloud | Calendar API + OAuth (Testing status) | listed test users only | _tbd_ |
-| Telegram BotFather | notifications bot (+ a separate dev bot) | – | _tbd_ |
+| Slack (free workspace) + Slack app | notifications (DM alerts, `/relay` command, Acknowledge button); separate dev app from its own manifest | free plan; recipients must be workspace members | _tbd_ |
 | OpenAI | AI (only paid dependency) | set a hard monthly limit in the dashboard too | _tbd_ |
 
 ## 2. Environment variables
@@ -31,7 +31,7 @@
 | WhatsApp (platform default, can be overridden per workspace) | `META_APP_ID`, `META_APP_SECRET`, `META_VERIFY_TOKEN`, `META_WABA_ID`, `META_PHONE_NUMBER_ID`, `META_ACCESS_TOKEN`, `META_GRAPH_VERSION` |
 | Stripe | `STRIPE_SECRET_KEY` (sk_test_…), `STRIPE_WEBHOOK_SECRET` |
 | Google | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` |
-| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` |
+| Slack | `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_APP_ID`, `SLACK_TEAM_ID` (optional) |
 | OpenAI | `OPENAI_API_KEY`, `OPENAI_MODEL_CHAT`, `OPENAI_MODEL_TRIAGE`, `OPENAI_MODEL_TRANSCRIBE`, `AI_ENABLED` (global kill switch), `AI_DEFAULT_DAILY_COST_CAP_USD` |
 | Testing only | `INTEGRATIONS_FAKE` (`1` = fake adapters; boot refuses it in production) |
 | CI / traceability | `GITHUB_TOKEN` (fine-grained PAT, `actions:write`), `GITHUB_REPO`, `GITHUB_REF`, `TEST_RESULTS_URL`, `TEST_RESULTS_SECRET`; CI-only: `NEON_API_KEY`, `VERCEL_AUTOMATION_BYPASS_SECRET` |
@@ -51,7 +51,7 @@ pnpm dev                                 # Next.js + dev ticker (runs runDueWork
 - `pnpm db:reset` drops + recreates + migrates the local DB (refuses non-local hosts). `pnpm db:migrate --test` migrates the test DB by hand.
 Webhooks locally (use **dev** credentials only):
 - Stripe: `stripe listen --forward-to localhost:3000/api/webhooks/stripe/<connectionKey>`
-- Telegram / Meta: `cloudflared tunnel --url http://localhost:3000`, then register the dev bot webhook / dev Meta app webhook to that URL.
+- Slack / Meta: `cloudflared tunnel --url http://localhost:3000`, then point the dev Slack app's request URLs (from its manifest) / dev Meta app webhook at that URL.
 - Without a tunnel, run adapter contract tests with recorded fixtures (`08-testing.md`).
 
 ## 4. First-time production setup (once, in order)
@@ -63,7 +63,7 @@ Webhooks locally (use **dev** credentials only):
 5. **Meta**: create an app with the WhatsApp product. Note the test number, `phone_number_id` and WABA ID. Generate a token (prefer a **System User permanent token**; temporary tokens expire in about 24 h). Webhook URL = `https://<prod>/api/webhooks/meta/<connectionKey>` with the verify token. Subscribe to `messages`. Add test recipients. Create and submit the templates needed outside the 24 h window (e.g. `booking_confirmation`, `payment_link`) in `en` and `ur`.
 6. **Stripe** (test mode): webhook endpoint `https://<prod>/api/webhooks/stripe/<connectionKey>` with events `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`, `payment_intent.payment_failed`, `charge.refunded` (final list in `04-integrations.md`).
 7. **Google**: enable the Calendar API, set up the OAuth consent screen (External, **Testing**), add every teammate + judge account as a test user, set the redirect URI `https://<prod>/api/integrations/google/callback`.
-8. **Telegram**: BotFather → bot, then `pnpm telegram:set-webhook` (calls `setWebhook`) to `https://<prod>/api/webhooks/telegram/<connectionKey>` with `secret_token`. Use a separate bot for dev.
+8. **Slack**: create a free Slack workspace and invite teammates (and judges, if they should see alerts live). Run `pnpm slack:manifest` (prints `apps/web/slack/manifest.json` with `PUBLIC_BASE_URL` filled in) → api.slack.com/apps → **Create app from manifest** → paste → install to the workspace → copy the **bot token** (`xoxb-…`) and **signing secret** (plus App ID / Team ID) into env. The manifest sets the `/relay` command URL `https://<prod>/api/webhooks/slack/<connectionKey>/commands` and the interactivity URL `…/interactions`. Use a separate app for dev. Verify current Slack setup details at build time.
 9. **OpenAI**: set the key + a monthly hard limit in the OpenAI dashboard. Confirm the current cheapest suitable models and set the `OPENAI_MODEL_*` vars.
 10. `pnpm db:seed` against production **only in demo mode** (or use the in-app "Reset demo workspace").
 
@@ -82,7 +82,7 @@ T-24 h
 - [ ] Production deploy frozen (tag `demo-v1`). Only fixes via PR with a green CI.
 - [ ] Judges' and teammates' WhatsApp numbers added as Meta test recipients. Slide has a QR code / `wa.me` link to the test number.
 - [ ] Meta token is permanent (System User), or freshly generated if temporary.
-- [ ] All teammates have Telegram linked; Google test users added and **tokens freshly connected** (Testing-mode refresh tokens can expire).
+- [ ] All teammates are in the Slack workspace and have **Connect Slack** done (`/relay link <code>`), with Slack mobile notifications on for the app's DMs; Google test users added and **tokens freshly connected** (Testing-mode refresh tokens can expire).
 - [ ] Stripe webhook points at prod; test card `4242 4242 4242 4242` ready.
 - [ ] OpenAI cap well above demo needs; the Urdu/English fallback auto-reply verified by switching AI off.
 - [ ] Backup screen recording of the full 5-minute flow.
@@ -91,7 +91,7 @@ T-1 h
 - [ ] QStash backstop schedule set to every minute. `job_runs` shows recent ticks from both wake-ups and the schedule.
 - [ ] Time-warp set to the demo speed. Demo workspaces reset (`Reset demo workspace` in Judge Console).
 - [ ] Send one WhatsApp message end-to-end and pay one test checkout to warm everything.
-- [ ] Phones: Telegram notifications on, Do Not Disturb off, battery charged. Laptop: sound cues on/off as planned.
+- [ ] Phones: Slack mobile app installed, signed in, notifications on, Do Not Disturb off, battery charged. Laptop: sound cues on/off as planned.
 
 Fallbacks during the demo
 - WhatsApp slow or down → use the public web form intake (same engine) and say so.
