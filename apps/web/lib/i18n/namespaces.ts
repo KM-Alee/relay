@@ -13,5 +13,6 @@ export const NAMESPACES = [
   'inbox', // C
   'integrations', // C
   'ai', // C
+  'payments', // C (T-143)
 ] as const;
 export type Namespace = (typeof NAMESPACES)[number];

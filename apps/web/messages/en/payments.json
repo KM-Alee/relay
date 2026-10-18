@@ -1,0 +1,58 @@
+{
+  "title": "Payments",
+  "subtitle": "Stripe test-mode payment links, driven by webhooks. Collected revenue counts only money received.",
+  "loading": "Loading payments…",
+  "loadFailed": "Could not load payments.",
+  "empty": "No payment requests yet.",
+  "totals": {
+    "collected": "Collected",
+    "projected": "Projected (unpaid)",
+    "refunded": "Refunded",
+    "masked": "Hidden"
+  },
+  "columns": {
+    "opportunity": "Opportunity",
+    "amount": "Amount",
+    "status": "Status",
+    "reference": "Stripe reference",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "status": {
+    "pending": "Awaiting payment",
+    "paid": "Paid ✓",
+    "expired": "Expired",
+    "failed": "Failed",
+    "refunded": "Refunded",
+    "partially_refunded": "Partially refunded"
+  },
+  "actions": {
+    "open": "Open link",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "cancel": "Cancel link",
+    "create": "Create payment link",
+    "creating": "Creating…"
+  },
+  "form": {
+    "title": "New payment link",
+    "opportunityId": "Opportunity ID",
+    "amount": "Amount",
+    "currency": "Currency",
+    "description": "Description",
+    "hint": "Billed through Stripe in test mode. A PKR value is converted for the test account and the original value stays visible."
+  },
+  "preparing": "Preparing the link…",
+  "failureReason": "Reason: {reason}",
+  "createFailed": "Could not create the payment link.",
+  "pay": {
+    "success": {
+      "title": "Payment received",
+      "body": "Thank you. Your payment was received and the team has been notified."
+    },
+    "cancelled": {
+      "title": "Payment not completed",
+      "body": "No payment was taken. You can use the same link again while it is valid."
+    }
+  }
+}

@@ -57,3 +57,73 @@ export interface Notifier {
   /** auth.test: connectivity probe. */
   authTest(creds: Creds): Promise<{ teamId: string; botUserId: string }>;
 }
+
+// ── Payments (Stripe test mode, T-143; 04 §4) ───────────────────────────
+/** The slice of a Stripe event we use (the SDK's Event type is not leaked past the adapter). */
+export interface PaymentEvent {
+  id: string;
+  type: string;
+  created: number;
+  /** Raw `data.object` (only read by `normalizePaymentEvent`; never stored whole). */
+  object: Record<string, unknown>;
+}
+
+export interface CheckoutInput {
+  amountMinor: number;
+  /** Lowercase or uppercase ISO code; the adapter lowercases. */
+  currency: string;
+  description: string;
+  paymentRequestId: string;
+  successUrl: string;
+  cancelUrl: string;
+  expiresAt?: Date;
+  /** Provider idempotency key (retries never create a second session). */
+  idempotencyKey: string;
+}
+
+export interface PaymentProvider {
+  /** Verify the signature over the RAW body (constant-time, 5 min tolerance) BEFORE anything is parsed. */
+  verifyWebhook(
+    req: RawRequest,
+    creds: Creds,
+  ): { ok: true; event: PaymentEvent } | { ok: false; reason: string };
+  createCheckout(
+    i: CheckoutInput,
+    creds: Creds,
+  ): Promise<{ providerRef: string; url: string; expiresAt: Date }>;
+  expireCheckout(providerRef: string, creds: Creds): Promise<void>;
+}
+
+// ── Calendar (Google, T-144; 04 §5) ─────────────────────────────────────
+export interface OAuthTokens {
+  accessToken: string;
+  /** Absent on refresh responses (Google keeps the original refresh token). */
+  refreshToken?: string;
+  expiresAt: Date;
+  /** Account email from the id_token (display only). */
+  email?: string;
+}
+
+export type CalEvent = {
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  /** IANA zone. */
+  timeZone: string;
+  attendeeEmail?: string;
+  /** Deterministic event id (base32hex-safe) so retries never duplicate. */
+  eventId: string;
+};
+
+export interface CalendarProvider {
+  authUrl(i: { state: string; codeChallenge: string; redirectUri: string; loginHint?: string }): string;
+  exchangeCode(i: { code: string; codeVerifier: string; redirectUri: string }): Promise<OAuthTokens>;
+  /** Throws ProviderError{kind:'auth'} on invalid_grant. */
+  refresh(refreshToken: string): Promise<OAuthTokens>;
+  revoke(token: string): Promise<void>;
+  freeBusy(accessToken: string, from: Date, to: Date): Promise<Array<{ start: Date; end: Date }>>;
+  createEvent(accessToken: string, e: CalEvent): Promise<{ providerEventId: string; htmlLink: string }>;
+  updateEvent(accessToken: string, providerEventId: string, e: CalEvent): Promise<{ htmlLink: string }>;
+  cancelEvent(accessToken: string, providerEventId: string): Promise<void>;
+}

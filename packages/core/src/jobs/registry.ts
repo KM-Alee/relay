@@ -7,6 +7,7 @@ import type { z } from 'zod';
 import { AppError } from '../errors';
 import { integrationProcessJob } from './handlers/integration-process';
 import { noopJob } from './handlers/noop';
+import { paymentCreateCheckoutJob, paymentExpireCheckoutJob } from './handlers/payment-checkout';
 import { wakeScheduleJob } from './handlers/wake-schedule';
 import { slackSendJob } from './handlers/slack-send';
 import { slackUpdateJob } from './handlers/slack-update';
@@ -18,6 +19,8 @@ const handlers = [
   slackSendJob, // C: T-145
   slackUpdateJob, // C: T-145
   integrationProcessJob, // C: T-140/T-145
+  paymentCreateCheckoutJob, // C: T-143
+  paymentExpireCheckoutJob, // C: T-143
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];
