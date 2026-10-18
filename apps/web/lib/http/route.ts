@@ -21,7 +21,7 @@ import { consume, type RateLimiter } from '@relay/core/services/rate-limit';
 import type { z } from 'zod';
 import { ensureCsrfCookie } from './csrf-cookie';
 import { clientIp, readCookie, requestHost } from './request';
-import { resolveActor as defaultResolveActor, type ResolveActor } from './session';
+import { applySessionCookies, resolveActor as defaultResolveActor, type ResolveActor } from './session';
 
 type AuthMode = 'session' | 'public';
 type Schema = z.ZodType;
@@ -203,6 +203,12 @@ export function createRoute(deps: RouteDeps) {
       } catch {
         // Immutable headers (e.g. Response.redirect) or missing SESSION_SECRET (reported at boot):
         // never mask the real response.
+      }
+      try {
+        // T-101: a session rotated during this request (privilege change) sends its new cookie.
+        applySessionCookies(req, res);
+      } catch {
+        // Immutable headers: the next request rotates again (the old row is already revoked → 401).
       }
       return res;
     };

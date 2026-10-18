@@ -9,7 +9,7 @@ try {
   await recreateLocalDatabase(url);
   const res = await runMigrations({ connectionString: url, appDbPassword: process.env.APP_DB_PASSWORD });
   console.log(`reset ${new URL(url).pathname.slice(1)}: ${res.applied.length} migrations applied`);
-  console.log('seed data: run `pnpm db:seed` (T-010) once it exists');
+  console.log('next: pnpm db:seed (login-able seed workspaces, docs/12-demo-and-ops.md)');
 } catch (err) {
   console.error((err as Error).message);
   process.exit(1);

@@ -75,6 +75,8 @@ Permissions are strings in `packages/core/src/auth/permissions.ts` (one `as cons
 
 \* Admins hold `users.manage` but the Owner-protection rules below always apply. "—" in the Manager column means "not added by the role" (the user still has their base-level grants). The Manager role is seeded as in F1.7 (view all leads, reassign, recovery queue, team availability) plus value view and company dashboard. The Owner can edit it.
 
+**As built (T-102):** resolver `core/auth/effective-permissions.ts` (pure `computeEffectivePermissions` + per-request `loadEffectivePermissions`; a missing `level_permissions` row falls back to `contracts/permission-defaults.ts`), scope helpers `core/auth/visibility.ts` (`visibleLeadScope`, `leadScopeSql`, `contactScopeSql`, `foundOr404`), masking `core/auth/mask.ts` (`maskOpportunity`, `maskMoneyFigure`, `maskMoney` → `contracts/money.ts` DTOs, `maskValueFields` for audit/CSV/AI objects). Pages: `(app)/layout.tsx` → `requireActor()` (signed out → `/login`); gated pages → `requirePage('<nav id>')` / `requirePermission(key)` from `apps/web/lib/http/page-auth.ts` (missing permission → 404).
+
 ### Owner-protection rules (enforced in `services/users.ts`, independent of permissions)
 - Nobody except the Owner can change the Owner's level, roles, sessions or status. Admins cannot grant `roles.manage` or `audit.view`, and cannot create or promote admins.
 - The Owner cannot be deactivated or demoted without first `POST /api/v1/workspace/transfer-ownership` (target must be an active admin; atomic; audited).

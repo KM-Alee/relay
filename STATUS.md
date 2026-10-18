@@ -31,11 +31,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W1: platform
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-007 | Audit log core + hash chain trigger | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-007 | Audit log core + hash chain trigger | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | `audit_events` + triggers + `audit.append`/`verifyChain` + POST `/audit/verify` |
 | T-008 | Outbox + runDueWork + tick + QStash wake | A | review | agent:lane-A | `worktree-agent-a7f316dc34f62c56e` | Due-work processor list `core/jobs/processors.ts` (W2 adds lead timers). `QSTASH_URL` added. Nudge happy path untested until T-101 sessions |
-| T-010 | Seed framework | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-101 | Signup/login/sessions | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-102 | Permissions, visibility, masking | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-010 | Seed framework | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | 2 workspaces, 7 users, password `relay-dev-password`; factories; `/dev/login-as` POST |
+| T-101 | Signup/login/sessions | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | pages at `/login` + `/signup` (07 §1 route map); provisioning hooks for teams/pipelines (Lane A / T-111) |
+| T-102 | Permissions, visibility, masking | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | `mask.ts`, `visibility.ts`, `requirePage()`; gated stub pages of all lanes |
 | T-004 | Vercel + Neon pipeline, `/api/health` | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | vercel.json + vercel-build (migrate as owner, then next build); runtime URL rewrite to app_user via APP_DB_PASSWORD; health asserts role |
 | T-009 | Realtime change feed (polling) | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | emit(), /changes, useRealtime(); Lane A wires pruneRealtimeEvents into the tick; Lane D mounts the hook |
 | T-011 | CI + traceability reporter | C | review | agent:lane-C | `worktree-agent-ad3342c438279be17` | ci.yml (static/test/build), `pnpm test:ci`, `pnpm traceability` |

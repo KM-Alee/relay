@@ -22,3 +22,5 @@ export async function runSeeds(ctx: SeedContext, modules = seedModules): Promise
 }
 
 export type { SeedContext, SeedModule } from './types';
+export { SEED_USERS, SEED_WORKSPACES, DEV_PASSWORD } from './identity';
+export { createUser, createWorkspace, DEV_PASSWORD_HASH } from './factories';
