@@ -5,6 +5,7 @@
 // only after max_attempts. enqueue() validates payloads up front, so bad payloads fail at the source.
 import type { z } from 'zod';
 import { AppError } from '../errors';
+import { appointmentConfirmJob } from './handlers/appointment-confirm';
 import {
   calendarCancelEventJob,
   calendarCreateEventJob,
@@ -35,6 +36,7 @@ const handlers = [
   calendarCreateEventJob, // C: T-144
   calendarUpdateEventJob, // C: T-144
   calendarCancelEventJob, // C: T-144
+  appointmentConfirmJob, // C: T-216 (I3.9)
   leadRetryRoutingJob, // A · T-125: lead.retry_routing {teamId}
   aiTranscribeJob, // C2b: T-217
 ] as const satisfies readonly JobHandler[];

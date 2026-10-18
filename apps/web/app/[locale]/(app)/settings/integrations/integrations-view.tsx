@@ -68,6 +68,7 @@ const STATUS_TONE: Record<IntegrationCardDto['status'], StatusTone> = {
 const EVENT_TONE: Record<IntegrationEventDto['status'], StatusTone> = {
   processed: 'success',
   received: 'info',
+  processing: 'info',
   rejected: 'danger',
   failed: 'danger',
   ignored: 'neutral',

@@ -75,5 +75,23 @@
     "shortcut": "Ctrl + Enter to send"
   },
   "subtitle": "Every WhatsApp conversation in one place, updated live.",
-  "emptyTitle": "All caught up"
+  "emptyTitle": "All caught up",
+  "pay": {
+    "button": "Send a payment link",
+    "help": "Creates a secure payment link for this customer's open opportunity and sends it here.",
+    "amount": "Amount (leave empty to use the opportunity value)",
+    "amountPlaceholder": "e.g. 50000",
+    "description": "What is it for? (optional)",
+    "send": "Create and send link",
+    "sent": "Payment link sent",
+    "badAmount": "Enter a valid amount greater than zero.",
+    "amountRequired": "This opportunity has no value you can see. Enter the amount to charge.",
+    "reason": {
+      "no_open_opportunity": "This customer has no open opportunity. Create one first, then send the link.",
+      "no_contact": "This chat is not linked to a contact yet.",
+      "no_conversation": "No WhatsApp conversation found for this customer.",
+      "payment_link_unavailable": "The payment link is not ready yet. Try again in a moment.",
+      "opted_out": "This customer has opted out of messages."
+    }
+  }
 }

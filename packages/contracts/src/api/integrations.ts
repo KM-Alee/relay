@@ -90,6 +90,7 @@ export type IntegrationConnectionDto = z.infer<typeof integrationConnectionDto>;
 
 export const integrationEventStatusSchema = z.enum([
   'received',
+  'processing',
   'processed',
   'rejected',
   'failed',

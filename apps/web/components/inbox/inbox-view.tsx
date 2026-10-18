@@ -23,6 +23,7 @@ import {
   ShieldBan,
   TriangleAlert,
 } from 'lucide-react';
+import { PayLinkButton } from './pay-link-button';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { AIBadge } from '@/components/relay/ai-badge';
@@ -803,6 +804,9 @@ function Composer({
           </Button>
         </div>
       )}
+      <div className="mt-2 flex items-center gap-2">
+        <PayLinkButton conversationId={c.id} onSent={onSent} />
+      </div>
       {!useTemplate ? (
         <p id={`composer-hint-${c.id}`} className="mt-1.5 hidden text-meta text-fg-muted sm:block">
           <Keyboard aria-hidden className="me-1 inline size-3.5 align-[-2px]" />

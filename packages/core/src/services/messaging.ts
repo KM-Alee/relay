@@ -25,6 +25,7 @@ import { breakerAllows } from '../integrations/breaker';
 import { classifyMetaError } from '../integrations/meta/adapter';
 import { putMedia } from '../integrations/blob';
 import { redactText } from '../integrations/redact';
+import { builtinTemplateDtos, paramCountOf } from '../integrations/meta/templates';
 import { getMessaging } from '../integrations/registry';
 import { ProviderError, type Creds, type ParsedMessagingEvent } from '../integrations/types';
 import { enqueueJob } from '../integrations/upstream';
@@ -69,9 +70,10 @@ export function waCredsFromRow(row: ConnLike | null): Creds {
 const BUILTIN_TEMPLATES: TemplateDto[] = [
   // Ships with every Meta test number.
   { key: 'hello_world', name: 'hello_world', lang: 'en_US', body: 'Hello World', paramCount: 0 },
+  // booking_confirmation / payment_link / follow_up in en, ur, ur-Latn (docs/whatsapp-templates.md).
+  ...builtinTemplateDtos(),
 ];
 
-const paramCountOf = (body: string) => new Set(body.match(/\{\{\d+\}\}/g) ?? []).size;
 const render = (body: string, params: string[]) =>
   body.replace(/\{\{(\d+)\}\}/g, (_, n: string) => params[Number(n) - 1] ?? '');
 

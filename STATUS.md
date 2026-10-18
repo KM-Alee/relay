@@ -90,7 +90,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
 | T-202 | Policy builder + routing trace UI | A | review | agent:lane-A3 | `worktree-agent-a70c583a9a52a39e5` | `/automations`: RuleSummary, FlowCanvas (@xyflow), TestPanel (simulate via pure domain), versioned publish, assignment, teams, web forms. Routing-trace UI on lead detail not done here |
-| T-203 | Slack Acknowledge button | A | todo |  |  |  |
+| T-203 | Slack Acknowledge button | A | review | agent:lane-C5 | `worktree-agent-a0f777d685a83f5ed` | real-Slack e2e green (scripts/slack-ack-e2e.ts); event claim (`processing`) fixes Slack double-process; `?next=` login redirect via proxy `x-relay-path` |
 | T-210 | Time-warp | A | review | agent:lane-A3 | `worktree-agent-a70c583a9a52a39e5` | `PUT /time-warp` (1/10/60, demo workspaces, workspace.settings) reschedules open-lead deadlines in one tx; badge wired in AppShell |
 | T-209 | Judge Console | B | review | agent:lane-B4 | `worktree-agent-a8e90ee00747a7365` | 14 scenarios (11 live pass, 3 lead-engine pending placeholders); `core/services/judge/`, `/judge`, `/api/v1/judge`; ns `judge` |
 | T-211 | Seeded demo workspaces | B | todo |  |  |  |
@@ -111,7 +111,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-225 | Urgency windows | A | todo |  |  |  |
 | T-220 | Audit verify-integrity UI | B | review | agent:lane-B3 | worktree-agent-ae9c0e3d2651bcb12 | built + real e2e check; T-105 lead transfer via onUserDeactivated hook (T-127) |
 | T-221 | Stage rot | B | todo |  |  |  |
-| T-216 | $ button, instant booking, confirmations | C | todo |  |  |  |
+| T-216 | $ button, instant booking, confirmations | C | review | agent:lane-C5 | `worktree-agent-a0f777d685a83f5ed` | $ button, /f/slug slots+book, appointment.confirm WhatsApp; templates in docs/whatsapp-templates.md; not live-tested (needs Meta-approved templates + connected calendar) |
 | T-217 | Voice-note transcription | C | review | Lane C2b (AI agent) | worktree-agent-aad231e65b4fcaf67 | media.download enqueues ai.transcribe; transcript+summary on message; Transcript component mounted in inbox; Retry API; onTranscriptReady hook for stand-in/triage continuation (F8.2) not yet consumed. Real TTS->transcribe run passed |
 | T-215 | Revenue at Risk / Rescued / AI stats | D | todo |  |  |  |
 | T-228 | PWA + demo polish | D | in-progress | agent:lane-D3 | `worktree-agent-ab80676380e5b5c16` | motion kit + C pages done (motion/Lottie kits, TopNav fixes, inbox/payments/appointments/integrations polish); PWA pending |

@@ -94,6 +94,14 @@ export const paymentsEndpoints = {
     params: idParams,
     response: z.object({ ok: z.literal(true), messageId: z.uuid() }),
   }),
+  /** "$" button in the inbox composer (T-216): link for the contact's open opportunity + send in the thread. */
+  sendInConversation: endpoint({
+    method: 'POST',
+    path: '/api/v1/conversations/:id/payment-link',
+    params: idParams,
+    body: createPaymentLinkInput.pick({ amountMinor: true, currency: true, description: true }),
+    response: z.object({ payment: paymentRequestDto, messageId: z.uuid() }),
+  }),
   cancel: endpoint({
     method: 'POST',
     path: '/api/v1/payments/:id/cancel',

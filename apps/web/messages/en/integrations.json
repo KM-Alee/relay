@@ -140,7 +140,8 @@
       "processed": "Processed",
       "rejected": "Rejected",
       "failed": "Failed",
-      "ignored": "Ignored"
+      "ignored": "Ignored",
+      "processing": "Processing"
     }
   }
 }

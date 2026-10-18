@@ -140,7 +140,8 @@
       "processed": "مکمل",
       "rejected": "مسترد",
       "failed": "ناکام",
-      "ignored": "نظرانداز"
+      "ignored": "نظرانداز",
+      "processing": "پروسیس ہو رہا ہے"
     }
   }
 }
