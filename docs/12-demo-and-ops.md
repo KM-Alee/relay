@@ -20,7 +20,7 @@
 
 ## 2. Environment variables
 
-`.env.example` is the canonical list, validated by `packages/core/src/config.ts`. Groups:
+`.env.example` is the canonical list, validated by `packages/core/src/config.ts`: one Zod schema per group (section), parsed lazily on first use (`config.db.DATABASE_URL`), so a missing Stripe key never breaks the build or unrelated routes. Server boot (`apps/web/instrumentation.ts`) runs `validateConfig(['core', 'db'])` and fails with one message listing every missing/invalid variable (names only, never values). Empty values count as unset. Groups:
 
 | Group | Vars |
 |---|---|
@@ -74,6 +74,7 @@ Webhooks locally (use **dev** credentials only):
 - **Missed webhooks after an outage**: re-send from the provider dashboard (Stripe/Meta) or use event replay (I5.9). Idempotency makes either safe.
 - **Neon cold start**: the first request after idle takes ~0.5 s extra. On demo day, switch the backstop schedule to every minute an hour beforehand.
 - **Secret rotation**: update the Vercel env → redeploy. For per-workspace secrets, reconnect on the integrations page.
+- **`APP_ENCRYPTION_KEY` rotation** (06 §5): set `APP_ENCRYPTION_KEY_PREVIOUS` = the old key and `APP_ENCRYPTION_KEY` = a new one (`openssl rand -base64 32`) → redeploy. Envelopes carry the key id (`v1.<keyId>.<…>`), so old rows still decrypt; re-encrypt every row where `secrets.needsReencrypt()` is true (re-encrypt script: owner of `integration_connections`, Lane C), then drop `_PREVIOUS`.
 
 ## 6. Demo day checklist (extends requirements §8)
 
