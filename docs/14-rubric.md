@@ -50,9 +50,11 @@ Status: ✅ verified live on prod · 🟡 built, not yet verified live / one gap
 
 | What does not fully work | What works instead |
 |---|---|
-| Stripe: no paid payment in the current prod data (demo reseeded today; 1 open request, 0 Stripe webhook events) | Payment link creation; webhook verify + idempotency covered by integration tests; pay with 4242 live in the demo |
-| Google Calendar not connected on prod (OAuth needs a human sign-in) | Appointments page shows the connect state; slot/clash logic tested |
-| WhatsApp round-trip with a real phone not verified by the script | Meta connection live, webhook events recorded; forged/duplicate webhooks tested |
-| Phone width: /leads, /contacts (tables) and /me scroll horizontally at 375px | The other main pages fit at 375px (screenshots in `reports/selfcheck/`) |
-| Loading states and keyboard-only use not checked automatically | Error + success feedback verified (login, custom-field create) |
-| Dashboard: only "new leads today" and "waiting ack" cross-checked against records | Scope differs by role (company vs mine); payments masked for plain users |
+| WhatsApp messages **outside the 24-hour window** need Meta-approved templates (submitted, approval pending) | Inside the window, free-text replies work both ways; outside it the send fails visibly with Retry (never silently) |
+| WhatsApp test number can only message **registered test recipients** (Meta sandbox rule) | Any registered phone can message in and get replies; forged/duplicate webhooks are rejected/ignored (Judge Console) |
+| Older **payment history** on the dashboard chart is seeded demo data | The live Stripe flow (test mode) is real: pay a link with card 4242 → the record turns Paid automatically; refunds/failures update via signed webhooks |
+| **Google Calendar** is in Google "Testing" mode: only listed test users can connect, and tokens expire after ~7 days | Connected accounts book real events (visible in Google Calendar), clashes are checked against free/busy, a revoked token shows "Reconnect" |
+| **Slack alerts** reach only employees who linked their Slack account | Unlinked employees still get the in-app alert; the skipped Slack alert is recorded with the reason, visible to admins |
+| AI stand-in hands off (no AI answer) when a customer asks for a human, is angry, or asks for discounts/prices not in the knowledge base | A polite localized holding message is sent and the human owner is alerted; AI never acknowledges or owns a lead |
+| Optional extras not built: first-to-claim pond, skills-based routing, idle re-trigger, event replay | Round-robin assignment with capacity, fallback custody and the full escalation chain work |
+| Keyboard-only use is checked on the main flows only | Every page works on a phone; dialogs, menus and forms are keyboard reachable on the main flows |
