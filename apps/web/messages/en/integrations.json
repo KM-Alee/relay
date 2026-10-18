@@ -1,1 +1,94 @@
-{ "title": "Integrations", "status": { "connected": "Connected", "disconnected": "Not connected" } }
+{
+  "title": "Integrations",
+  "subtitle": "Connect the services Relay talks to. Secrets are encrypted and never shown again.",
+  "loading": "Loading integrations…",
+  "loadFailed": "Could not load integrations.",
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Not connected",
+    "not_connected": "Not connected",
+    "error": "Error",
+    "needs_reconnect": "Needs reconnect"
+  },
+  "lastOk": "Last OK: {when}",
+  "never": "never",
+  "lastTick": "Last background run: {when}",
+  "platformDefault": "Using the platform's shared credentials.",
+  "breaker": {
+    "closed": "Healthy",
+    "half_open": "Probing",
+    "open": "Degraded: calls paused, retrying automatically"
+  },
+  "recentErrors": "Recent problems",
+  "noErrors": "No recent problems.",
+  "deadJobs": "{count, plural, one {# delivery failed permanently} other {# deliveries failed permanently}}",
+  "webhookUrls": "Paste these URLs into the provider console",
+  "webhook": "Webhook",
+  "commands": "Slash command URL",
+  "interactions": "Interactivity URL",
+  "slackCoverage": "{linked} of {total} team members have connected Slack.",
+  "actions": {
+    "connect": "Connect",
+    "update": "Update",
+    "disconnect": "Disconnect",
+    "save": "Save",
+    "cancel": "Cancel",
+    "forceOpen": "Pause calls (test)",
+    "forceClosed": "Resume calls"
+  },
+  "secretHint": "Stored: {hint}. Leave blank to keep.",
+  "fields": {
+    "botToken": "Bot token",
+    "signingSecret": "Signing secret",
+    "appId": "App ID",
+    "teamId": "Slack team ID",
+    "accessToken": "Access token",
+    "appSecret": "App secret",
+    "verifyToken": "Verify token",
+    "phoneNumberId": "Phone number ID",
+    "wabaId": "Business account ID",
+    "secretKey": "Secret key (test mode)",
+    "webhookSecret": "Webhook signing secret",
+    "apiKey": "API key"
+  },
+  "providers": {
+    "slack": {
+      "name": "Slack",
+      "limits": "Recipients must be members of our Slack workspace and must connect Slack in their profile before alerts reach them. Slack rate-limits messages (about 1 per second per channel), so bursts may be delayed."
+    },
+    "meta_whatsapp": {
+      "name": "WhatsApp (Meta Cloud API)",
+      "limits": "Free-form replies are only possible within 24 hours of the customer's last message; after that a pre-approved template is required. Test numbers can only message people you add as recipients."
+    },
+    "twilio_whatsapp": {
+      "name": "WhatsApp (Twilio)",
+      "limits": "Optional alternative provider. Not available yet."
+    },
+    "stripe": {
+      "name": "Stripe (test mode)",
+      "limits": "Test mode only: no real money moves. Payment links expire after 24 hours."
+    },
+    "google_calendar": {
+      "name": "Google Calendar",
+      "limits": "Each employee connects their own calendar. Relay reads free/busy only to avoid double-booking and writes only the appointments it creates."
+    },
+    "openai": {
+      "name": "OpenAI",
+      "limits": "Optional. Relay works fully with AI off. Daily spend caps apply and AI never acknowledges or owns a lead."
+    }
+  },
+  "errorCodes": {
+    "bad_signature": "Request signature did not match",
+    "stale_timestamp": "Request was too old (possible replay)",
+    "missing_headers": "Signature headers were missing",
+    "unknown_connection": "Unknown connection key",
+    "wrong_team": "Request came from a different Slack workspace",
+    "slack_not_connected": "The person has not connected Slack",
+    "slack_not_configured": "Slack is not configured",
+    "invalid_auth": "Slack rejected the token: reconnect",
+    "channel_not_found": "Slack could not find the conversation",
+    "user_not_found": "Slack could not find that user",
+    "account_inactive": "The Slack account is inactive",
+    "generic": "The provider reported an error"
+  }
+}

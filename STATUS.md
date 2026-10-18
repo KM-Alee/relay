@@ -54,8 +54,8 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-111 | Pipelines & stages + board | B | todo |  |  |  |
 | T-112 | Custom fields | B | todo |  |  |  |
 | T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
-| T-140 | Integrations page + sync history | C | in-progress | agent:lane-C | `lane-c-w2` |  |
-| T-145 | Slack alerts + linking | C | in-progress | agent:lane-C | `lane-c-w2` | critical path |
+| T-140 | Integrations page + sync history | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | page at settings/integrations; connections CRUD + secrets + breaker + sync history API; audit via seam until T-007 merges |
+| T-145 | Slack alerts + linking | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | critical path; Lane A hook: `enqueueSlackAlert(tx, …)` in core/services/slack.ts; real-Slack smoke pending (token not in worktree env) |
 | T-150 | Metrics + dashboard | D | todo |  |  |  |
 
 ### W3: P0 complete

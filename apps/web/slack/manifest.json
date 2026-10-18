@@ -1,0 +1,33 @@
+{
+  "display_information": {
+    "name": "Relay",
+    "description": "Lead alerts and acknowledgements for Relay, the accountability-first CRM.",
+    "background_color": "#c2410c"
+  },
+  "features": {
+    "bot_user": { "display_name": "Relay", "always_online": true },
+    "slash_commands": [
+      {
+        "command": "/relay",
+        "url": "{{PUBLIC_BASE_URL}}/api/webhooks/slack/default/commands",
+        "description": "Connect your Slack to Relay and get help",
+        "usage_hint": "link <code> | help",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": ["chat:write", "im:write", "commands", "users:read", "users:read.email"]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "{{PUBLIC_BASE_URL}}/api/webhooks/slack/default/interactions"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

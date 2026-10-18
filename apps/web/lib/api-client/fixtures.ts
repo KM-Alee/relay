@@ -28,7 +28,7 @@ export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   messaging: true, // C
   payments: true, // C
   calendar: true, // C
-  integrations: true, // C
+  integrations: false, // C (T-140: real routes merged)
   ai: true, // C
   dashboard: true, // D
   realtime: true, // C
