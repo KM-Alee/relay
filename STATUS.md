@@ -4,13 +4,14 @@
 > Status values: `todo` · `in-progress` · `review` · `done` · `blocked` · `cut`
 
 **Last updated:** 2026-10-18 · **Phase:** Pre-development · **Current milestone:** M0 Foundation
-**Code:** W0 foundation on branch `w0-skeleton` (T-001/002/003/006 done). **Next up:** T-013 (parallel-ready skeleton), then `/launch-wave W1`. Then `/launch-wave W1`. **Follow the fast track in `docs/09-build-plan.md` §0.**
+**Code:** W0 complete on branch `w0-t013` (T-001/002/003/006/013 done). **Next up:** merge `w0-t013` to `main`, then `/launch-wave W1`. **Follow the fast track in `docs/09-build-plan.md` §0.**
 
 ## Now / next
 
 - [x] Pre-dev docs, ADRs, agent workflow (this commit)
 - [x] Design guidelines integrated: `docs/design/` (Warm Orange)
 - [x] Parallel development playbook: `docs/13-parallel-development.md`, `scripts/wt.sh`, `/launch-wave`
+- [x] W0 parallel-ready skeleton (T-013): lanes can start W1
 - [ ] `git init` + GitHub repo + Vercel/Neon projects (T-004 needs these)
 - [ ] Assign account owners in `docs/12-demo-and-ops.md` §1
 
@@ -25,7 +26,7 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-002 | DB foundation, roles, RLS harness | W0 | done | agent:w0 | w0-skeleton | Postgres 16 compose; own runner `packages/db/src/migrate.ts`; `relay_enable_tenant_rls()`; RLS suite green |
 | T-003 | Config/env validation + secret encryption | W0 | done | agent:w0 | w0-skeleton | `core/config.ts` lazy per-section; Slack vars (ADR-0011); `core/secrets.ts` v1 envelopes |
 | T-006 | API conventions, AppError, CSRF, rate limit | W0 | done | agent:w0 | w0-skeleton | `lib/http/route.ts`, `core/auth/csrf.ts` (signed double-submit), `rate_limits` + limiter, `errors` en/ur |
-| T-013 | Parallel-ready skeleton | W0 | todo |  |  |  |
+| T-013 | Parallel-ready skeleton | W0 | done | agent:w0 | w0-t013 | 13 §10 checklist done (CI = T-011). next-intl 4.14.9 + `proxy.ts`; `nav.ts` + 16 stub pages; permission catalogue; api-client fixture mode + `/api/v1/me` example; `db:new`/`db:seed`; husky+lint-staged; wt.sh `env`/`--purge`; migration runner retries cluster-catalog races (found by the 2-worktree proof) |
 
 ### W1: platform
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
@@ -166,3 +167,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · Claude (pre-dev):** Integrated the design package (Warm Orange) into `docs/design/` (tokens, components, screens, decisions DS-1..14) + ADR-0009. Added the parallel playbook (doc 13, ADR-0010, `scripts/wt.sh`, `/launch-wave`), vertical lanes, T-012/T-013, and the Wave/Lane board. Project named **Relay**.
 - **2026-10-18 · Claude (docs):** Switched the I4 notification channel from Telegram to Slack: ADR-0011, amendment A-1 in `AGENTS.md` §1, and all docs/`.env.example`/agent files updated (Slack app manifest, `/relay link`, `slack.send`, Block Kit Acknowledge button). `requirements.md` untouched. No code yet; T-145/T-203 renamed.
 - **2026-10-18 · agent:w0:** T-001, T-002, T-003, T-006 done on `w0-skeleton` (4 commits). `pnpm check` + `pnpm build` green locally against Docker Postgres. Slack replaces Telegram in config/.env.example per coordinator (ADR-0011; other docs handled elsewhere). Extension points for T-013/T-101 listed in the W0 report: `lib/http/session.ts#resolveActor`, `core/auth/actor.ts`, `contracts/src/errors.ts`, `db/src/schema/index.ts`, `messages/<locale>/errors.json`.
+- **2026-10-18 · agent:w0:** T-013 done on `w0-t013` (6 commits). Skeleton per 13 §10; endpoint recipe in 13 §4. Proved two `wt.sh` worktrees run `pnpm test` simultaneously (105/105 each) after fixing a real clash: concurrent first-time migrations collided on the cluster-global `app_user` role ("tuple concurrently updated"); runner now retries. `pnpm check` + `pnpm build` green. Note: an uncommitted `.gitignore` edit (`.vercel`, `.env*`) appeared from outside this task and was left uncommitted (`.env*` after `!.env.example` re-ignores it).

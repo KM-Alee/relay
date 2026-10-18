@@ -23,7 +23,7 @@
 |---|---|---|---|
 | POST | `/auth/signup` | public, rate-limited | creates workspace + Owner |
 | POST | `/auth/login` · `/auth/logout` | public / session | rate-limited (Q1) |
-| GET | `/me` | session | actor, permissions, locale, flags |
+| GET | `/me` | session | actor, permissions, locale, flags. **Built (T-013)**: worked example of the endpoint pattern (13 §4); 401 until T-101 |
 | GET / DELETE | `/me/sessions` · `/me/sessions/:id` | session | list / revoke own |
 | POST | `/invites` · DELETE `/invites/:id` | `users.invite` | returns the copyable link once |
 | POST | `/invites/:token/accept` | public | single-use |
@@ -102,6 +102,7 @@
 | PATCH | `/workspace/time-warp` | `workspace.settings` + `demo_mode` |
 | GET | `/traceability` · POST `/traceability/rerun` | `demo.judge_console` + `demo_mode` |
 | POST | `/workspace/transfer-ownership` | Owner only (`06-security.md` §2) |
+| GET | `/api/dev/login-as` (outside `/v1`; T-101 adds POST) | dev only: 404 unless `NODE_ENV=development` + `DEMO_MODE` (13 §5) |
 | GET | `/changes?since=<ISO>` | session (realtime change feed, own workspace; `07-frontend-i18n.md` §2) |
 | POST | `/ai/transcribe` (P2 push-to-talk) | session, rate-limited |
 

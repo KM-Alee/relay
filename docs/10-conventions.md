@@ -61,7 +61,7 @@ Use the domain vocabulary from requirements §9 and `03-lead-engine.md` §1 exac
 
 ## 6. Root scripts (keep names stable, other docs reference them)
 
-Implemented in W0: `dev` (Next only until T-008 adds the dev ticker), `build`, `lint`, `typecheck`, `format` (+ `format:check`), `test`, `test:unit`, `test:int`, `test:e2e` (alias `e2e`), `db:up`, `db:migrate` (`--test` targets the test DB), `db:generate`, `db:reset`, `check`. The others are added by their owning tasks (`db:seed` T-010, `traceability` T-011, `qstash:schedule` T-008, `ai:eval` T-204; the notifications webhook script follows ADR-0011).
+Implemented in W0: `dev` (Next only until T-008 adds the dev ticker), `build`, `lint`, `typecheck`, `format` (+ `format:check`), `test`, `test:unit`, `test:int`, `test:e2e` (alias `e2e`), `db:up`, `db:migrate` (`--test` targets the test DB), `db:generate`, `db:reset`, `check`. Added in T-013: `db:seed` (framework; T-010 fills the data), `db:new <lane> <slug>` (new timestamped migration), `prepare` (husky pre-commit → lint-staged prettier on staged files). The others are added by their owning tasks (`traceability` T-011, `qstash:schedule` T-008, `ai:eval` T-204; the notifications webhook script follows ADR-0011).
 
 | Script | Does |
 |---|---|
@@ -75,6 +75,7 @@ Implemented in W0: `dev` (Next only until T-008 adds the dev ticker), `build`, `
 | `pnpm db:generate` | Drizzle migration generation |
 | `pnpm db:reset` | drop + migrate (local only; refuses on a non-local host) |
 | `pnpm db:seed` | demo workspaces (F10.4), idempotent |
+| `pnpm db:new <lane> <slug>` | creates `packages/db/migrations/<YYYYMMDDHHmm>_<lane>_<slug>.sql` (UTC, always after the last file) with the RLS checklist header |
 | `pnpm traceability` | builds `docs/traceability.md` from the last test run |
 | `pnpm check` | lint + typecheck + test (pre-PR gate) |
 | `pnpm qstash:schedule` | creates/updates the QStash backstop schedule (`--every 1m` on demo day) |

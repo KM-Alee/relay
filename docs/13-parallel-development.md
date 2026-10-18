@@ -32,6 +32,8 @@
 | **D** Experience | `frontend-engineer` | `app/globals.css`, `app/[locale]/layout.tsx`, `(app)/layout.tsx`, `(app)/page.tsx` (Overview + Radar), `(app)/dev/**`, `components/ui/**` (shadcn), `components/relay/**` (shared product components), `components/overview/**`, `lib/{api-client,query,format,i18n}/**`, `nav.ts`, `messages/*/{common,overview,errors}.json`, `core/services/metrics*` + `contracts/api/dashboard.ts` |
 | **Q** QA | `qa-engineer`, `reviewer` | `tests/**`, `**/*.test.ts` additions in any lane (tests only), `scripts/traceability.ts`, `docs/traceability.md`, page `(app)/traceability/**` |
 
+**As built (T-013):** permission keys live in `contracts/src/permissions.ts` (browser-safe, used by `nav.ts` and `MeResponse`); level defaults, the Manager role, `can()` and `assertPermission()` in `core/auth/permissions.ts`. Jobs/outbox tables: `db/schema/jobs.ts` (Lane A). Dev tools are at `app/[locale]/dev/**` (Lane D), outside `(app)`. `nav.ts` is `apps/web/nav.ts`. Folder indexes are importable as `@relay/core/{domain/leads,ai,audit,realtime,integrations/<provider>}` (explicit `exports` in `packages/core/package.json`); other core files by path (`@relay/core/services/users`).
+
 **Shared files** (any lane, additive edits only, small diffs, re-pull first): `packages/db/src/schema/index.ts` (one export line per file), `contracts/src/index.ts`, `core/src/auth/permissions.ts` (already complete from W0; additions are rare), `.env.example` + `core/config.ts` (add to your lane's section), `STATUS.md`, `CHANGELOG.md`, `docs/02-data-model.md`, `docs/11-api.md`.
 
 **Need to change another lane's file?** Make the smallest possible change, tag that lane's task in `STATUS.md` notes, and mention it in the PR. For anything bigger, ask the owning lane (via `STATUS.md` → Blockers) or wait for its PR.
@@ -40,17 +42,18 @@
 
 | Hot spot | Rule that prevents conflicts |
 |---|---|
-| **Migrations** | Timestamped filenames: `packages/db/migrations/<YYYYMMDDHHmm>_<lane>_<slug>.sql`. Never renumber, never edit a merged migration. The runner applies in filename order and records applied files. Drizzle-kit generation is per lane's schema files, reviewed before commit |
+| **Migrations** | `pnpm db:new <lane> <slug>` creates the file with the RLS checklist header. Timestamped filenames: `packages/db/migrations/<YYYYMMDDHHmm>_<lane>_<slug>.sql`. Never renumber, never edit a merged migration. The runner applies in filename order and records applied files. Drizzle-kit generation is per lane's schema files, reviewed before commit |
 | **Schema** | One file per domain (`schema/leads.ts`, `schema/crm.ts`, …). Never put another domain's table in your file |
 | **i18n** | Messages split by namespace: `apps/web/messages/<locale>/<namespace>.json`, loaded by next-intl. Each namespace belongs to one lane. Add `en` and `ur` together |
 | **Permissions** | The **full catalogue** from `06-security.md` §2 is written once in W0. Lanes consume it, rarely add |
 | **Navigation** | `nav.ts` is created in W0 with **all** destinations pointing to stub pages ("Coming soon" EmptyState). Lanes replace their stub page and never touch `nav.ts` |
 | **API contracts** | `contracts/src/api/<domain>.ts` per domain, owned by its lane |
 | **Route handlers** | `app/api/v1/<domain>/**` per domain |
-| **Seeds** | `packages/db/seed/<domain>.ts` modules + a composed `seed/index.ts` (one import line each) |
-| **Outbox job handlers** | `core/jobs/handlers/<type>.ts`, registered in `core/jobs/registry.ts` (one line each) |
+| **Seeds** | `packages/db/seed/<domain>.ts` modules (`SeedModule`) + a composed `seed/index.ts` (one import + one list entry each); `pnpm db:seed` (owner URL, local only, idempotent) |
+| **Outbox job handlers** | `core/jobs/handlers/<type>.ts` via `defineJob({ type, payload: zod, handle })` (`core/jobs/types.ts`), registered in `core/jobs/registry.ts` (one line each; example `handlers/noop.ts`) |
 | **Components** | Lane-specific in `components/<area>/`. Shared/product-wide only in `components/relay/` (Lane D). Need a new shared component? Build it in your area, and Lane D promotes it later |
-| **Formatting churn** | Prettier runs on staged files only (lint-staged). Never reformat files you didn't change |
+| **Formatting churn** | Prettier runs on staged files only (husky pre-commit + lint-staged). Never reformat files you didn't change |
+| **API client** | `apps/web/lib/api-client/domains/<domain>.ts` per domain (owned by that domain's lane); `index.ts` already lists every domain |
 
 ## 4. Contracts-first handshake (how UI and backend run in parallel)
 
@@ -58,6 +61,16 @@
 2. UI work starts immediately against the typed client `api.<domain>.*` (`lib/api-client`). With `NEXT_PUBLIC_API_FIXTURES=1` (dev only), the client returns fixtures instead of calling the network, so screens are fully buildable with no backend.
 3. The backend implements the real route + service against the same contract. When it merges, the UI flips that domain off fixtures (per-domain flag map in `lib/api-client/fixtures.ts`).
 4. A contract change after merge is a **new PR tagged `contract-change`** that updates schemas, fixtures and both sides in one go.
+
+### How to add an endpoint in 5 steps (worked example: `GET /api/v1/me`)
+
+1. **Contract** `packages/contracts/src/api/<domain>.ts`: Zod schemas + an `endpoint({ method, path, response, body?, query?, params? })` entry in `<domain>Endpoints` (example: `api/users.ts` → `meResponse`, `usersEndpoints.me`). Import contracts by subpath: `@relay/contracts/api/users`.
+2. **Fixture** `packages/contracts/src/fixtures/<domain>.ts`: a deterministic builder (`buildMe(overrides)`) and one entry per endpoint in `<domain>Fixtures`. The client validates fixtures against the response schema, so they can't drift.
+3. **Service** `packages/core/src/services/<domain>.ts`: the use case, returning the contract's (masked) DTO (`usersService.me(actor)`), with a unit test titled with requirement IDs.
+4. **Route** `apps/web/app/api/v1/<path>/route.ts`: one `route({ auth, permission?, body?, query?, params?, rateLimit?, handler })` call that does ONE service call (`app/api/v1/me/route.ts`). `permission` is typed as `PermissionKey`.
+5. **Client** `apps/web/lib/api-client/domains/<domain>.ts`: `op: (input, opts?) => call('<domain>', <domain>Endpoints.op, input, <domain>Fixtures.op, opts)` (`domains/users.ts`). UI uses `api.<domain>.op()`. When the real route merges, set the domain to `false` in `lib/api-client/fixtures.ts` `FIXTURE_DOMAINS`.
+
+Tests to copy: `lib/api-client/api-client.test.ts` (fixture vs network mode, csrf header, error envelope), `app/api/v1/me/route.test.ts`, `core/services/users.test.ts`.
 
 ## 5. Independence tools (built in W0/W1)
 
@@ -77,14 +90,16 @@
 ```bash
 scripts/wt.sh new T-124 escalation-timer   # → ../relay-wt/t-124-escalation-timer on branch t-124-escalation-timer
 scripts/wt.sh list                          # active worktrees
-scripts/wt.sh rm  T-124                     # remove after merge
+scripts/wt.sh rm  T-124 [--purge]           # remove after merge; --purge also drops *_t124 DBs + deletes the branch
+scripts/wt.sh env T-124                     # inside an Agent-tool worktree: write apps/web/.env.local (DB suffix + PORT)
+WT_BASE_REF=<ref> scripts/wt.sh new …       # base on another ref than main
 ```
 `wt.sh new` creates the worktree from fresh `origin/main` (or local `main` without a remote) and writes `apps/web/.env.local` from the main checkout. It sets:
 - `PORT` = 3100 + (task number mod 100), so dev servers never clash.
 - `DATABASE_URL`/`TEST_DATABASE_URL` database names suffixed with `_t124`. The test setup creates the DB if missing and runs migrations.
 - It runs `pnpm i` (fast with the pnpm store).
 
-Claude Code agents can instead use the Agent tool's `isolation: "worktree"`. The same rules apply (branch name `t-<id>-<slug>`).
+Claude Code agents can instead use the Agent tool's `isolation: "worktree"`. The same rules apply (branch name `t-<id>-<slug>`). Those worktrees have no `apps/web/.env.local` and no `node_modules`: run `pnpm i` and `scripts/wt.sh env T-<id>`. Even without an env file, integration tests in a linked worktree use their own DB (`relay_test_wt_<dirname>`, `packages/db/test/db-urls.ts`). The migration runner retries transient cluster-catalog conflicts (the roles migration alters the server-global `app_user`), so parallel first-time migrations are safe (`migrate-parallel.test.ts`).
 
 ## 7. Merge protocol (main stays green)
 
@@ -117,12 +132,12 @@ Lane-specific reminders to append:
 
 ## 10. Definition of "parallel-ready" (W0 exit checklist, T-013)
 
-- [ ] Folder skeleton for every lane path in §2 (with `index.ts` placeholders)
-- [ ] `nav.ts` with all destinations + stub pages; `(auth)`, `(app)`, `dev` route groups
-- [ ] Full permission catalogue; `assertPermission` stub that compiles
-- [ ] i18n namespace files (`en` + `ur`) for every namespace in §2
-- [ ] Migration runner with timestamped files; schema index; seed index; job registry
-- [ ] `contracts/api` + `contracts/fixtures` layout; typed `api-client` with fixture mode
-- [ ] `scripts/wt.sh`, per-worktree DB naming in test setup, port derivation
-- [ ] `/dev/login-as` and `/dev/kitchen-sink` routes (guarded)
-- [ ] `pnpm check` green; CI runs on PRs
+- [x] Folder skeleton for every lane path in §2 (with `index.ts` placeholders)
+- [x] `nav.ts` with all destinations + stub pages; `(auth)`, `(app)`, `dev` route groups
+- [x] Full permission catalogue; `assertPermission` stub that compiles
+- [x] i18n namespace files (`en` + `ur`) for every namespace in §2
+- [x] Migration runner with timestamped files; schema index; seed index; job registry
+- [x] `contracts/api` + `contracts/fixtures` layout; typed `api-client` with fixture mode
+- [x] `scripts/wt.sh`, per-worktree DB naming in test setup, port derivation
+- [x] `/dev/login-as` and `/dev/kitchen-sink` routes (guarded)
+- [ ] `pnpm check` green (done); CI runs on PRs (T-011, W1)

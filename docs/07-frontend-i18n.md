@@ -1,7 +1,8 @@
 # 07 — Frontend, Localization (en/ur, RTL) and Accessibility
 
 > **Status:** Accepted for **structure and behaviour**. Requirement IDs: F5.*, F7.1–F7.7, Q7–Q11, Q16, Q17, F9.4, F2.10, F10.*.
-> **Code home:** `apps/web/app/[locale]/*`, `apps/web/components/*`, `apps/web/lib/{query,realtime,i18n,format}/*`, `apps/web/messages/{en,ur}.json`.
+> **Code home:** `apps/web/app/[locale]/*`, `apps/web/components/*`, `apps/web/lib/{query,realtime,i18n,format}/*`, `apps/web/messages/<locale>/<namespace>.json` (namespaces: `lib/i18n/namespaces.ts`).
+> **As built in W0 (T-013):** next-intl with `localePrefix: 'as-needed'` (`/leads` = en, `/ur/leads` = ur; `lib/i18n/routing.ts`), locale negotiation in `apps/web/proxy.ts` (Next 16 name for middleware; skips `/api`, `/f/*`, files). `app/[locale]/layout.tsx` sets `lang`/`dir`. Route groups: `(auth)`, `(app)`; dev tools live at `app/[locale]/dev/**` (outside `(app)` so they work signed-out; 404 unless `NODE_ENV=development` + `DEMO_MODE`). `/f/[slug]` has its own root layout (`app/f/layout.tsx`). Locale-aware `Link`/`redirect`: `@/lib/i18n/navigation`.
 
 > 🎨 **Design system: accepted (Warm Orange).** Visual rules live in **`docs/design/`**: `README.md` (decisions) → `tokens.md` → `components.md` → `screens.md`. This doc covers structure and behaviour; `docs/design/` covers the look. If they conflict on visuals, `docs/design/` wins. On behaviour or requirements, this doc and `requirements.md` win.
 
@@ -42,12 +43,12 @@ All app routes live under `/[locale]` (`en` | `ur`). The gate is checked **serve
 | `/me` | Profile: language, timezone, theme, sound mute, availability, Connect Slack (one-time code for `/relay link <code>`; unlink), Google Calendar connect, sessions | F7.1, F3.2, I4.3, I3.1, F1.8 | self |
 | `/f/[formSlug]` (no locale prefix, no auth) | Public web form + thank-you + P1 instant booking | F3.1, I3.8 | public, rate-limited |
 
-Navigation is built from a single `nav.ts` config with `{ href, labelKey, icon, perm, group: 'primary'|'more' }`. Primary: Overview · Leads · Inbox · Pipeline · Recovery · Automations. More: Appointments · Payments · Team · Integrations · Audit log · Settings · Judge Console (`design/screens.md` §1). Entries the user lacks permission for are omitted.
+Navigation is built from a single `apps/web/nav.ts` config with `{ id, href, labelKey, icon, perm: PermissionKey | null, group: 'primary'|'more'|'hidden', demoOnly?, lane }` and `visibleNav(perms, {isOwner, demoMode})`. Primary: Overview · Leads · Inbox · Pipeline · Recovery · Automations. More: Appointments · Payments · Team · Integrations · Audit log · Settings · Judge Console (`design/screens.md` §1). Entries the user lacks permission for are omitted.
 
 ## 2. App shell and component architecture
 
 - **Server Components** for page shells and the first data load (calling `core/services` with the session actor). **Client Components** for anything interactive or live (boards, inbox, radar, countdowns, forms). Pass server-fetched data as `initialData` to TanStack Query so the first paint never shows a spinner.
-- All mutations go from client → `/api/v1/*` via `lib/api.ts` (`fetchJson` adds `x-csrf-token`, parses `AppError`, and maps it to an i18n key). No Server Actions.
+- All mutations go from client → `/api/v1/*` via the typed client `api.<domain>.<op>()` in `lib/api-client` (adds `x-csrf-token`, validates the response with the contract, throws `ApiError` with an i18n key; fixture mode per 13 §4). No Server Actions.
 - Folders: `components/ui/*` (primitives; restyled when the design arrives), `components/domain/*` (LeadCard, CountdownRing, RoutingTrace, MessageBubble, HandoffCard, StatTile, …), `features/<area>/*` (screen-level composition).
 - Forms: `react-hook-form` + `zodResolver` using the **same** schema from `contracts` that the server uses. Server errors map back to fields through `details.fieldErrors`.
 
