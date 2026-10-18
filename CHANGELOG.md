@@ -51,6 +51,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - "Send payment link" + status badges + "Send via WhatsApp" on opportunities; "Book appointment" from the contact page [T-117] [I2.1] [I3.3]
 - Slack connect card translations + design-system styling [T-145] [I4.3]
 - README quickstart (`pnpm setup:env`), team explainer `docs/15-how-it-works.md`; Vercel Blob store for WhatsApp media
+- Live HTTP security probe `pnpm probe:security`: IDOR on every /api/v1 route, masking, CSRF, XSS in real Chromium, secrets in bundle/responses/git — 273/276 pass, 0 fail [T-161] [Q2] [Q3] [F1.6]
 
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
