@@ -1,6 +1,13 @@
-// STUB (W0/T-013). Owner: Lane C (T-140) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// Integrations page (T-140; I5.1). Replaces the W0 stub. Gate: nav.ts (perm integrations.view); the API re-checks.
+import { getTranslations } from 'next-intl/server';
+import { IntegrationsView } from './integrations-view';
 
-export default function Page() {
-  return <ComingSoon screen="nav.integrations" />;
+export default async function Page() {
+  const t = await getTranslations('integrations');
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="mb-4 text-2xl font-semibold">{t('title')}</h1>
+      <IntegrationsView />
+    </main>
+  );
 }
