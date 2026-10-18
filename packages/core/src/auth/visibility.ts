@@ -30,15 +30,16 @@ export function leadScopeSql(actor: Actor, ownerColumn: SQLWrapper): SQL {
  * WHERE fragment for contacts: owned by the actor OR with an open lead owned by the actor.
  * Child records (conversations, opportunities, payments, appointments) use it on their contact id:
  * `contactScopeSql(actor, conversations.contactId)` (owner column omitted → only the subqueries).
- * Requires the `leads` and `contacts` tables (Lanes A/B, W2).
+ * Requires the `contacts` table (T-110); the lead lookup is a late-bound SQL function.
  */
 export function contactScopeSql(actor: Actor, contactIdColumn: SQLWrapper, ownerColumn?: SQLWrapper): SQL {
   if (can(actor, 'leads.view_all')) return sql`true`;
   const me = actor.userId;
-  const viaLead = sql`exists (select 1 from leads l where l.workspace_id = ${actor.workspaceId} and l.contact_id = ${contactIdColumn} and l.status = 'open' and l.owner_user_id = ${me})`;
+  // crm_contact_has_open_lead (202610181303_b_crm.sql) is late-bound: false until Lane A's `leads` table exists.
+  const viaLead = sql`crm_contact_has_open_lead(${actor.workspaceId}::uuid, ${contactIdColumn}, ${me}::uuid)`;
   const owned = ownerColumn
     ? sql`${ownerColumn} = ${me}`
-    : sql`exists (select 1 from contacts c where c.workspace_id = ${actor.workspaceId} and c.id = ${contactIdColumn} and c.owner_user_id = ${me})`;
+    : sql`exists (select 1 from contacts _sc where _sc.workspace_id = ${actor.workspaceId} and _sc.id = ${contactIdColumn} and _sc.owner_user_id = ${me})`;
   return sql`(${owned} or ${viaLead})`;
 }
 
