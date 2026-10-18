@@ -90,5 +90,44 @@
     "user_not_found": "Slack could not find that user",
     "account_inactive": "The Slack account is inactive",
     "generic": "The provider reported an error"
+  },
+  "retry": "Try again",
+  "saved": "{name} saved. Relay will verify it on the next call.",
+  "copy": "Copy {label}",
+  "copied": "Copied",
+  "recentErrorsCount": "{count, plural, one {# recent problem} other {# recent problems}}",
+  "summary": {
+    "connected": "{count} of {total} connected",
+    "attention": "{count, plural, one {# needs attention} other {# need attention}}"
+  },
+  "history": {
+    "title": "Sync history",
+    "subtitle": "Every webhook received and every provider call, newest first. Payloads are redacted.",
+    "filter": "Provider",
+    "all": "All providers",
+    "empty": "No events yet. They appear here as soon as a provider talks to Relay.",
+    "loadFailed": "Could not load the sync history.",
+    "loadMore": "Load more",
+    "duplicates": "{count, plural, one {# duplicate ignored} other {# duplicates ignored}}",
+    "ms": "{ms} ms",
+    "columns": {
+      "time": "Time",
+      "provider": "Provider",
+      "direction": "Direction",
+      "kind": "Event",
+      "status": "Result",
+      "http": "HTTP · latency"
+    },
+    "direction": {
+      "in": "Inbound",
+      "out": "Outbound"
+    },
+    "status": {
+      "received": "Received",
+      "processed": "Processed",
+      "rejected": "Rejected",
+      "failed": "Failed",
+      "ignored": "Ignored"
+    }
   }
 }

@@ -31,12 +31,18 @@
       "no_calendar_connected": "No calendar connected",
       "needs_reconnect": "Calendar needs to be reconnected",
       "calendar_error": "Calendar error"
+    },
+    "short": {
+      "no_calendar_connected": "Not connected",
+      "needs_reconnect": "Reconnect",
+      "calendar_error": "Error"
     }
   },
   "week": {
     "previous": "Previous week",
     "next": "Next week",
-    "today": "This week"
+    "today": "This week",
+    "label": "Week"
   },
   "agenda": {
     "synced": "On Google Calendar",
@@ -45,7 +51,10 @@
     "open": "Open in Google Calendar",
     "reschedule": "Reschedule",
     "cancel": "Cancel",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "none": "No appointments",
+    "today": "Today",
+    "actions": "Actions for {title}"
   },
   "book": {
     "open": "Book an appointment",
@@ -69,6 +78,13 @@
     "saving": "Saving…",
     "close": "Close",
     "failed": "Could not save the appointment.",
-    "update": "Save new time"
+    "update": "Save new time",
+    "selected": "Selected",
+    "rescheduleTitle": "Reschedule appointment"
+  },
+  "retry": "Try again",
+  "cancelConfirm": {
+    "title": "Cancel this appointment?",
+    "body": "“{title}” will be removed from the calendar and the customer's booking is cancelled."
   }
 }
