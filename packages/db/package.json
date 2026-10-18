@@ -19,6 +19,7 @@
     "drop-worktree-dbs": "tsx scripts/drop-worktree-dbs.ts"
   },
   "dependencies": {
+    "@relay/contracts": "workspace:*",
     "@vercel/functions": "3.10.1",
     "drizzle-orm": "0.45.4",
     "pg": "8.23.1"

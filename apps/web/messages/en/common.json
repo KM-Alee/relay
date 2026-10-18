@@ -35,6 +35,280 @@
   },
   "dev": {
     "loginAsIntro": "Development only. Pick a seed user to sign in as.",
-    "noSeedUsers": "No seed users yet. Run pnpm db:seed once the seed data exists."
+    "noSeedUsers": "No seed users yet. Run pnpm db:seed once the seed data exists.",
+    "kitchen": {
+      "title": "Kitchen sink",
+      "intro": "Every shared component in every state. Switch language and theme to verify.",
+      "eyebrow": "Dev tools · {locale}",
+      "toolbar": "Language and theme",
+      "chips": {
+        "waiting": "waiting acknowledgement",
+        "escalated": "escalated today",
+        "unread": "unread conversations"
+      },
+      "sections": {
+        "tokens": "Colour and type tokens",
+        "buttons": "Buttons",
+        "forms": "Form fields",
+        "status": "Status and accountability",
+        "countdown": "Countdown ring",
+        "kpi": "KPI tiles",
+        "charts": "Chart cards",
+        "table": "Data table (cards on phones)",
+        "overlays": "Overlays and feedback",
+        "states": "Empty and loading states",
+        "format": "Formatting",
+        "art": "Decorative glass"
+      },
+      "type": {
+        "eyebrow": "Eyebrow label",
+        "hero": "Hero title",
+        "page": "Page title",
+        "panel": "Panel title",
+        "body": "Body text keeps a calm, readable rhythm.",
+        "meta": "Meta text for labels and axes"
+      },
+      "btn": {
+        "primary": "Primary",
+        "secondary": "Secondary",
+        "ghost": "Ghost",
+        "destructive": "Delete",
+        "link": "Link button",
+        "disabled": "Disabled",
+        "loading": "Save (loading)",
+        "add": "Add",
+        "small": "Small"
+      },
+      "form": {
+        "name": "Full name",
+        "nameHelp": "As the customer introduced themselves.",
+        "phone": "Phone",
+        "phoneError": "Enter the full number with country code.",
+        "source": "Lead source",
+        "sourceForm": "Web form",
+        "sourceWhatsapp": "WhatsApp",
+        "sourceManual": "Manual entry",
+        "disabled": "Disabled field",
+        "notes": "Notes"
+      },
+      "state": {
+        "acked": "Acknowledged",
+        "awaiting": "Awaiting handler",
+        "critical": "Critical",
+        "overdue": "Overdue",
+        "waiting": "Waiting ack",
+        "idle": "Idle",
+        "closed": "Closed"
+      },
+      "sample": {
+        "escalation": "Usman Raza escalated to level 2",
+        "pending": "Hamza Ali is waiting for you",
+        "fallbackReason": "No one available: everyone is at capacity."
+      },
+      "countdown": {
+        "live": "Live ring with a 60× time-warp badge"
+      },
+      "kpi": {
+        "newLeads": "New leads today",
+        "response": "Avg first response (min)",
+        "escalations": "Escalations",
+        "revenue": "Open pipeline value",
+        "loading": "Loading tile",
+        "empty": "Empty tile",
+        "emptyText": "No leads yet today.",
+        "error": "Error tile",
+        "vsYesterday": "vs yesterday",
+        "vsLastMonth": "vs last month"
+      },
+      "chart": {
+        "title": "How much did we collect each day?",
+        "scope": "All teams · Last 30 days",
+        "unit": "PKR",
+        "collected": "Collected (line)",
+        "count": "Payments (bars)",
+        "period": "Time period",
+        "days7": "Last 7 days",
+        "days30": "Last 30 days",
+        "summaryText": "Collected revenue rose from PKR 28K to PKR 82K over the period. The last day is the highest.",
+        "loadingTitle": "Loading chart",
+        "emptyTitle": "Empty chart",
+        "emptyReason": "No payments in this period.",
+        "emptyAction": "Change period",
+        "errorTitle": "Chart with an error"
+      },
+      "table": {
+        "lead": "Lead",
+        "phone": "Phone",
+        "owner": "Owner",
+        "status": "Status",
+        "value": "Value",
+        "caption": "Sample leads",
+        "loadMore": "Load more"
+      },
+      "toast": {
+        "retrying": "Retrying…",
+        "opened": "Row opened",
+        "done": "Done.",
+        "success": "Saved. The change is confirmed.",
+        "error": "Couldn't save. Check your connection and try again.",
+        "showSuccess": "Show success toast",
+        "showError": "Show error toast"
+      },
+      "empty": {
+        "title": "No leads yet",
+        "body": "Leads from your web form, WhatsApp and manual entry will appear here.",
+        "action": "Add a lead",
+        "recoveryTitle": "Recovery queue is empty",
+        "recoveryBody": "Every lead has an owner who is on it."
+      },
+      "skeleton": {
+        "title": "Skeleton loading",
+        "body": "Shaped like the content that will land."
+      },
+      "overlay": {
+        "drawer": "Open drawer",
+        "drawerTitle": "Lead preview",
+        "drawerBody": "Opens at the end side. Escape closes it.",
+        "dialog": "Open dialog",
+        "dialogTitle": "Edit contact",
+        "dialogBody": "Focus stays inside until you close it.",
+        "save": "Save",
+        "confirm": "Delete lead…",
+        "confirmTitle": "Delete this lead?",
+        "confirmBody": "The lead and its history will be removed for everyone.",
+        "confirmAction": "Delete lead",
+        "popover": "Popover",
+        "popoverBody": "Small contextual content.",
+        "tooltip": "Tooltip",
+        "tooltipBody": "Shows on hover and on keyboard focus.",
+        "menu": "Menu",
+        "menuOpen": "Open lead",
+        "menuCall": "Call",
+        "menuDisabled": "Unavailable action"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "activity": "Activity",
+        "payments": "Payments",
+        "bodyA": "Overview tab content.",
+        "bodyB": "Activity tab content.",
+        "bodyC": "Payments tab content."
+      },
+      "format": {
+        "money": "Money",
+        "compact": "Compact money",
+        "number": "Number",
+        "percent": "Percent",
+        "date": "Date and time",
+        "relative": "Relative time",
+        "phone": "Phone (LTR island)",
+        "zone": "Workspace time zone"
+      }
+    }
+  },
+  "tagline": "Every lead handed off. None dropped.",
+  "actions": {
+    "close": "Close",
+    "retry": "Retry",
+    "open": "Open",
+    "details": "Details",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "acknowledge": "Acknowledge",
+    "signIn": "Sign in"
+  },
+  "shell": {
+    "homeLink": "Relay, go to Overview",
+    "primaryNav": "Main navigation",
+    "menu": "Menu",
+    "userMenu": "User menu",
+    "you": "You",
+    "skipToContent": "Skip to content",
+    "searchPlaceholder": "Search leads, contacts…",
+    "searchTitle": "Search",
+    "searchEmpty": "No results found.",
+    "searchPages": "Pages",
+    "notifications": {
+      "title": "Notifications",
+      "openLabel": "{count, plural, =0 {Notifications} one {Notifications, # needs you} other {Notifications, # need you}}",
+      "emptyTitle": "You're all caught up",
+      "emptyBody": "Leads waiting for you to acknowledge, and escalations, will appear here.",
+      "kind": {
+        "ack": "Acknowledge needed",
+        "escalation": "Escalated",
+        "info": "Update"
+      }
+    }
+  },
+  "role": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "user": "User"
+  },
+  "availability": {
+    "label": "Availability",
+    "available": "Available",
+    "busy": "Busy",
+    "onLeave": "On leave",
+    "offline": "Offline",
+    "change": "Availability: {status}. Change",
+    "confirmTitle": "Switch to {status}?",
+    "confirmBody": "Leads you haven't acknowledged yet will be reassigned to a teammate.",
+    "saved": "You are now {status}.",
+    "failed": "Couldn't change your availability. Try again."
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "ur": "اردو"
+  },
+  "timeWarp": {
+    "label": "time-warp"
+  },
+  "countdown": {
+    "overdue": "Overdue",
+    "escalatesIn": "Escalates in",
+    "severity": {
+      "warning": "Running low",
+      "danger": "Escalating soon"
+    },
+    "ariaRemaining": "Acknowledge within {time}",
+    "ariaOverdue": "Acknowledgement time has passed",
+    "loading": "Loading countdown"
+  },
+  "ai": {
+    "badge": "AI"
+  },
+  "mask": {
+    "hidden": "Hidden",
+    "tooltip": "You don't have permission to see values."
+  },
+  "states": {
+    "loading": "Loading…",
+    "error": "This couldn't be loaded.",
+    "empty": "Nothing here yet."
+  },
+  "delta": {
+    "up": "up",
+    "down": "down",
+    "flat": "no change"
+  },
+  "table": {
+    "sort": "Sort"
+  },
+  "chart": {
+    "summary": "Text summary"
+  },
+  "form": {
+    "required": "Required"
+  },
+  "owner": {
+    "fallback": "Fallback custody"
   }
 }

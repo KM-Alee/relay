@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { assertDevTools, devToolsEnabled } from './guard';
 
+// T-010: the route now reads seed users from the DB; this unit test only checks the guard.
+vi.mock('@relay/core/services/dev-login', () => ({
+  devLoginService: { listSeedUsers: async () => [], loginAs: async () => undefined },
+}));
+
 afterEach(() => vi.unstubAllEnvs());
 
 describe('dev tools guard', () => {

@@ -5,13 +5,19 @@
 // only after max_attempts. enqueue() validates payloads up front, so bad payloads fail at the source.
 import type { z } from 'zod';
 import { AppError } from '../errors';
+import { integrationProcessJob } from './handlers/integration-process';
 import { noopJob } from './handlers/noop';
 import { wakeScheduleJob } from './handlers/wake-schedule';
+import { slackSendJob } from './handlers/slack-send';
+import { slackUpdateJob } from './handlers/slack-update';
 import type { JobContext, JobHandler } from './types';
 
 const handlers = [
   noopJob, // W0 example
   wakeScheduleJob, // A · T-008: QStash wake-up (ensureWakeBy)
+  slackSendJob, // C: T-145
+  slackUpdateJob, // C: T-145
+  integrationProcessJob, // C: T-140/T-145
 ] as const satisfies readonly JobHandler[];
 
 type Handlers = (typeof handlers)[number];

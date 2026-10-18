@@ -5,7 +5,7 @@
 
 ## 1. Conventions
 
-- Base path `/api/v1`. JSON only. Auth via the session cookie `sid` (httpOnly, Secure, SameSite=Lax).
+- Base path `/api/v1`. JSON only. Auth via the session cookie `sid` (HttpOnly, SameSite=Lax, Path=/; `__Host-sid` + Secure in production; 30 d absolute, 7 d idle).
 - **Mutations** (`POST/PATCH/PUT/DELETE`) require the `x-csrf-token` header (double-submit against the `csrf` cookie) and a matching `Origin`. Webhooks and `/api/internal/*` are exempt and use their own signature auth.
 - Every handler is `route({ auth, permission?, body?, query?, params?, rateLimit?, status?, handler })` from `apps/web/lib/http/route.ts`. Order: CSRF (unsafe methods) → session → Actor (`lib/http/session.ts#resolveActor`, filled by T-101) → declared permission → rate limit (`{ name, limit, windowSeconds, by: 'ip'|'user' }` → key `<name>:<ip|user>:<id>`) → Zod-parse params/query/body (body must be `application/json`, else 415) → `handler` (one service call; returns data → JSON, or a raw `Response`) → errors via `toErrorResponse()`. Services return already-masked DTOs (`core/auth/mask.ts`, T-102). All responses: `Cache-Control: no-store`.
 - **CSRF token**: `GET /api/v1/csrf` (public) issues the readable `csrf` cookie (`<nonce>.<hmac>` signed with `SESSION_SECRET`); `route()` also re-issues it on any response when the caller's cookie is missing/invalid. The client echoes it in `x-csrf-token`.
@@ -21,17 +21,17 @@
 ### Auth & session (F1.1, F1.2, F1.8)
 | Method | Path | Permission | Notes |
 |---|---|---|---|
-| POST | `/auth/signup` | public, rate-limited | creates workspace + Owner |
-| POST | `/auth/login` · `/auth/logout` | public / session | rate-limited (Q1) |
-| GET | `/me` | session | actor, permissions, locale, flags. **Built (T-013)**: worked example of the endpoint pattern (13 §4); 401 until T-101 |
-| GET / DELETE | `/me/sessions` · `/me/sessions/:id` | session | list / revoke own |
+| POST | `/auth/signup` | public, rate-limited (10/h per IP) | **Built (T-101).** `{workspaceName, name, email, password, locale?, timezone?}` → 201 `MeResponse` + `Set-Cookie sid`. `EMAIL_TAKEN` 409; weak password → 400 `issues[{path:'password', code:'password_too_short'|'password_too_common'}]` |
+| POST | `/auth/login` · `/auth/logout` | public | **Built (T-101).** Login → `MeResponse` + new `sid` (previous cookie's session revoked); limits `login:ip` 20/15 min + `login:email:<sha256>` 5/15 min → 429; unknown email / wrong password / deactivated → `INVALID_CREDENTIALS` 401. Logout → 204, clears cookie (always) |
+| GET | `/me` | session | **Built.** `{ user{id, workspaceId, baseLevel, locale, name, email, timezone, availability}, workspace{id, name, slug, timezone, currency, defaultLocale, demoMode}, permissions, flags }` |
+| GET / DELETE | `/me/sessions` · `/me/sessions/:id` | session | **Built (T-101).** List own live sessions (`current` flag) / revoke own (other ids → 404; audited `user.sessions_revoked`) |
 | POST | `/invites` · DELETE `/invites/:id` | `users.invite` | returns the copyable link once |
 | POST | `/invites/:token/accept` | public | single-use |
 
 ### Users, roles, teams (F1.2–F1.8, F3.2)
 | Method | Path | Permission |
 |---|---|---|
-| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability) |
+| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability). **GET built (T-102)**: keyset `?cursor&limit` → `{items: UserSummary[], nextCursor}`; other workspace's id → 404 |
 | POST | `/users/:id/deactivate` | `users.manage` (guards per F1.8) |
 | DELETE | `/users/:id/sessions` | Owner |
 | PATCH | `/users/:id/availability` | self or `users.manage` |
@@ -96,13 +96,13 @@
 | GET / PATCH | `/ai/settings`, CRUD `/knowledge`, `/templates` | `ai.manage` |
 | POST | `/conversations/:id/suggestions` (P2) | `ai.use` + `messaging.send` |
 | POST | `/ai/onboarding-proposals` · `/:id/apply` | Owner |
-| GET | `/audit` · POST `/audit/verify` | `audit.view` |
+| GET | `/audit` (T-151) · POST `/audit/verify` | `audit.view`. **`/audit/verify` built (T-007)**: `{ ok, checked, firstBrokenSeq, expectedHash, storedHash }` (hex), rate-limited 6/min per user |
 | GET | `/dashboard/metrics?figures=` · `/dashboard/drilldown/:figure` | session; company-wide needs `dashboard.company` (F5.4) |
 | POST | `/judge/:scenario` | `demo.judge_console` + `demo_mode` |
 | PATCH | `/workspace/time-warp` | `workspace.settings` + `demo_mode` |
 | GET | `/traceability` · POST `/traceability/rerun` | `demo.judge_console` + `demo_mode` |
 | POST | `/workspace/transfer-ownership` | Owner only (`06-security.md` §2) |
-| GET | `/api/dev/login-as` (outside `/v1`; T-101 adds POST) | dev only: 404 unless `NODE_ENV=development` + `DEMO_MODE` (13 §5) |
+| GET · POST | `/api/dev/login-as` (outside `/v1`) `{userId}` → session for a seed user (T-010) | dev only: 404 unless `NODE_ENV=development` + `DEMO_MODE` (13 §5) |
 | GET | `/changes?since=<ISO>` | session (realtime change feed, own workspace; `07-frontend-i18n.md` §2). Response `{now, reset, changes:[{id, topic, ids, at}]}`; no `since` returns just a cursor; `reset:true` = refetch everything (cursor older than 10 min or more than 500 hints). Contract: `contracts/api/realtime.ts` |
 | POST | `/ai/transcribe` (P2 push-to-talk) | session, rate-limited |
 

@@ -17,6 +17,8 @@ type Env = Record<string, string | undefined>;
 const blankToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 /** Optional string; '' → undefined. */
 const optStr = () => z.preprocess(blankToUndefined, z.string().optional());
+/** String with a default; '' → default. */
+const strDef = (def: string) => z.preprocess((v) => blankToUndefined(v) ?? def, z.string());
 const url = () => z.preprocess(blankToUndefined, z.url({ error: 'must be a URL' }));
 const bool = (def: boolean) =>
   z.preprocess(
@@ -138,9 +140,10 @@ export const sections = {
       AI_ENABLED: bool(false),
       INTEGRATIONS_FAKE: bool(false),
       OPENAI_API_KEY: optStr(),
-      OPENAI_MODEL_CHAT: optStr(),
-      OPENAI_MODEL_TRIAGE: optStr(),
-      OPENAI_MODEL_TRANSCRIBE: optStr(),
+      // Defaults verified 2026-10-18 (developers.openai.com/api/docs/pricing); override via env.
+      OPENAI_MODEL_CHAT: strDef('gpt-4.1-mini'),
+      OPENAI_MODEL_TRIAGE: strDef('gpt-4.1-nano'),
+      OPENAI_MODEL_TRANSCRIBE: strDef('gpt-4o-mini-transcribe'),
       AI_DEFAULT_DAILY_COST_CAP_USD: num(2),
     })
     .superRefine((v, ctx) => {

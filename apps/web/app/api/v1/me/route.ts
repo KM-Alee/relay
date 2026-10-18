@@ -1,4 +1,4 @@
-// GET /api/v1/me: the worked example of the endpoint pattern (13 §4). 401 until T-101 resolves sessions.
+// GET /api/v1/me: the worked example of the endpoint pattern (13 §4). 401 without a valid session.
 import { usersService } from '@relay/core/services/users';
 import { route } from '@/lib/http/route';
 

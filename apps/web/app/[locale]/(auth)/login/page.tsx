@@ -1,6 +1,18 @@
-// STUB (W0/T-013). Owner: Lane B (T-101) replaces this page. Gate + route map: docs/07-frontend-i18n.md §1.
-import { ComingSoon } from '@/components/relay/coming-soon';
+// /login (F1.1). Owner: Lane B (T-101). Signed-in users go straight to the app.
+import { Suspense } from 'react';
+import { redirect } from '@/lib/i18n/navigation';
+import { getPageActor } from '@/lib/http/page-auth';
+import { AuthForm } from '../_components/auth-form';
 
-export default function Page() {
-  return <ComingSoon screen="nav.login" />;
+export const dynamic = 'force-dynamic';
+
+export default async function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const l = locale === 'ur' ? 'ur' : 'en';
+  if (await getPageActor()) redirect({ href: '/', locale: l });
+  return (
+    <Suspense>
+      <AuthForm mode="login" locale={l} />
+    </Suspense>
+  );
 }
