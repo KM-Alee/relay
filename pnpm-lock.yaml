@@ -120,6 +120,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@relay/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@vercel/functions':
         specifier: 3.10.1
         version: 3.10.1

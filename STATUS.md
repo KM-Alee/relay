@@ -31,11 +31,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 ### W1: platform
 | ID | Task | Lane | Status | Owner | Branch / PR | Notes |
 |---|---|---|---|---|---|---|
-| T-007 | Audit log core + hash chain trigger | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-007 | Audit log core + hash chain trigger | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | `audit_events` + triggers + `audit.append`/`verifyChain` + POST `/audit/verify` |
 | T-008 | Outbox + runDueWork + tick + QStash wake | A | in-progress | agent:lane-A | `t-008-jobs-tick` |  |
-| T-010 | Seed framework | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-101 | Signup/login/sessions | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
-| T-102 | Permissions, visibility, masking | B | in-progress | agent:lane-B | `t-b-w1-platform` |  |
+| T-010 | Seed framework | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | 2 workspaces, 7 users, password `relay-dev-password`; factories; `/dev/login-as` POST |
+| T-101 | Signup/login/sessions | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | pages at `/login` + `/signup` (07 §1 route map); provisioning hooks for teams/pipelines (Lane A / T-111) |
+| T-102 | Permissions, visibility, masking | B | review | agent:lane-B | `worktree-agent-a7db47d6327108780` | `mask.ts`, `visibility.ts`, `requirePage()`; gated stub pages of all lanes |
 | T-004 | Vercel + Neon pipeline, `/api/health` | C | in-progress | agent:lane-C | `t-c-w1-infra` | needs accounts |
 | T-009 | Realtime change feed (polling) | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
 | T-011 | CI + traceability reporter | C | in-progress | agent:lane-C | `t-c-w1-infra` |  |
