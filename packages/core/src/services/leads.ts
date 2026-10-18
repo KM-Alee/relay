@@ -570,7 +570,7 @@ export async function list(
     async (tx) => {
       // Drill-downs (F5.3) use the visible scope, exactly like the Overview figures (repos/metrics.ts).
       const drill = !!(q.state || q.created || q.escalated);
-      const mine = !drill && (q.view !== 'all' || !can(actor, 'leads.view_all'));
+      const mine = !drill && (q.view === 'mine' || !can(actor, 'leads.view_all'));
       const tz = sql`(select timezone from workspaces where id = ${actor.workspaceId}::uuid)`;
       const extra = [];
       if (q.state === 'pending') extra.push(sql`${leads.ackStatus} = 'pending'`);
