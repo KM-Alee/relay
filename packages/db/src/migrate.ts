@@ -61,6 +61,42 @@ export async function listMigrationFiles(dir = MIGRATIONS_DIR): Promise<Migratio
   );
 }
 
+/** Serialization/deadlock or concurrent catalog update: safe to retry the whole migration tx. */
+function isTransientCatalogError(err: unknown): boolean {
+  const e = err as { code?: string; message?: string };
+  return (
+    e.code === '40001' || e.code === '40P01' || /tuple concurrently (updated|deleted)/.test(e.message ?? '')
+  );
+}
+
+async function applyInTransaction(
+  client: pg.Client,
+  file: MigrationFile,
+  appDbPassword: string | undefined,
+): Promise<'applied' | 'skipped'> {
+  await client.query('BEGIN');
+  try {
+    await client.query('SELECT pg_advisory_xact_lock($1)', [LOCK_KEY]);
+    // Another runner may have applied it while we waited for the lock.
+    const again = await client.query('SELECT 1 FROM schema_migrations WHERE filename = $1', [file.name]);
+    if (again.rowCount) {
+      await client.query('ROLLBACK');
+      return 'skipped';
+    }
+    await client.query("SELECT set_config('relay.app_db_password', $1, true)", [appDbPassword ?? '']);
+    await client.query(file.sql);
+    await client.query('INSERT INTO schema_migrations (filename, checksum) VALUES ($1, $2)', [
+      file.name,
+      file.checksum,
+    ]);
+    await client.query('COMMIT');
+    return 'applied';
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw err;
+  }
+}
+
 export async function runMigrations(opts: RunMigrationsOptions): Promise<MigrationResult> {
   const log = opts.log ?? (() => undefined);
   const files = await listMigrationFiles(opts.dir);
@@ -98,30 +134,24 @@ export async function runMigrations(opts: RunMigrationsOptions): Promise<Migrati
           file.checksum,
         ]);
       } else {
-        await client.query('BEGIN');
-        try {
-          await client.query('SELECT pg_advisory_xact_lock($1)', [LOCK_KEY]);
-          // Another runner may have applied it while we waited for the lock.
-          const again = await client.query('SELECT 1 FROM schema_migrations WHERE filename = $1', [
-            file.name,
-          ]);
-          if (again.rowCount) {
-            await client.query('ROLLBACK');
-            skipped++;
-            continue;
+        // Retry transient errors: cluster-global catalogs (e.g. ALTER ROLE app_user in the roles
+        // migration) are shared by every database on the server, so two worktrees migrating their own
+        // DBs at the same moment can hit "tuple concurrently updated" (13 §6). The tx rolls back cleanly.
+        let outcome: 'applied' | 'skipped' | undefined;
+        for (let attempt = 1; outcome === undefined; attempt++) {
+          try {
+            outcome = await applyInTransaction(client, file, opts.appDbPassword);
+          } catch (err) {
+            if (attempt < 6 && isTransientCatalogError(err)) {
+              await new Promise((r) => setTimeout(r, 50 * attempt + Math.random() * 100));
+              continue;
+            }
+            throw new Error(`Migration ${file.name} failed: ${(err as Error).message}`, { cause: err });
           }
-          await client.query("SELECT set_config('relay.app_db_password', $1, true)", [
-            opts.appDbPassword ?? '',
-          ]);
-          await client.query(file.sql);
-          await client.query('INSERT INTO schema_migrations (filename, checksum) VALUES ($1, $2)', [
-            file.name,
-            file.checksum,
-          ]);
-          await client.query('COMMIT');
-        } catch (err) {
-          await client.query('ROLLBACK').catch(() => undefined);
-          throw new Error(`Migration ${file.name} failed: ${(err as Error).message}`, { cause: err });
+        }
+        if (outcome === 'skipped') {
+          skipped++;
+          continue;
         }
       }
       applied.push(file.name);
