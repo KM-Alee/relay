@@ -21,9 +21,9 @@ const notify = () => listeners.forEach((l) => l());
 function readTheme(): ThemeChoice {
   try {
     const v = localStorage.getItem(KEY);
-    return v === 'light' || v === 'dark' ? v : 'system';
+    return v === 'light' || v === 'dark' || v === 'system' ? v : 'light'; // light is the default
   } catch {
-    return 'system';
+    return 'light';
   }
 }
 const systemDark = () => window.matchMedia(MEDIA).matches;
@@ -50,7 +50,7 @@ function subscribeSystem(cb: () => void) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribeTheme, readTheme, (): ThemeChoice => 'system');
+  const theme = useSyncExternalStore(subscribeTheme, readTheme, (): ThemeChoice => 'light');
   const sysDark = useSyncExternalStore(subscribeSystem, systemDark, () => false);
   const resolved = theme === 'system' ? (sysDark ? 'dark' : 'light') : theme;
 

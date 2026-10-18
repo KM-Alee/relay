@@ -166,7 +166,7 @@ export function OverviewView({
           ) : null}
         </div>
 
-        <TabsContent value="summary" className="space-y-6">
+        <TabsContent value="summary">
           <PanelFade>
             {demo && show('about') ? (
               <Reveal lift={false}>
