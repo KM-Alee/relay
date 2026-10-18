@@ -6,6 +6,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 import { api, ApiError } from '@/lib/api-client';
 import { Link } from '@/lib/i18n/navigation';
+import { AIBadge } from '@/components/relay/ai-badge';
 import { ErrorNote, FieldInput, Money, has, ui, useFieldLabel, useFieldText, useLoad, useMe } from './ui';
 
 export function ContactDetail({ id }: { id: string }) {
@@ -325,7 +326,7 @@ export function ContactDetail({ id }: { id: string }) {
 
       <section className={ui.card} aria-labelledby="sec-ai">
         <h2 id="sec-ai" className={ui.h2}>
-          {t('aiProfile')} <span className={ui.aiChip}>AI</span>
+          {t('aiProfile')} <AIBadge />
         </h2>
         {Object.keys(contact.aiProfile).length === 0 ? (
           <p className={ui.muted}>{t('aiProfileEmpty')}</p>
@@ -410,7 +411,7 @@ export function ContactDetail({ id }: { id: string }) {
             <li key={a.id} className="border-b border-[var(--border)] pb-2">
               <div className={ui.row}>
                 <strong>{t(`types.${a.type}`)}</strong>
-                {a.ai && <span className={ui.aiChip}>AI</span>}
+                {a.ai && <AIBadge />}
                 <span className={ui.muted}>
                   {a.ai ? t('byAi') : a.actorName ? t('by', { name: a.actorName }) : t('bySystem')} ·{' '}
                   {fmt.dateTime(new Date(a.occurredAt), { dateStyle: 'medium', timeStyle: 'short' })}

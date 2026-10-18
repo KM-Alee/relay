@@ -16,6 +16,7 @@ import { ingestStripe } from '../../src/services/stripe-ingest';
 const RUN = randomUUID().slice(0, 8);
 const ws = randomUUID();
 const userId = randomUUID();
+const oppId = randomUUID();
 const WHSEC = 'whsec_test_secret_for_contract_tests_0123456789';
 const fake = createFakeStripe();
 const actor: Actor = {
@@ -45,6 +46,20 @@ beforeAll(async () => {
     await tx.insert(workspaces).values({ id: ws, name: 'Pay WS', slug: `pay-${ws}` });
     await tx.execute(sql`insert into users (id, workspace_id, email, name, password_hash, base_level)
       values (${userId}, ${ws}, ${`u-${userId}@example.com`}, 'Ayesha', 'x', 'owner')`);
+    // Payment links hang off a real opportunity (CRM tables, T-110).
+    const contactId = randomUUID();
+    const pipelineId = randomUUID();
+    const stageId = randomUUID();
+    await tx.execute(
+      sql`insert into contacts (id, workspace_id, name) values (${contactId}, ${ws}, 'Pay Contact')`,
+    );
+    await tx.execute(
+      sql`insert into pipelines (id, workspace_id, name) values (${pipelineId}, ${ws}, 'Sales')`,
+    );
+    await tx.execute(sql`insert into stages (id, workspace_id, pipeline_id, name, position)
+      values (${stageId}, ${ws}, ${pipelineId}, 'New', 0)`);
+    await tx.execute(sql`insert into opportunities (id, workspace_id, contact_id, pipeline_id, stage_id, title, value_minor, owner_user_id)
+      values (${oppId}, ${ws}, ${contactId}, ${pipelineId}, ${stageId}, 'Solar 5kW', 5000000, ${userId})`);
   });
   const dto = await integrationsService.connect(actor, 'stripe', {
     secrets: { secretKey: 'sk_test_fake_0123456789', webhookSecret: WHSEC },
@@ -82,7 +97,7 @@ const count = async (q: ReturnType<typeof sql>) =>
 describe('[I2.1] create a payment request', () => {
   it('[I2.1] creates a pending request + Checkout Session (PKR shown, USD billed), audited; amounts hidden without value permission', async (ctx) => {
     if (!ready) return ctx.skip();
-    const dto = await createRequest(actor, randomUUID(), {
+    const dto = await createRequest(actor, oppId, {
       amountMinor: 5_000_000,
       currency: 'PKR',
       description: 'Deposit',
