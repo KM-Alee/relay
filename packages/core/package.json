@@ -5,6 +5,16 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./domain/leads": "./src/domain/leads/index.ts",
+    "./ai": "./src/ai/index.ts",
+    "./audit": "./src/audit/index.ts",
+    "./realtime": "./src/realtime/index.ts",
+    "./integrations/meta": "./src/integrations/meta/index.ts",
+    "./integrations/stripe": "./src/integrations/stripe/index.ts",
+    "./integrations/google": "./src/integrations/google/index.ts",
+    "./integrations/slack": "./src/integrations/slack/index.ts",
+    "./integrations/qstash": "./src/integrations/qstash/index.ts",
+    "./integrations/blob": "./src/integrations/blob/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {

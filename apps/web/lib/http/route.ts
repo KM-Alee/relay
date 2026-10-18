@@ -11,10 +11,12 @@
 // Pipeline: CSRF (unsafe methods, non-exempt paths) → session → Actor → permission → rate limit →
 // Zod-parse params/query/body → handler → JSON (or a raw Response) → errors as the typed envelope.
 // Every response gets `Cache-Control: no-store` and a csrf cookie if the caller lacks a valid one.
-import { hasPermission, type Actor } from '@relay/core/auth/actor';
-import { CSRF_COOKIE, CSRF_HEADER, verifyCsrf } from '@relay/core/auth/csrf';
+import type { Actor } from '@relay/core/auth/actor';
+import { can, type PermissionKey } from '@relay/core/auth/permissions';
+import { CSRF_COOKIE, CSRF_HEADER, isUnsafeMethod, verifyCsrf } from '@relay/core/auth/csrf';
 import { config } from '@relay/core/config';
 import { AppError, toErrorResponse, validationError } from '@relay/core/errors';
+import { log } from '@relay/core/log';
 import { consume, type RateLimiter } from '@relay/core/services/rate-limit';
 import type { z } from 'zod';
 import { ensureCsrfCookie } from './csrf-cookie';
@@ -51,7 +53,7 @@ export interface RouteSpec<
 > {
   auth: A;
   /** Permission key checked before the handler (services re-check + apply record scope). */
-  permission?: A extends 'session' ? string : never;
+  permission?: A extends 'session' ? PermissionKey : never;
   body?: B;
   query?: Q;
   params?: P;
@@ -84,11 +86,8 @@ const defaultDeps: RouteDeps = {
   csrfSecret: () => config.core.SESSION_SECRET,
   trustedOrigins: () => [new URL(config.core.PUBLIC_BASE_URL).origin],
   secureCookies: () => config.core.NODE_ENV === 'production',
-  // TODO(core/log.ts): route through the redacting logger once it exists (06 §5).
-  logError: (err, meta) => {
-    const e = err instanceof Error ? { name: err.name, message: err.message } : { value: String(err) };
-    console.error('[api] unhandled error', { ...meta, ...e });
-  },
+  // Redacting logger (06 §5): errors reduced to name + message; sensitive keys never printed.
+  logError: (err, meta) => log.error('api.unhandled_error', { ...meta, err }),
 };
 
 function parseWith<S extends Schema | undefined>(
@@ -127,18 +126,21 @@ export function createRoute(deps: RouteDeps) {
       const csrfCookie = readCookie(req, CSRF_COOKIE);
       let res: Response;
       try {
-        // 1. CSRF (06 §4): Origin/Host + signed double-submit on unsafe methods.
-        const csrf = verifyCsrf({
-          method: req.method,
-          pathname: url.pathname,
-          origin: req.headers.get('origin'),
-          referer: req.headers.get('referer'),
-          host: requestHost(req),
-          cookieToken: csrfCookie,
-          headerToken: req.headers.get(CSRF_HEADER),
-          trustedOrigins: deps.trustedOrigins(),
-          secret: deps.csrfSecret(),
-        });
+        // 1. CSRF (06 §4): Origin/Host + signed double-submit on unsafe methods. Safe methods skip it
+        // entirely, so GETs never need SESSION_SECRET/PUBLIC_BASE_URL to be configured.
+        const csrf = !isUnsafeMethod(req.method)
+          ? { ok: true as const }
+          : verifyCsrf({
+              method: req.method,
+              pathname: url.pathname,
+              origin: req.headers.get('origin'),
+              referer: req.headers.get('referer'),
+              host: requestHost(req),
+              cookieToken: csrfCookie,
+              headerToken: req.headers.get(CSRF_HEADER),
+              trustedOrigins: deps.trustedOrigins(),
+              secret: deps.csrfSecret(),
+            });
         if (!csrf.ok) {
           // The reason stays server-side (internal message); the client only sees CSRF_FAILED.
           throw new AppError('CSRF_FAILED', { message: `csrf: ${csrf.reason}` });
@@ -149,8 +151,7 @@ export function createRoute(deps: RouteDeps) {
         if (spec.auth === 'session' && !actor) throw new AppError('UNAUTHENTICATED');
 
         // 3. Declared permission (services still check + scope records; F1.5).
-        if (spec.permission && actor && !hasPermission(actor, spec.permission))
-          throw new AppError('FORBIDDEN');
+        if (spec.permission && actor && !can(actor, spec.permission)) throw new AppError('FORBIDDEN');
 
         // 4. Rate limit.
         const ip = clientIp(req);
