@@ -32,13 +32,14 @@
 ### Users, roles, teams (F1.2–F1.8, F3.2)
 | Method | Path | Permission |
 |---|---|---|
-| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability). **GET built (T-102)**: keyset `?cursor&limit` → `{items: UserSummary[] (+ openLoad), nextCursor}`; other workspace's id → 404. **PATCH built (T-104)** `{version, baseLevel?, roleIds?}`: Owner-protection (Admin → 403 on the Owner, cannot make/demote admins or hand out `roles.manage`/`audit.view`), `STALE_VERSION` 409, sessions rotate, audited `user.level_changed` / `user.roles_changed` |
 | POST | `/users/:id/deactivate` | `users.manage` (guards per F1.8). **Built (T-105)** `{version?}`: one tx = guards → `is_active=false` → all sessions revoked (next request 401) → `onUserDeactivated` hooks (lead transfer, T-127) → audit `user.deactivated`. Owner / self → 422 `BUSINESS_RULE_VIOLATION` |
 | DELETE | `/users/:id/sessions` | Owner. **Built (T-105)** → `{revoked}`; audited `user.sessions_revoked` |
-| PATCH | `/users/:id/availability` | self or `users.manage` |
 | GET / POST · PATCH / DELETE | `/roles` · `/roles/:id` | GET: `users.manage` or `roles.manage`; writes: `roles.manage`. **Built (T-104)** `{name, permissions}` / `{version, name?, permissions?}`; seeded Manager cannot be deleted; members' sessions rotate; audited `role.created/updated/deleted` |
 | GET · PUT | `/level-permissions` · `/level-permissions/:level` (`admin`\|`user`) | read: `users.manage`/`roles.manage`; PUT `{version, permissions}`: `roles.manage`. **Built (T-104)** |
 | GET · PUT | `/users/:id/permission-overrides` | read: `users.manage`/`roles.manage`; PUT `{items:[{permission, effect}]}` replaces: `roles.manage`. Returns `{items, effective}`. **Built (T-104)**; audited `user.permissions_changed` |
+| GET / PATCH | `/users` · `/users/:id` | `users.manage` (self for own profile/availability). **GET built (T-102)**: keyset `?cursor&limit` → `{items: UserSummary[], nextCursor}`; other workspace's id → 404 |
+| PATCH | `/users/:id/availability` | self or `team.availability.manage`. **Built (T-120).** `{availability}` → `{userId, availability, reassignedLeadIds, keptAcknowledgedLeadIds}`; On leave / Offline reassigns pending leads in the same tx (F3.6) |
+| GET | `/teams` | `team.availability.view`. **Built (T-120).** Teams + members (availability, open handler leads, capacity) |
 | CRUD | `/teams`, `/teams/:id/members` | `routing.manage` |
 | CRUD | `/escalation-policies` (+ levels) | `routing.manage` |
 
@@ -80,21 +81,21 @@
 ### Leads (F3) — spec in `03-lead-engine.md`
 | Method | Path | Permission | Transition |
 |---|---|---|---|
-| GET | `/leads` (`?view=mine|all`), `/leads/:id` (incl. trace, events) | own or `leads.view_all` | |
-| POST | `/leads` | `leads.create` | T1 manual intake |
-| POST | `/leads/:id/acknowledge` `{version}` | owner | T2 |
+| GET | `/leads` (`?view=mine|all&status&cursor&limit`), `/leads/:id` (incl. trace, events) | own or `leads.view_all` | **Built (T-122/T-123).** Out of scope → 404 |
+| POST | `/leads` | `leads.create` | T1 manual intake. **Built.** `{contactName, phone?, email?, message?, sourceKey, teamId?, isUrgent?}` → 201; `GET /lead-sources` lists manual sources |
+| POST | `/leads/:id/acknowledge` `{version?}` | owner | T2. **Built.** Not owner / fallback custodian / already acked / stale → 409 `LEAD_STATE_CHANGED` `{reason, currentOwnerUserId}` |
 | POST | `/leads/:id/reassign` `{toUserId, override?, reason?}` | `leads.reassign` | T7 |
 | POST | `/leads/:id/claim` (P1) | eligible user | T8 |
 | POST | `/leads/:id/take-over` | custodian (if eligible) | §11 Q3 |
 | POST | `/leads/:id/urgent` | owner or `leads.reassign` | F3.12 |
 | GET | `/recovery-queue` | `leads.recovery.view` | §7 |
-| GET | `/notifications`; POST `/notifications/read` | session | F3.4 |
+| GET | `/notifications`; POST `/notifications/read` | session | F3.4. **Built (T-123).** `{items, unreadCount}`; read `{ids}` or `{all:true}` |
 | POST | `/tick-nudge` | session, rate-limited | runs due work only |
 
 ### Public (no auth)
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/f/:slug` (page) · POST `/api/public/forms/:slug` | honeypot + per-IP rate limit; returns `{ok, bookingAvailable}` (F3.1, I3.8) |
+| GET | `/f/:slug` (page) · POST `/api/public/forms/:slug` | honeypot + per-IP rate limit; returns `{ok, bookingAvailable}` (F3.1, I3.8). **Built (T-122):** `{name, phone? | email?, message?, website (honeypot)}`, 10 / 10 min per IP; slug resolved by SECURITY DEFINER `relay_web_form_lookup` |
 | GET / POST | `/api/public/forms/:slug/slots` · `/book` (P1) | handler slots only (I3.8) |
 
 ### Conversations & payments & calendar (I1–I3)

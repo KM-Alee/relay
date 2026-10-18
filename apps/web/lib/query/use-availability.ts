@@ -1,14 +1,18 @@
 'use client';
 // Own availability (F3.2): optimistic update with rollback + localized toasts (docs/07 §3).
-// NOTE: the teams contract (Lane A, T-120) has no availability endpoint yet, so `persist` resolves locally.
-// When `api.teams.setAvailability` lands, replace `persist` with that call: nothing else changes.
+// Persisted through PATCH /api/v1/users/:id/availability (T-120); On leave / Offline reassigns pending leads (F3.6).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from '@/components/ui/toaster';
 import type { Availability } from '@/components/relay/owner-chip';
+import { api } from '@/lib/api-client';
 import { qk } from './keys';
 
+const TO_SERVER = { available: 'available', busy: 'busy', onLeave: 'on_leave', offline: 'offline' } as const;
+
 async function persist(next: Availability): Promise<Availability> {
+  const me = await api.users.me();
+  await api.teams.setAvailability(me.user.id, TO_SERVER[next]);
   return next;
 }
 

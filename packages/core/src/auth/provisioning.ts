@@ -12,6 +12,7 @@ import { LEVEL_DEFAULTS, MANAGER_ROLE } from '@relay/contracts/permission-defaul
 import { uuidv7 } from '../ids';
 import * as repo from '../repos/identity';
 import { createPipelineIn } from '../services/crm-pipelines';
+import { teamsProvisioner } from './provisioning-teams';
 
 export interface ProvisionContext {
   workspaceId: string;
@@ -51,7 +52,7 @@ export const pipelinesProvisioner: WorkspaceProvisioner = {
 export const workspaceProvisioners: WorkspaceProvisioner[] = [
   identityProvisioner,
   pipelinesProvisioner,
-  // TODO(Lane A, T-120/T-124): teamsProvisioner (default team + escalation policy + lead sources)
+  teamsProvisioner, // A · T-120/T-124: default team + escalation policy + lead sources + public form
   // TODO(Lane C, T-208): templatesProvisioner (default en/ur message templates)
 ];
 

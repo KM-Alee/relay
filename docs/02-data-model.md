@@ -35,7 +35,7 @@
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `teams` | `id, workspace_id, name, manager_user_id, backup_user_id, routing_mode ('round_robin'|'first_to_claim'), rr_cursor int DEFAULT 0, default_capacity int, skills_routing bool, ack_window_seconds int, urgent_ack_window_seconds int, routing_retry_seconds int, idle_seconds int, idle_retrigger_enabled bool DEFAULT false (P1 F3.10), escalation_policy_id, version` | "Team or pipeline" backup + manager (F3.5). Every workspace has ≥ 1 team |
+| `teams` | `id, workspace_id, name, is_default (one per workspace), manager_user_id, backup_user_id, routing_mode ('round_robin'|'first_to_claim'), rr_cursor int DEFAULT 0, default_capacity int, skills_routing bool, ack_window_seconds int, urgent_ack_window_seconds int, routing_retry_seconds int, idle_seconds int, idle_retrigger_enabled bool DEFAULT false (P1 F3.10), escalation_policy_id, version` | "Team or pipeline" backup + manager (F3.5). Every workspace has ≥ 1 team |
 | `team_members` | `workspace_id, team_id, user_id, position int` | Ordering for round-robin |
 | `escalation_policies` | `id, workspace_id, name, repeat_count int DEFAULT 1, version` | |
 | `escalation_levels` | `id, workspace_id, policy_id, position, target_type ('next_eligible'|'user'|'team_backup'|'team_manager'), target_user_id NULL, timeout_seconds int` | Default policy: next_eligible → next_eligible → team_backup → team_manager |
@@ -74,6 +74,7 @@
 |---|---|---|
 | `id, workspace_id, contact_id, opportunity_id NULL, team_id, pipeline_id` | | |
 | `source_kind, source_id, source_label` | | `web_form` / `whatsapp` / `manual` + label (F3.1) |
+| `contact_name, contact_phone, contact_email citext, message` | | Contact snapshot at intake (T-122). `contact_id` is nullable with no FK until contacts (T-110) merge; intake dedupes open leads by contact id, phone or email |
 | `status` | `'open'|'closed'` | Closed = won/lost/disqualified/merged (`closed_reason`) |
 | `owner_user_id` | `uuid NOT NULL` | **The one accountable human. Never null.** |
 | `custody` | `'handler'|'fallback'` | `fallback` = the manager/Owner holds custody (F3 header) |

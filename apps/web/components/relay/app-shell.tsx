@@ -10,6 +10,7 @@ import { qk } from '@/lib/query/keys';
 import { useAvailability } from '@/lib/query/use-availability';
 import { useSignOut } from '@/lib/query/use-sign-out';
 import { useRealtime } from '@/lib/realtime';
+import { useNotificationItems } from '@/lib/query/use-notifications';
 import { visibleNav } from '@/nav';
 import { TopNav } from './top-nav';
 
@@ -21,6 +22,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
   const signOut = useSignOut();
   // ONE change-feed poller for the whole signed-in app (ADR-0003); screens add useRealtimeLive() for 1 s.
   useRealtime({ queryClient, enabled: me.isSuccess });
+  const notifications = useNotificationItems(me.isSuccess); // Lane A (T-123)
 
   const items = useMemo(
     () =>
@@ -53,6 +55,7 @@ export function AppShell({ children, demoMode = false }: { children: ReactNode; 
         signingOut={signOut.pending}
         availability={availability.value}
         onAvailabilityChange={availability.setValue}
+        notifications={notifications}
       />
       <main
         id="main"
