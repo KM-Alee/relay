@@ -14,6 +14,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `AppError` + error-code catalogue, `route()` handler wrapper, signed double-submit CSRF + Origin check, DB-backed fixed-window rate limiter (`rate_limits`), localized client error helper with en/ur `errors` messages, `GET /api/v1/csrf` [T-006] [Q3] [Q10] [F1.5] [Q1]
 - Parallel-ready skeleton: lane folders + placeholders, per-domain schema/seed/contracts/fixtures/api-client files, full permission catalogue with level defaults + Manager role + `assertPermission`, `nav.ts` with all destinations + i18n'd stub pages, next-intl `[locale]` routing (`proxy.ts`, en/ur, RTL), 12 message namespaces, typed api-client with fixture mode and `GET /api/v1/me` example, outbox job registry, redacting logger, guarded `/dev/login-as` + `/dev/kitchen-sink`, `pnpm db:new` / `pnpm db:seed`, husky + lint-staged, `wt.sh env` / `rm --purge` [T-013] [Q14] [F1.3] [F7.1]
 
+- `vercel.json` (sin1) + `vercel-build` (owner migrations on prod/preview, then build); `GET /api/health` with DB ping + `app_user` role assertion [T-004] [Q18]
+- Runtime pool rewrites an owner `DATABASE_URL` to `app_user` via `APP_DB_PASSWORD`; boot check validates the effective user [T-004] [Q6]
+- Realtime change feed: `realtime_events`, `emit()`, `pruneRealtimeEvents()`, `GET /api/v1/changes`, `useRealtime()` poller [T-009] [Q11]
+- GitHub Actions CI (static, tests on postgres:16, build), `pnpm test:ci`, `pnpm traceability` reporter [T-011] [F10.3]
+
 ### Changed
 - `RouteSpec.permission` and `Actor.permissions` are typed as `PermissionKey`; route errors go through the redacting logger [T-013] [Q14]
 - Notifications env vars: Slack (`SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_APP_ID`, `SLACK_TEAM_ID`) replace `TELEGRAM_*` in `.env.example` and `core/config.ts` (ADR-0011) [T-003]
