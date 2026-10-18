@@ -5,6 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Clock3, LifeBuoy, Siren, TimerReset, UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertChip } from '@/components/relay/alert-chip';
@@ -39,7 +40,12 @@ export function OverviewView({
   const f = useFormat();
   const router = useRouter();
   const pathname = usePathname();
-  const [tab, setTab] = useState<'summary' | 'radar'>(initialTab);
+  // The URL drives the tab, so links to /?tab=radar (e.g. "Watch it live on Lead Radar") switch it in place.
+  const tabParam = useSearchParams().get('tab');
+  const [picked, setTab] = useState<'summary' | 'radar' | null>(null);
+  const urlTab =
+    tabParam === 'radar' ? 'radar' : tabParam === null && initialTab === 'radar' ? 'radar' : 'summary';
+  const tab = picked !== null && picked === urlTab ? picked : urlTab;
   const [days, setDays] = useState(30);
 
   const me = useQuery({ queryKey: qk.me(), queryFn: ({ signal }) => api.users.me({ signal }), retry: false });
