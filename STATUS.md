@@ -50,10 +50,10 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-122 | Intake: manual + public form | A | todo |  |  | critical path |
 | T-123 | Acknowledge + notifications + countdown | A | todo |  |  | critical path |
 | T-124 | Escalation timer + chain | A | todo |  |  | critical path |
-| T-110 | Contacts/companies/opportunities CRUD | B | todo |  |  |  |
-| T-111 | Pipelines & stages + board | B | todo |  |  |  |
-| T-112 | Custom fields | B | todo |  |  |  |
-| T-116 | Activity timeline, notes, call logs | B | todo |  |  |  |
+| T-110 | Contacts/companies/opportunities CRUD | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-111 | Pipelines & stages + board | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-112 | Custom fields | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-116 | Activity timeline, notes, call logs | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-140 | Integrations page + sync history | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | page at settings/integrations; connections CRUD + secrets + breaker + sync history API; audit via seam until T-007 merges |
 | T-145 | Slack alerts + linking | C | review | agent:lane-C | `worktree-agent-a50aa6117f9801e8f` | critical path; Lane A hook: `enqueueSlackAlert(tx, …)` in core/services/slack.ts; real-Slack smoke pending (token not in worktree env) |
 | T-150 | Metrics + dashboard | D | todo |  |  |  |
@@ -69,11 +69,11 @@ Lanes: **A** lead engine + leads UI · **B** platform/auth/CRM · **C** integrat
 | T-103 | Invites | B | todo |  |  |  |
 | T-104 | Roles & permissions UI | B | todo |  |  |  |
 | T-105 | User deactivation + sessions UI | B | todo |  |  |  |
-| T-113 | Stage-required fields | B | todo |  |  |  |
-| T-114 | Tags | B | todo |  |  |  |
-| T-115 | Filters + saved lists | B | todo |  |  |  |
-| T-117 | Contact 360 page | B | todo |  |  |  |
-| T-118 | CSV export | B | todo |  |  |  |
+| T-113 | Stage-required fields | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-114 | Tags | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-115 | Filters + saved lists | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-117 | Contact 360 page | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
+| T-118 | CSV export | B | review | agent:lane-B2 | `worktree-agent-a694b0e3941bc35ff` |  |
 | T-151 | Audit log viewer | B | todo |  |  |  |
 | T-141 | Meta WhatsApp adapter + webhook | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | Graph v25.0; webhook `/api/webhooks/meta/[key]`; Lane A hook `registerInboundCustomerMessageHandler` (messaging-hooks.ts); contacts/leads tables not on main: contact match is guarded (`to_regclass`) and the hook creates contact+lead |
 | T-142 | WhatsApp media → Blob | C | review | agent:lane-C3 | `worktree-agent-ac61bef57a9c60f24` | private Blob (`access:'private'`), Postgres `bytea` fallback (8 MB cap) when no token; proxy `/api/v1/media/:id` |
@@ -169,3 +169,4 @@ _None open._ If a conflict with `requirements.md` is found, record it here and k
 - **2026-10-18 · agent:w0:** T-001, T-002, T-003, T-006 done on `w0-skeleton` (4 commits). `pnpm check` + `pnpm build` green locally against Docker Postgres. Slack replaces Telegram in config/.env.example per coordinator (ADR-0011; other docs handled elsewhere). Extension points for T-013/T-101 listed in the W0 report: `lib/http/session.ts#resolveActor`, `core/auth/actor.ts`, `contracts/src/errors.ts`, `db/src/schema/index.ts`, `messages/<locale>/errors.json`.
 - **2026-10-18 · agent:w0:** T-013 done on `w0-t013` (6 commits). Skeleton per 13 §10; endpoint recipe in 13 §4. Proved two `wt.sh` worktrees run `pnpm test` simultaneously (105/105 each) after fixing a real clash: concurrent first-time migrations collided on the cluster-global `app_user` role ("tuple concurrently updated"); runner now retries. `pnpm check` + `pnpm build` green. Note: an uncommitted `.gitignore` edit (`.vercel`, `.env*`) appeared from outside this task and was left uncommitted (`.env*` after `!.env.example` re-ignores it).
 - **2026-10-18 · agent:c2-ai:** T-204/T-205/T-214 -> review; T-206/T-207 core done (branch `worktree-agent-a4c320d0e5d09ec69`). `@relay/core/ai` exports triage, stand-in (+guards, static en/ur/ur-Latn templates), handoff brief, runAiTask with daily cap + `ai_usage`. Defaults gpt-4.1-mini (chat) / gpt-4.1-nano (triage) / gpt-4o-mini-transcribe. `pnpm ai:eval` run against real OpenAI, ~$0.0003/call. Not built: outbox jobs, trigger/state machine (messaging lane), integration_events row, breaker, transcription task.
+- **2026-10-18 · agent:lane-B2:** T-110…T-118 in `review` on `worktree-agent-a694b0e3941bc35ff`: crm schema/migration (`202610181303_b_crm.sql`), services `core/services/crm-*.ts` + `lists.ts` + `exports.ts`, ~40 `/api/v1` routes, screens (contacts, contact 360, companies, pipeline board/table, settings pipelines/fields/tags; en + ur), CRM seed (Sunrise 10 contacts/9 opps, Crescent 5/4). Lane A hook: `onHumanAction(tx, {leadId?, contactId, actor})` / `registerHumanActionHandler` in `core/services/crm-activity.ts` (the handler must check the actor owns the lead). Lane C hook: `registerContact360Provider(kind, fn)` in `core/services/crm-contact360.ts`. `contactScopeSql` now calls the late-bound `crm_contact_has_open_lead()` (works before Lane A's `leads` table exists). Real Playwright check against `pnpm dev:web` passed (see report).

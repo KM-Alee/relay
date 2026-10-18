@@ -20,7 +20,7 @@ export type ApiDomain =
 export const FIXTURE_DOMAINS: Record<ApiDomain, boolean> = {
   auth: true, // B
   users: true, // B
-  crm: true, // B
+  crm: false, // B (T-110…T-118: real routes merged)
   audit: true, // B
   leads: true, // A
   teams: true, // A

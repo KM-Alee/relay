@@ -11,6 +11,7 @@ import type { Tx } from '@relay/db';
 import { LEVEL_DEFAULTS, MANAGER_ROLE } from '@relay/contracts/permission-defaults';
 import { uuidv7 } from '../ids';
 import * as repo from '../repos/identity';
+import { createPipelineIn } from '../services/crm-pipelines';
 
 export interface ProvisionContext {
   workspaceId: string;
@@ -39,10 +40,18 @@ export const identityProvisioner: WorkspaceProvisioner = {
   },
 };
 
+/** Default sales pipeline (New → Qualified → Proposal → Won / Lost) so a new workspace can use the board at once (T-111). */
+export const pipelinesProvisioner: WorkspaceProvisioner = {
+  name: 'pipelines',
+  run: async (tx, ctx) => {
+    await createPipelineIn(tx, ctx.workspaceId, { name: 'Sales', isDefault: true });
+  },
+};
+
 export const workspaceProvisioners: WorkspaceProvisioner[] = [
   identityProvisioner,
+  pipelinesProvisioner,
   // TODO(Lane A, T-120/T-124): teamsProvisioner (default team + escalation policy + lead sources)
-  // TODO(Lane B, T-111): pipelinesProvisioner (default pipeline + stages)
   // TODO(Lane C, T-208): templatesProvisioner (default en/ur message templates)
 ];
 
