@@ -112,12 +112,12 @@
       "appointments": "Upcoming appointments",
       "escalations": "Escalations (24 h)",
       "risk": "Revenue at risk and rescued",
-      "about": "About Relay card"
+      "about": "About Hisaab card"
     },
     "hiddenCount": "{count, plural, one {# figure hidden} other {# figures hidden}}"
   },
   "about": {
-    "title": "About Relay",
+    "title": "About Hisaab",
     "badge": "Demo workspace",
     "promise": "Every lead has exactly one accountable human. If they stay silent, the lead escalates on its own.",
     "ai": "AI buys time. Humans stay accountable.",

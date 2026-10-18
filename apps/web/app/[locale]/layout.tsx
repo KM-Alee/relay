@@ -26,7 +26,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) return { title: 'Relay' };
+  if (!hasLocale(routing.locales, locale)) return { title: 'Hisaab' };
   const t = await getTranslations({ locale, namespace: 'common' });
   return {
     title: { default: `${t('appName')} — ${t('tagline')}`, template: `%s · ${t('appName')}` },

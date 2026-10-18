@@ -1,5 +1,7 @@
-// Relay brand: logo mark (a baton being handed off: orange baton + charcoal baton, one clean overlap),
-// wordmark and tagline. The charcoal baton uses currentColor-like token fill so it works in light and dark.
+// Hisaab brand (renamed from Relay; internal paths stay components/relay). "Hisaab" = the account,
+// the reckoning. The mark is a ledger page (orange, with a soft page stacked behind) carrying an "H": the ledger, kept.
+// Every lead accounted for. Token fills only, so it works in light
+// and dark; strokes are thick enough to stay crisp at 16px.
 import { useTranslations } from 'next-intl';
 import { cn } from '@/components/ui/cn';
 import { Link } from '@/lib/i18n/navigation';
@@ -7,27 +9,15 @@ import { Link } from '@/lib/i18n/navigation';
 export function BrandMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" aria-hidden focusable="false" className={cn('size-8 shrink-0', className)}>
-      {/* the charcoal baton hands over to the orange baton */}
-      <rect
-        x="3"
-        y="15"
-        width="17"
-        height="7"
-        rx="3.5"
-        transform="rotate(-40 11.5 18.5)"
-        className="fill-fg"
+      <rect x="8" y="2.5" width="21.5" height="21.5" rx="6" className="fill-brand-soft" />
+      <rect x="2.5" y="8" width="22" height="22" rx="6.5" className="fill-brand" />
+      <path
+        d="M9.5 13.5v11M18 13.5v11M9.5 19h8.5"
+        className="fill-none stroke-canvas"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <rect
-        x="12"
-        y="9.5"
-        width="17"
-        height="7"
-        rx="3.5"
-        transform="rotate(-40 20.5 13)"
-        className="fill-brand stroke-canvas"
-        strokeWidth="1.6"
-      />
-      <circle cx="25.5" cy="25" r="2.6" className="fill-brand" />
     </svg>
   );
 }
@@ -44,7 +34,9 @@ export function Wordmark({ className, textClassName }: { className?: string; tex
       )}
     >
       <BrandMark />
-      <span className={cn('text-[22px] font-semibold leading-none tracking-tight text-fg', textClassName)}>
+      <span
+        className={cn('text-[22px] font-semibold leading-none tracking-[-0.02em] text-fg', textClassName)}
+      >
         {t('appName')}
       </span>
     </Link>
