@@ -15,7 +15,7 @@ function Overlay({ className }: { className?: string }) {
   return (
     <D.Overlay
       data-relay-overlay
-      className={cn('fixed inset-0 z-modal bg-fg/40 backdrop-blur-[2px]', className)}
+      className={cn('fixed inset-0 bg-fg/40 backdrop-blur-[2px]', className ?? 'z-modal')}
     />
   );
 }
